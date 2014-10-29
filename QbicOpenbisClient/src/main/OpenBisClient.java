@@ -19,7 +19,7 @@ import ch.systemsx.cisd.openbis.dss.client.api.v1.OpenbisServiceFacadeFactory;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType.VocabularyTerm;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.EntityType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
@@ -33,6 +33,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchCl
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClauseAttribute;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Vocabulary;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIdentifierId;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
@@ -1021,5 +1022,34 @@ public class OpenBisClient {// implements Serializable {
     } else {
       return 0f;
     }
+  }
+  
+  /**
+   * Returns a map of Labels (keys) and Codes (values) of a Vocabulary in openBIS 
+   * @param vocabularyCode Code of the Vocabulary type
+   * @return A map containing the labels as keys and codes as values in String format
+   */
+  public Map<String,String> getVocabCodesAndLabelsForVocab(String vocabularyCode) {
+    for(Vocabulary v : facade.listVocabularies()) {
+      if(v.getCode().equals(vocabularyCode)) {
+        Map<String,String> map = new HashMap<String,String>();
+        for(VocabularyTerm t : v.getTerms()) {
+          map.put(t.getLabel(), t.getCode());
+        }
+        return map;
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * Returns a list of all Codes of a Vocabulary in openBIS. This is useful when labels don't exist or are not needed.
+   * @param vocabularyCode Code of the Vocabulary type
+   * @return A list containing the codes of the vocabulary type
+   */
+  public List<String> getVocabCodesForVocab(String vocabularyCode) {
+    ArrayList<String> res = new ArrayList<String>();
+    res.addAll(this.getVocabCodesAndLabelsForVocab(vocabularyCode).values());
+    return res;
   }
 }
