@@ -64,7 +64,6 @@ public class OpenBisClient {// implements Serializable {
   String serverURL;
   boolean verbose;
 
-
   public OpenBisClient(String loginid, String password, String serverURL, boolean verbose) {
     this.userId = loginid;
     this.password = password;
