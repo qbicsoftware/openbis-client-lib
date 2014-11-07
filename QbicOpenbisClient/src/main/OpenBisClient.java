@@ -73,6 +73,9 @@ public class OpenBisClient {// implements Serializable {
     this.login();
   }
 
+  /**
+   * Checks if we are logged in
+   */
   public boolean loggedin() {
     if (this.facade == null)
       return false;
@@ -669,10 +672,11 @@ public class OpenBisClient {// implements Serializable {
         new ProjectIdentifierId(projectIdentifier), true);
   }
 
-  // TODO specify which parameters have to be there
   /**
    * Function to add an attachment to a existing project in openBIS by calling the corresponding
    * ingestion service of openBIS.
+   * TODO specify which parameters have to be there
+   * may not work yet!
    * 
    * @param parameter map with needed information for registration process by ingestion service
    */
@@ -824,11 +828,11 @@ public class OpenBisClient {// implements Serializable {
    * Function to create a QBiC barcode string for a sample based on the project ID. QBiC barcode
    * format: Q + project_ID + sample number + X + checksum
    * 
+   * TODO check if it works for all cases, check for null ?
+   * 
    * @param proj ID of the project
    * @return the QBiC barcode as string
    */
-  // TODO check if it works for all cases
-  // TODO check for null ?
   public String generateBarcode(String proj, int number_of_samples_offset) {
     Project project = this.getProjectByIdentifier(proj);
     // Project project = getProjectofExperiment(exp);
@@ -1024,7 +1028,7 @@ public class OpenBisClient {// implements Serializable {
   }
   
   /**
-   * Returns a map of Labels (keys) and Codes (values) of a Vocabulary in openBIS 
+   * Returns a map of Labels (keys) and Codes (values) in a Vocabulary in openBIS 
    * @param vocabularyCode Code of the Vocabulary type
    * @return A map containing the labels as keys and codes as values in String format
    */
@@ -1042,7 +1046,7 @@ public class OpenBisClient {// implements Serializable {
   }
   
   /**
-   * Returns a list of all Codes of a Vocabulary in openBIS. This is useful when labels don't exist or are not needed.
+   * Returns a list of all Codes in a Vocabulary in openBIS. This is useful when labels don't exist or are not needed.
    * @param vocabularyCode Code of the Vocabulary type
    * @return A list containing the codes of the vocabulary type
    */
@@ -1050,5 +1054,19 @@ public class OpenBisClient {// implements Serializable {
     ArrayList<String> res = new ArrayList<String>();
     res.addAll(this.getVocabCodesAndLabelsForVocab(vocabularyCode).values());
     return res;
+  }
+  
+  /**
+   * Function to talk to ingestions services (python scripts) of this openBIS instance
+   * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
+   * @param serviceName label of the ingestion service to call (this is defined in the ingestion service properties)
+   * @param params A Map of parameters to send to the ingestion service
+   */
+  public void ingest(String dss, String serviceName, Map<String, Object> params) {
+      if(openbisDssService == null) {
+          ServiceFinder serviceFinder2 = new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
+          openbisDssService = serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
+      }
+      this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName, params);
   }
 }
