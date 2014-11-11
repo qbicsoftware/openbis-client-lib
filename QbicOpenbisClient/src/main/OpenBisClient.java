@@ -1083,4 +1083,6 @@ public class OpenBisClient {// implements Serializable {
     this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
         params);
   }
+  
+  
 }
