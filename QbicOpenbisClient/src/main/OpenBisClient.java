@@ -1,4 +1,5 @@
 package main;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIden
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 
-//import com.google.gwt.user.server.rpc.UnexpectedException;
+// import com.google.gwt.user.server.rpc.UnexpectedException;
 
 
 
@@ -53,22 +54,20 @@ public class OpenBisClient {// implements Serializable {
    * 
    */
   // private static final long serialVersionUID = 3926210649301601498L;
-  int timeout = 120; // 2 minutes
-  int tolimit = 600;
-  IOpenbisServiceFacade facade;
-  IGeneralInformationService openbisInfoService;
-  IQueryApiServer openbisDssService;
-  String sessionToken;
-  String userId;
-  String password;
-  String serverURL;
-  boolean verbose;
+  private int timeout = 120; // 2 minutes
+  private int tolimit = 600;
+  private IOpenbisServiceFacade facade;
+  private IGeneralInformationService openbisInfoService;
+  private IQueryApiServer openbisDssService;
+  private String sessionToken;
+  private String userId;
+  private String password;
+  private String serverURL;
 
   public OpenBisClient(String loginid, String password, String serverURL, boolean verbose) {
     this.userId = loginid;
     this.password = password;
     this.serverURL = serverURL;
-    this.verbose = verbose;
     this.facade = null;
     this.login();
   }
@@ -146,7 +145,11 @@ public class OpenBisClient {// implements Serializable {
             e1.printStackTrace();
           }
           if (facade == null) {
-              throw new NullPointerException("OpenBis facade is not available. Check connection, password and user.");//throw new UnexpectedException("OpenBis facade is not available. Check connection, password and user.", e);
+            throw new NullPointerException(
+                "OpenBis facade is not available. Check connection, password and user.");// throw
+                                                                                         // new
+                                                                                         // UnexpectedException("OpenBis facade is not available. Check connection, password and user.",
+                                                                                         // e);
           }
         }
       }
@@ -674,9 +677,7 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Function to add an attachment to a existing project in openBIS by calling the corresponding
-   * ingestion service of openBIS.
-   * TODO specify which parameters have to be there
-   * may not work yet!
+   * ingestion service of openBIS. TODO specify which parameters have to be there may not work yet!
    * 
    * @param parameter map with needed information for registration process by ingestion service
    */
@@ -751,15 +752,17 @@ public class OpenBisClient {// implements Serializable {
     }
     return st;
   }
-  
+
   /**
    * Function to get a ExperimentType object of a experiment type
    * 
    * @param experimentType the experiment type as string
    * @return the ExperimentType object of the corresponding experiment type
    */
-  public ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType getExperimentTypeByString(String experimentType) {
-    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType> types = this.getFacade().listExperimentTypes();
+  public ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType getExperimentTypeByString(
+      String experimentType) {
+    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType> types =
+        this.getFacade().listExperimentTypes();
     ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType st = null;
     for (ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType t : types) {
       if (t.getCode().equals(experimentType)) {
@@ -944,6 +947,7 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Checks if a space object of a certain code exists in openBIS
+   * 
    * @param spaceCode the code of an openBIS space
    * @return true, if the space exists, false otherwise
    */
@@ -957,6 +961,7 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Checks if a project object of a certain code exists under a given space in openBIS
+   * 
    * @param spaceCode the code of an openBIS space
    * @param projectCode the code of a project
    * @return true, if the project exists under this space, false otherwise
@@ -971,6 +976,7 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Checks if an experiment of a certain code exists under a given space and project in openBIS
+   * 
    * @param spaceCode the code of an openBIS space
    * @param projectCode the code of a project in openBIS
    * @param experimentCode the code of an experiment
@@ -988,6 +994,7 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Checks if a sample of a given code exists in openBIS
+   * 
    * @param sampleCode the code of a sample
    * @return true, if the sample exists, false otherwise
    */
@@ -1000,7 +1007,7 @@ public class OpenBisClient {// implements Serializable {
     }
     return false;
   }
-  
+
   /**
    * Compute status of project by checking status of the contained experiments
    * 
@@ -1026,17 +1033,18 @@ public class OpenBisClient {// implements Serializable {
       return 0f;
     }
   }
-  
+
   /**
-   * Returns a map of Labels (keys) and Codes (values) in a Vocabulary in openBIS 
+   * Returns a map of Labels (keys) and Codes (values) in a Vocabulary in openBIS
+   * 
    * @param vocabularyCode Code of the Vocabulary type
    * @return A map containing the labels as keys and codes as values in String format
    */
-  public Map<String,String> getVocabCodesAndLabelsForVocab(String vocabularyCode) {
-    for(Vocabulary v : facade.listVocabularies()) {
-      if(v.getCode().equals(vocabularyCode)) {
-        Map<String,String> map = new HashMap<String,String>();
-        for(VocabularyTerm t : v.getTerms()) {
+  public Map<String, String> getVocabCodesAndLabelsForVocab(String vocabularyCode) {
+    for (Vocabulary v : facade.listVocabularies()) {
+      if (v.getCode().equals(vocabularyCode)) {
+        Map<String, String> map = new HashMap<String, String>();
+        for (VocabularyTerm t : v.getTerms()) {
           map.put(t.getLabel(), t.getCode());
         }
         return map;
@@ -1044,9 +1052,11 @@ public class OpenBisClient {// implements Serializable {
     }
     return null;
   }
-  
+
   /**
-   * Returns a list of all Codes in a Vocabulary in openBIS. This is useful when labels don't exist or are not needed.
+   * Returns a list of all Codes in a Vocabulary in openBIS. This is useful when labels don't exist
+   * or are not needed.
+   * 
    * @param vocabularyCode Code of the Vocabulary type
    * @return A list containing the codes of the vocabulary type
    */
@@ -1055,18 +1065,22 @@ public class OpenBisClient {// implements Serializable {
     res.addAll(this.getVocabCodesAndLabelsForVocab(vocabularyCode).values());
     return res;
   }
-  
+
   /**
    * Function to talk to ingestions services (python scripts) of this openBIS instance
+   * 
    * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
-   * @param serviceName label of the ingestion service to call (this is defined in the ingestion service properties)
+   * @param serviceName label of the ingestion service to call (this is defined in the ingestion
+   *        service properties)
    * @param params A Map of parameters to send to the ingestion service
    */
   public void ingest(String dss, String serviceName, Map<String, Object> params) {
-      if(openbisDssService == null) {
-          ServiceFinder serviceFinder2 = new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
-          openbisDssService = serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
-      }
-      this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName, params);
+    if (openbisDssService == null) {
+      ServiceFinder serviceFinder2 =
+          new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
+      openbisDssService = serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
+    }
+    this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
+        params);
   }
 }
