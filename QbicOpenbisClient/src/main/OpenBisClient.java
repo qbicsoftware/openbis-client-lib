@@ -245,13 +245,7 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
     ensureLoggedIn();
-    SearchCriteria sc = new SearchCriteria();
-    SearchCriteria ec = new SearchCriteria();
-    ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
-        experimentIdentifier));
-    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
-    List<Sample> foundSamples = this.openbisInfoService.searchForSamples(sessionToken, sc);
-    return foundSamples;
+    return openbisInfoService.listSamplesForExperiment(sessionToken, experimentIdentifier);
   }
 
   /**
@@ -293,25 +287,17 @@ public class OpenBisClient {// implements Serializable {
     List<String> projects = new ArrayList<String>();
     List<Project> foundProjects = facade.listProjects();
     List<Sample> foundSamples = new ArrayList<Sample>();
-
     for (Project proj : foundProjects) {
       if (projectIdentifier.equals(proj.getCode())) {
         projects.add(proj.getIdentifier());
       }
     }
-
     if (projects.size() > 0) {
       List<Experiment> foundExp = facade.listExperimentsForProjects(projects);
       for (Experiment exp : foundExp) {
-        SearchCriteria sc = new SearchCriteria();
-        SearchCriteria ec = new SearchCriteria();
-        ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
-            exp.getIdentifier()));
-        sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
-        foundSamples.addAll(this.openbisInfoService.searchForSamples(sessionToken, sc));
+        foundSamples.addAll(getSamplesofExperiment(exp.getIdentifier()));
       }
     }
-
     return foundSamples;
   }
 
@@ -352,8 +338,9 @@ public class OpenBisClient {// implements Serializable {
       if (p.getCode().equals(projectCode))
         projID = "/" + p.getSpaceCode() + "/" + p.getCode();
     }
-    List<Experiment> foundExps = getExperimentsOfProjectByIdentifier(projID);
-    return foundExps;
+    if (!projID.isEmpty())
+      return getExperimentsOfProjectByIdentifier(projID);
+    return new ArrayList<Experiment>();
   }
 
   /**
@@ -567,7 +554,7 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Returns all datasets of a given experiment. The new version should run smoother NOT
+   * Returns all datasets of a given experiment. The new version should run smoother
    * 
    * @param experimentIdentifier identifier or code of the openbis experiment
    * @return list of all datasets of the given experiment
@@ -576,8 +563,9 @@ public class OpenBisClient {// implements Serializable {
       String experimentIdentifier) {
     ensureLoggedIn();
     SearchCriteria ec = new SearchCriteria();
+    String[] idSplit = experimentIdentifier.split("/");
     ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
-        experimentIdentifier));
+        idSplit[idSplit.length - 1]));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
     return openbisInfoService.searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -803,7 +791,7 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Function to trigger the registration of new openBIS instances like projects, experiments and
-   * samples. This function also triggers the barcode generation for samples.
+   * samples. (This function also used to trigger the barcode generation for samples.)
    * 
    * @param params map with needed information for registration process
    * @param name name of the service for the corresponding registration
@@ -922,27 +910,54 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Returns a HashMap that maps sample codes to a list of sample codes of their parent samples
+   * Returns a Map that maps samples to a list of samples of their parent samples
    * 
    * @param samples A list of openBIS samples
-   * @return HashMap<String, ArrayList<String>> containing a mapping between children and parent
-   *         codes of samples
+   * @return Map<Sample, List<Sample>> containing a mapping between children and parents of samples
    */
-  public HashMap<String, ArrayList<String>> getParentMap(List<Sample> samples) {
-    HashMap<String, ArrayList<String>> results = new HashMap<String, ArrayList<String>>();
+  public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
+    Map<Sample, List<Sample>> results = new HashMap<Sample, List<Sample>>();
     for (Sample p : samples) {
-      String pID = p.getCode();
       String permID = p.getPermId();
       List<Sample> children = getFacade().listSamplesOfSample(permID);
       for (Sample c : children) {
-        String cID = c.getCode();
-        if (results.containsKey(cID))
-          results.get(cID).add(pID);
+        if (results.containsKey(c))
+          results.get(c).add(p);
         else
-          results.put(cID, new ArrayList<String>(Arrays.asList(pID)));
+          results.put(c, new ArrayList<Sample>(Arrays.asList(p)));
       }
     }
     return results;
+  }
+
+  /**
+   * Function to retrieve parent samples of a sample
+   * 
+   * @param sampleCode Code of the query sample
+   * @return List of parent samples
+   */
+  public List<Sample> getParents(String sampleCode) {
+    ensureLoggedIn();
+    SearchCriteria sc = new SearchCriteria();
+    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
+        SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
+    // List<Sample> foundSample = this.facade.searchForSamples(sc);
+
+    SearchCriteria sampleSc = new SearchCriteria();
+    sampleSc.addSubCriteria(SearchSubCriteria.createSampleChildCriteria(sc));
+    List<Sample> foundParentSamples = this.facade.searchForSamples(sampleSc);
+
+    return foundParentSamples;
+  }
+
+
+  /**
+   * 
+   * @param sample
+   * @return
+   */
+  public List<Sample> getChildrenSamples(Sample sample) {
+    return getFacade().listSamplesOfSample(sample.getPermId());
   }
 
   /**
@@ -1066,6 +1081,19 @@ public class OpenBisClient {// implements Serializable {
     return res;
   }
 
+  public IGeneralInformationService getInfoService() {
+    return openbisInfoService;
+  }
+
+  public List<Experiment> getExperimentsForUser(String userID) {
+    List<Experiment> res = new ArrayList<Experiment>();
+    List<Project> projects = openbisInfoService.listProjectsOnBehalfOfUser(sessionToken, userID);
+    for (Project p : projects) {
+      res.addAll(getExperimentsForProject(p));
+    }
+    return res;
+  }
+
   /**
    * Function to talk to ingestions services (python scripts) of this openBIS instance
    * 
@@ -1083,6 +1111,6 @@ public class OpenBisClient {// implements Serializable {
     this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
         params);
   }
-  
-  
+
+
 }
