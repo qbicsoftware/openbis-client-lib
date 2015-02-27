@@ -1,5 +1,6 @@
 package main;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import ch.systemsx.cisd.common.exceptions.InvalidAuthenticationException;
 import ch.systemsx.cisd.common.exceptions.InvalidSessionException;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.OpenbisServiceFacadeFactory;
+import ch.systemsx.cisd.openbis.dss.generic.shared.api.v1.FileInfoDssDTO;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType;
@@ -39,9 +41,6 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIden
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 
-// import com.google.gwt.user.server.rpc.UnexpectedException;
-
-
 
 /**
  * dss client, a proxy to the generic openbis api This client is based on DSS Client for openBIS
@@ -63,11 +62,13 @@ public class OpenBisClient {// implements Serializable {
   private String userId;
   private String password;
   private String serverURL;
+  private boolean verbose;
 
   public OpenBisClient(String loginid, String password, String serverURL, boolean verbose) {
     this.userId = loginid;
     this.password = password;
     this.serverURL = serverURL;
+    this.verbose = verbose;
     this.facade = null;
     this.login();
   }
@@ -120,12 +121,13 @@ public class OpenBisClient {// implements Serializable {
         ServiceFinder serviceFinder2 =
             new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
 
-        this.openbisInfoService =
-            serviceFinder.createService(IGeneralInformationService.class, this.serverURL);
+        this.setOpenbisInfoService(serviceFinder.createService(IGeneralInformationService.class,
+            this.serverURL));
         this.openbisDssService =
             serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
         this.sessionToken =
-            this.openbisInfoService.tryToAuthenticateForAllServices(this.userId, this.password);
+            this.getOpenbisInfoService()
+            .tryToAuthenticateForAllServices(this.userId, this.password);
         break;
       } catch (Exception e) {
         if (e.getMessage().contains("Read timed out")) {
@@ -146,10 +148,7 @@ public class OpenBisClient {// implements Serializable {
           }
           if (facade == null) {
             throw new NullPointerException(
-                "OpenBis facade is not available. Check connection, password and user.");// throw
-                                                                                         // new
-                                                                                         // UnexpectedException("OpenBis facade is not available. Check connection, password and user.",
-                                                                                         // e);
+                "OpenBis facade is not available. Check connection, password and user.");
           }
         }
       }
@@ -162,7 +161,7 @@ public class OpenBisClient {// implements Serializable {
    * @return session token as string
    */
   public String getSessionToken() {
-    if (!this.openbisInfoService.isSessionActive(this.sessionToken)) {
+    if (!this.getOpenbisInfoService().isSessionActive(this.sessionToken)) {
       this.logout();
       this.login();
     }
@@ -177,6 +176,25 @@ public class OpenBisClient {// implements Serializable {
   public IOpenbisServiceFacade getFacade() {
     ensureLoggedIn();
     return facade;
+  }
+  
+  /**
+   * Getter function for GeneralInformation Service
+   * 
+   * @return GeneralInformationService instance
+   */
+  public IGeneralInformationService getOpenbisInfoService() {
+    return openbisInfoService;
+  }
+  
+  /**
+   * Setter function for GeneralInformation Service
+   * 
+   * @param openbisInfoService a GeneralInformationService instance
+   * @return 
+   */
+  public void setOpenbisInfoService(IGeneralInformationService openbisInfoService) {
+    this.openbisInfoService = openbisInfoService;
   }
 
   /**
@@ -232,11 +250,12 @@ public class OpenBisClient {// implements Serializable {
     for (String s : spaces) {
       SearchCriteria sc = new SearchCriteria();
       sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, s));
-      foundExps.addAll(this.openbisInfoService.searchForExperiments(this.sessionToken, sc));
+      foundExps.addAll(this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc));
     }
     return foundExps;
   }
 
+  // TODO use search service with experiment code ?
   /**
    * Function to retrieve all samples of a given experiment
    * 
@@ -245,7 +264,15 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
     ensureLoggedIn();
-    return openbisInfoService.listSamplesForExperiment(sessionToken, experimentIdentifier);
+    /*
+     * SearchCriteria sc = new SearchCriteria(); SearchCriteria ec = new SearchCriteria();
+     * ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
+     * experimentIdentifier)); sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
+     * List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
+     * return foundSamples;
+     */
+    return this.getOpenbisInfoService()
+        .listSamplesForExperiment(sessionToken, experimentIdentifier);
   }
 
   /**
@@ -258,7 +285,7 @@ public class OpenBisClient {// implements Serializable {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
-    List<Sample> foundSamples = this.openbisInfoService.searchForSamples(sessionToken, sc);
+    List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
     return foundSamples;
   }
 
@@ -272,7 +299,7 @@ public class OpenBisClient {// implements Serializable {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleIdentifier));
-    List<Sample> foundSamples = this.openbisInfoService.searchForSamples(sessionToken, sc);
+    List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
     return foundSamples.get(0);
   }
 
@@ -295,6 +322,12 @@ public class OpenBisClient {// implements Serializable {
     if (projects.size() > 0) {
       List<Experiment> foundExp = facade.listExperimentsForProjects(projects);
       for (Experiment exp : foundExp) {
+        // TODO search service?
+        /*
+         * SearchCriteria sc = new SearchCriteria(); SearchCriteria ec = new SearchCriteria();
+         * ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
+         * exp.getIdentifier())); sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
+         */
         foundSamples.addAll(getSamplesofExperiment(exp.getIdentifier()));
       }
     }
@@ -386,7 +419,7 @@ public class OpenBisClient {// implements Serializable {
       sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE,
           spaceIdentifier));
       List<Experiment> foundExps =
-          this.openbisInfoService.searchForExperiments(this.sessionToken, sc);
+          this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc);
       return foundExps;
     }
   }
@@ -402,7 +435,7 @@ public class OpenBisClient {// implements Serializable {
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.TYPE, type));
     List<Experiment> foundExps =
-        this.openbisInfoService.searchForExperiments(this.sessionToken, sc);
+        this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc);
     return foundExps;
   }
 
@@ -416,7 +449,8 @@ public class OpenBisClient {// implements Serializable {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.TYPE, type));
-    List<Sample> foundSamples = this.openbisInfoService.searchForSamples(this.sessionToken, sc);
+    List<Sample> foundSamples =
+        this.getOpenbisInfoService().searchForSamples(this.sessionToken, sc);
     return foundSamples;
   }
 
@@ -538,7 +572,7 @@ public class OpenBisClient {// implements Serializable {
     ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleCode));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createSampleCriteria(ec));
-    return openbisInfoService.searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
+    return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   }
 
   /**
@@ -568,7 +602,7 @@ public class OpenBisClient {// implements Serializable {
         idSplit[idSplit.length - 1]));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
-    return openbisInfoService.searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
+    return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   }
 
   /**
@@ -636,7 +670,7 @@ public class OpenBisClient {// implements Serializable {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.TYPE, type));
-    return openbisInfoService.searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
+    return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   }
 
   /**
@@ -647,8 +681,8 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
     ensureLoggedIn();
-    return openbisInfoService.listAttachmentsForSample(this.sessionToken, new SampleIdentifierId(
-        sampleIdentifier), true);
+    return getOpenbisInfoService().listAttachmentsForSample(this.sessionToken,
+        new SampleIdentifierId(sampleIdentifier), true);
   }
 
   /**
@@ -659,7 +693,7 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
     ensureLoggedIn();
-    return this.openbisInfoService.listAttachmentsForProject(this.sessionToken,
+    return this.getOpenbisInfoService().listAttachmentsForProject(this.sessionToken,
         new ProjectIdentifierId(projectIdentifier), true);
   }
 
@@ -725,6 +759,26 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
+   * Function to get the label of a CV item for some property
+   * 
+   * @param propertyType the property type
+   * @param propertyValue the property value
+   * @return Label of CV item
+   */
+  public String getCVLabelForProperty(PropertyType propertyType, String propertyValue) {
+    ControlledVocabularyPropertyType controlled_vocab =
+        (ControlledVocabularyPropertyType) propertyType;
+
+    for (VocabularyTerm term : controlled_vocab.getTerms()) {
+      if (term.getCode().equals(propertyValue)) {
+        return term.getLabel();
+      }
+    }
+    return "";
+  }
+
+
+  /**
    * Function to get a SampleType object of a sample type
    * 
    * @param sampleType the sample type as string
@@ -776,6 +830,18 @@ public class OpenBisClient {// implements Serializable {
     return prop_types_labels;
   }
 
+  /**
+   * Function to trigger ingestion services registered in openBIS
+   * 
+   * @param serviceName name of the ingestion service which should be triggered
+   * @param parameters map with needed information for registration process
+   * @return object name of the QueryTableModel which is returned by the aggregation service
+   */
+  public String triggerIngestionService(String serviceName, Map<String, Object> parameters) {
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, "DSS1",
+        serviceName, parameters).toString();
+  }
+
   // TODO specify parameters needed for ingestion service
   /**
    * Function to add children samples to a sample (parent) using the corresponding ingestition
@@ -789,6 +855,7 @@ public class OpenBisClient {// implements Serializable {
         "create-parent-child", parameters).toString();
   }
 
+  // TODO probably not needed anymore
   /**
    * Function to trigger the registration of new openBIS instances like projects, experiments and
    * samples. (This function also used to trigger the barcode generation for samples.)
@@ -877,7 +944,7 @@ public class OpenBisClient {// implements Serializable {
     entityCode = WordUtils.capitalizeFully(entityCode.replace("_", " ").toLowerCase());
     String edit_string =
         entityCode.replace("Ngs", "NGS").replace("Hla", "HLA").replace("Rna", "RNA")
-            .replace("Dna", "DNA").replace("Ms", "MS");
+        .replace("Dna", "DNA").replace("Ms", "MS");
     if (edit_string.startsWith("Q ")) {
       edit_string = edit_string.replace("Q ", "");
     }
@@ -950,7 +1017,6 @@ public class OpenBisClient {// implements Serializable {
     return foundParentSamples;
   }
 
-
   /**
    * 
    * @param sample
@@ -1016,7 +1082,7 @@ public class OpenBisClient {// implements Serializable {
   public boolean sampleExists(String name) {
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, name));
-    for (Sample x : this.openbisInfoService.searchForSamples(sessionToken, sc)) {
+    for (Sample x : this.getOpenbisInfoService().searchForSamples(sessionToken, sc)) {
       if (x.getCode().equals(name))
         return true;
     }
@@ -1081,10 +1147,13 @@ public class OpenBisClient {// implements Serializable {
     return res;
   }
 
-  public IGeneralInformationService getInfoService() {
-    return openbisInfoService;
-  }
-
+  /**
+   * Returns a list of all Codes in a Vocabulary in openBIS. This is useful when labels don't exist
+   * or are not needed.
+   * 
+   * @param vocabularyCode Code of the Vocabulary type
+   * @return A list containing the codes of the vocabulary type
+   */
   public List<Experiment> getExperimentsForUser(String userID) {
     List<Experiment> res = new ArrayList<Experiment>();
     List<Project> projects = openbisInfoService.listProjectsOnBehalfOfUser(sessionToken, userID);
@@ -1112,5 +1181,87 @@ public class OpenBisClient {// implements Serializable {
         params);
   }
 
+  /**
+   * List all experiments for given list of projects
+   * 
+   * @param projectList list of project identifiers
+   * @return List of experiments
+   */
+  public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
+    return this.getOpenbisInfoService().listExperiments(this.getSessionToken(), projectList, null);
 
+  }
+  
+  /**
+   * List all datasets for given experiment identifiers
+   * 
+   * @param experimentIdentifiers list of experiment identifiers
+   * @return List of datasets
+   */
+  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> listDataSetsForExperiments(
+      List<String> experimentIdentifiers) {
+    return this.getFacade().listDataSetsForExperiments(experimentIdentifiers);
+  }
+
+  /**
+   * List all samples for given project identifiers
+   * 
+   * @param projectIdentifiers list of project identifiers
+   * @return List of samples
+   */
+  public List<Sample> listSamplesForProjects(List<String> projectIdentifiers) {
+    return this.getFacade().listSamplesForProjects(projectIdentifiers);
+  }
+
+  /**
+   * List all datasets for given sample identifiers
+   * 
+   * @param sampleIdentifier list of sample identifiers
+   * @return List of datasets
+   */
+  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> listDataSetsForSamples(
+      List<String> sampleIdentifier) {
+    return this.getFacade().listDataSetsForSamples(sampleIdentifier);
+  }
+
+  /**
+   * Retrieve datastore download url of dataset
+   * 
+   * @param datasetCode Code of dataset
+   * @param datasetName Name of dataset
+   * @return URL to datastore location
+   */
+  public URL getUrlForDataset(String datasetCode, String datasetName) throws MalformedURLException {
+
+    return this.getDataStoreDownloadURL(datasetCode, datasetName);
+  }
+
+  /**
+   * Retrieve inputstream for dataset
+   * 
+   * @param datasetCode Code of dataset
+   * @return input stream for dataset
+   */
+  public InputStream getDatasetStream(String datasetCode) {
+
+    IOpenbisServiceFacade facade = this.getFacade();
+    ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataSet = facade.getDataSet(datasetCode);
+    FileInfoDssDTO[] filelist = dataSet.listFiles("original", false);
+    return dataSet.getFile(filelist[0].getPathInDataSet());
+  }
+
+  /**
+   * Retrieve inputstream for dataset in folder
+   * 
+   * @param datasetCode Code of dataset
+   * @param folder Folder of dataset
+   * @return input stream of datasets
+   */
+  public InputStream getDatasetStream(String datasetCode, String folder) {
+
+    IOpenbisServiceFacade facade = this.getFacade();
+    ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataSet = facade.getDataSet(datasetCode);
+    FileInfoDssDTO[] filelist = dataSet.listFiles("original/" + folder, false);
+    return dataSet.getFile(filelist[0].getPathInDataSet());
+  }
 }
