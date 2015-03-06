@@ -62,29 +62,27 @@ public class OpenBisClient {// implements Serializable {
   private String userId;
   private String password;
   private String serverURL;
-  private boolean verbose;
 
-  public OpenBisClient(String loginid, String password, String serverURL, boolean verbose) {
+
+  public OpenBisClient(String loginid, String password, String serverURL) {
     this.userId = loginid;
     this.password = password;
     this.serverURL = serverURL;
-    this.verbose = verbose;
     this.facade = null;
-    this.login();
   }
 
   /**
    * Checks if we are logged in
    */
   public boolean loggedin() {
-    if (this.facade == null)
+    if (this.facade == null || openbisInfoService == null || openbisDssService == null)
       return false;
     try {
-      this.facade.checkSession();
+      this.facade.checkSession(); 
     } catch (InvalidSessionException e) {
       return false;
     }
-    return true;
+    return (openbisInfoService.isSessionActive(this.sessionToken));
   }
 
   /**
@@ -93,10 +91,14 @@ public class OpenBisClient {// implements Serializable {
   public void logout() {
     try {
       this.facade.logout();
+      this.openbisDssService.logout(sessionToken);
+      this.openbisInfoService.logout(sessionToken);
     } catch (Exception e) {
       // Nothing todo here
     } finally {
       this.facade = null;
+      this.openbisDssService = null;
+      this.openbisInfoService = null;
     }
   }
 
@@ -143,7 +145,6 @@ public class OpenBisClient {// implements Serializable {
           try {
             Thread.sleep(10);
           } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
           }
           if (facade == null) {
@@ -258,9 +259,11 @@ public class OpenBisClient {// implements Serializable {
   // TODO use search service with experiment code ?
   /**
    * Function to retrieve all samples of a given experiment
-   * 
+   * Note: seems to throw a ch.systemsx.cisd.common.exceptions.UserFailureException if wrong identifier given
+   * TODO Should we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
    * @param experimentIdentifier identifier/code (both should work) of the openBIS experiment
    * @return list with all samples of the given experiment
+   * 
    */
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
     ensureLoggedIn();
@@ -291,7 +294,8 @@ public class OpenBisClient {// implements Serializable {
 
   /**
    * Function to retrieve a sample by it's identifier or code
-   * 
+   * Note: seems to throw a  java.lang.IndexOutOfBoundsException if wrong identifier given
+   * TODO Should we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
    * @param sampleIdentifier identifier or code of the sample
    * @return the sample with the given identifier
    */
