@@ -78,7 +78,7 @@ public class OpenBisClient {// implements Serializable {
     if (this.facade == null || openbisInfoService == null || openbisDssService == null)
       return false;
     try {
-      this.facade.checkSession(); 
+      this.facade.checkSession();
     } catch (InvalidSessionException e) {
       return false;
     }
@@ -129,7 +129,7 @@ public class OpenBisClient {// implements Serializable {
             serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
         this.sessionToken =
             this.getOpenbisInfoService()
-            .tryToAuthenticateForAllServices(this.userId, this.password);
+                .tryToAuthenticateForAllServices(this.userId, this.password);
         break;
       } catch (Exception e) {
         if (e.getMessage().contains("Read timed out")) {
@@ -178,7 +178,7 @@ public class OpenBisClient {// implements Serializable {
     ensureLoggedIn();
     return facade;
   }
-  
+
   /**
    * Getter function for GeneralInformation Service
    * 
@@ -187,12 +187,12 @@ public class OpenBisClient {// implements Serializable {
   public IGeneralInformationService getOpenbisInfoService() {
     return openbisInfoService;
   }
-  
+
   /**
    * Setter function for GeneralInformation Service
    * 
    * @param openbisInfoService a GeneralInformationService instance
-   * @return 
+   * @return
    */
   public void setOpenbisInfoService(IGeneralInformationService openbisInfoService) {
     this.openbisInfoService = openbisInfoService;
@@ -228,7 +228,7 @@ public class OpenBisClient {// implements Serializable {
     }
     return spaces;
   }
-  
+
   /**
    * Function to get all projects which are registered in this openBIS instance
    * 
@@ -258,9 +258,10 @@ public class OpenBisClient {// implements Serializable {
 
   // TODO use search service with experiment code ?
   /**
-   * Function to retrieve all samples of a given experiment
-   * Note: seems to throw a ch.systemsx.cisd.common.exceptions.UserFailureException if wrong identifier given
-   * TODO Should we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
+   * Function to retrieve all samples of a given experiment Note: seems to throw a
+   * ch.systemsx.cisd.common.exceptions.UserFailureException if wrong identifier given TODO Should
+   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
+   * 
    * @param experimentIdentifier identifier/code (both should work) of the openBIS experiment
    * @return list with all samples of the given experiment
    * 
@@ -293,9 +294,10 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Function to retrieve a sample by it's identifier or code
-   * Note: seems to throw a  java.lang.IndexOutOfBoundsException if wrong identifier given
-   * TODO Should we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
+   * Function to retrieve a sample by it's identifier or code Note: seems to throw a
+   * java.lang.IndexOutOfBoundsException if wrong identifier given TODO Should we catch it and throw
+   * an illegalargumentexception instead? would be a lot clearer in my opinion
+   * 
    * @param sampleIdentifier identifier or code of the sample
    * @return the sample with the given identifier
    */
@@ -319,7 +321,7 @@ public class OpenBisClient {// implements Serializable {
     List<Project> foundProjects = facade.listProjects();
     List<Sample> foundSamples = new ArrayList<Sample>();
     for (Project proj : foundProjects) {
-      if (projectIdentifier.equals(proj.getCode())) {
+      if (projectIdentifier.equals(proj.getIdentifier())) {
         projects.add(proj.getIdentifier());
       }
     }
@@ -539,7 +541,7 @@ public class OpenBisClient {// implements Serializable {
     }
     return experiment;
   }
-  
+
   /**
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    * 
@@ -666,14 +668,18 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjectByIdentifier(
       String projectIdentifier) {
-    List<Sample> samps = getSamplesOfProject(projectIdentifier);
-    List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> res =
-        new ArrayList<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet>();
-    for (Iterator<Sample> iterator = samps.iterator(); iterator.hasNext();) {
-      Sample sample = (Sample) iterator.next();
-      res.addAll(getDataSetsOfSampleByIdentifier(sample.getIdentifier()));
-    }
-    return res;
+    ArrayList<String> ids = new ArrayList<String>();
+    for (Experiment e : getExperimentsOfProjectByIdentifier(projectIdentifier))
+      ids.add(e.getIdentifier());
+    return listDataSetsForExperiments(ids);
+    // List<Sample> samps = getSamplesOfProject(projectIdentifier);
+    // List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> res =
+    // new ArrayList<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet>();
+    // for (Iterator<Sample> iterator = samps.iterator(); iterator.hasNext();) {
+    // Sample sample = (Sample) iterator.next();
+    // res.addAll(getDataSetsOfSampleByIdentifier(sample.getIdentifier()));
+    // }
+    // return res;
   }
 
   /**
@@ -682,16 +688,19 @@ public class OpenBisClient {// implements Serializable {
    * @param projectCode code of the openBIS project
    * @return list with all datasets of the given project
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfProjectByCode(
-      String projectCode) {
-    List<Sample> samps = getSamplesOfProject(projectCode);
-    List<DataSet> res = new ArrayList<DataSet>();
-    for (Iterator<Sample> iterator = samps.iterator(); iterator.hasNext();) {
-      Sample sample = (Sample) iterator.next();
-      res.addAll(getDataSetsOfSample(sample.getCode()));
-    }
-    return res;
-  }
+  // public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet>
+  // getDataSetsOfProjectByCode(
+  // String projectCode) {
+  // List<Sample> samps = getSamplesOfProject(projectCode); //TODO this needs an identifier, it is
+  // useless at the moment!
+  // System.out.println(samps);
+  // List<DataSet> res = new ArrayList<DataSet>();
+  // for (Iterator<Sample> iterator = samps.iterator(); iterator.hasNext();) {
+  // Sample sample = (Sample) iterator.next();
+  // res.addAll(getDataSetsOfSample(sample.getCode()));
+  // }
+  // return res;
+  // }
 
   /**
    * Function to list all datasets of a specific type
@@ -977,7 +986,7 @@ public class OpenBisClient {// implements Serializable {
     entityCode = WordUtils.capitalizeFully(entityCode.replace("_", " ").toLowerCase());
     String edit_string =
         entityCode.replace("Ngs", "NGS").replace("Hla", "HLA").replace("Rna", "RNA")
-        .replace("Dna", "DNA").replace("Ms", "MS");
+            .replace("Dna", "DNA").replace("Ms", "MS");
     if (edit_string.startsWith("Q ")) {
       edit_string = edit_string.replace("Q ", "");
     }
@@ -1224,7 +1233,7 @@ public class OpenBisClient {// implements Serializable {
     return this.getOpenbisInfoService().listExperiments(this.getSessionToken(), projectList, null);
 
   }
-  
+
   /**
    * List all datasets for given experiment identifiers
    * 
