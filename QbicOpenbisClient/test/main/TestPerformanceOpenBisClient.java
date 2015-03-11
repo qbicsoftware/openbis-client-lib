@@ -86,14 +86,14 @@ public class TestPerformanceOpenBisClient {
     openbisClient.ensureLoggedIn();
   }
   
-  @Test
+ @Test
   @PerfTest(invocations = 100, threads = 4)
   public void listProjects(){
     openbisClient.listProjects();
   }
 
-  @Test
-  @PerfTest(invocations = 100, threads = 4)
+ // @Test
+ // @PerfTest(invocations = 100, threads = 4)
   public void getSpacesWithProjectInformation(){
       openbisClient.getFacade().getSpacesWithProjects();
   }
@@ -104,6 +104,14 @@ public class TestPerformanceOpenBisClient {
       openbisClient.getSamplesofSpace("TEST28");
   }
   
-  
-  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getExperimentsForProject_TEST28_QTEST(){
+    openbisClient.getExperimentsForProject("/TEST28/QTEST");
+  }
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getExperimentsForProject_SANDBOX_PCT_QTEST(){
+    openbisClient.getExperimentsForProject("/SANDBOX_PCT/QTEST");
+  }
 }

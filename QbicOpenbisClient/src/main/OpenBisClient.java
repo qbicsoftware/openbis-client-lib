@@ -361,6 +361,17 @@ public class OpenBisClient {// implements Serializable {
   public List<Experiment> getExperimentsForProject(Project project) {
     return this.getExperimentsOfProjectByIdentifier(project.getIdentifier());
   }
+  /**
+   * Function to list all Experiments for a specific project which are registered in the openBIS
+   * instance.
+   * 
+   * @param projectIdentifer project identifer as defined by openbis,  for which the experiments should be listed
+   * @return list with all experiments registered in this openBIS instance
+   */
+  public List<Experiment> getExperimentsForProject(String projectIdentifier) {
+    return this.getExperimentsOfProjectByIdentifier(projectIdentifier);
+  }
+  
 
   /**
    * returns a list of all Experiments connected to a Project code in openBIS

@@ -39,7 +39,7 @@ public class TestOpenBisClient {
   @After
   public void tearDown() throws Exception {}
 
-  //@Test
+  @Test
   public void testgetSamplesofExperiment() {
     
     String expIdentifier = "QL008E3";
@@ -76,7 +76,7 @@ public class TestOpenBisClient {
     }
   }
   
-  //@Test
+  @Test
   public void testgetSampleByIdentifier(){
     //it seems that this function really does not care, as long as the sample name is given
     ASSERT.that(openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL/QSDPR002A2").getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
@@ -117,7 +117,7 @@ public class TestOpenBisClient {
       ASSERT.that(e).isInstanceOf(NullPointerException.class);
     }
   }
-    //@Test
+    @Test
     public void testgetDatasetsOfSample(){
       //it does not really matter as long as you have the last part correctly
       ASSERT.that(openbisClient.getDataSetsOfSample("/TEST28/QTEST005HR").size()).isAtLeast(1);
@@ -141,7 +141,7 @@ public class TestOpenBisClient {
       }
       
     }
-    //@Test
+    @Test
     public void testlistAttachmentforSamples(){
       //TODO throw sensible exceptions
       try{
@@ -170,5 +170,36 @@ public class TestOpenBisClient {
       }catch(Exception e){// ->ch.systemsx.cisd.common.exceptions.UserFailureException: No sample found for id '/MFT_PICHLER_MULTISCALE/QSDPR002A23'.
         ASSERT.that(e).isInstanceOf(Exception.class);
       }
-    }  
+    }
+    @Test
+    public void testgetExperimentsByProject(){
+      try{
+        openbisClient.getExperimentsForProject("");// -> ch.systemsx.cisd.common.exceptions.UserFailureException: Illegal empty identifier
+        fail("should not work with empty string");
+      }catch(Exception e){
+        ASSERT.that(e).isInstanceOf(Exception.class);
+      }
+     try{
+       String test = null;
+       openbisClient.getExperimentsForProject(test);// ch.systemsx.cisd.common.exceptions.UserFailureException: Illegal empty identifier
+       fail("null not an identifer");
+     }catch(Exception e){
+       ASSERT.that(e).isInstanceOf(Exception.class);
+     }
+      ASSERT.that(openbisClient.getExperimentsForProject("/TEST28/QTEST").size()).isAtLeast(22);
+      //this one really cares about proper identifier
+      try{
+        openbisClient.getExperimentsForProject("QTEST");//java.lang.IllegalArgumentException: Unspecified space code.
+        fail(" not an identifer");
+      }catch(Exception e){
+        ASSERT.that(e).isInstanceOf(Exception.class);
+      }
+      try{
+        openbisClient.getExperimentsForProject("/MFT_PICHLER_MULTISCALE/QSDPR002A23");
+        fail("that sample does not exist");
+      }catch(Exception e){// ->ch.systemsx.cisd.common.exceptions.UserFailureException: Projects '[DEFAULT:/MFT_PICHLER_MULTISCALE/QSDPR002A23]' unknown.
+        ASSERT.that(e).isInstanceOf(Exception.class);
+      }     
+    }
+    
 }
