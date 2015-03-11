@@ -228,7 +228,7 @@ public class OpenBisClient {// implements Serializable {
     }
     return spaces;
   }
-
+  
   /**
    * Function to get all projects which are registered in this openBIS instance
    * 
