@@ -1,10 +1,7 @@
 package main;
 
-import static org.junit.Assert.*;
-
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.databene.contiperf.PerfTest;
@@ -15,6 +12,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 
 public class TestPerformanceOpenBisClient {
 
@@ -46,28 +45,6 @@ public class TestPerformanceOpenBisClient {
   //@Test
   public void OpenbisClientInitialization(){
       openbisClient = new OpenBisClient( config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS), config.getProperty(DATASOURCE_URL));
-  }
-  
-  @Test
-  @PerfTest(invocations = 100, threads = 4)
-  public void getDataSetsOfProjectByIdentifier_QKSFF(){
-  //~80 samples 40 datasets
-  String project = "QKSFF";
-  openbisClient.getDataSetsOfProjectByIdentifier(project);
-  }
-  @Test
-  @PerfTest(invocations = 100, threads = 4)
-  public void getDataSetsOfProjectByIdentifier_QTEST(){
-  //~352 samples 29 datasets
-  String project = "QTEST";
-  openbisClient.getDataSetsOfProjectByIdentifier(project);
-  }
-  @Test
-  @PerfTest(invocations = 100, threads = 4)
-  public void getDataSetsOfProjectByIdentifier_QJFPH(){
-  //QJFPH 160 150
-  String project = "QJFPH";
-  openbisClient.getDataSetsOfProjectByIdentifier(project);
   }
     
   public void printRunTimeInfo(String funcname, long time, int reruns, String project, int samples, int ds){
@@ -111,7 +88,80 @@ public class TestPerformanceOpenBisClient {
   }
   @Test
   @PerfTest(invocations = 100, threads = 4)
-  public void getExperimentsForProject_SANDBOX_PCT_QTEST(){
-    openbisClient.getExperimentsForProject("/SANDBOX_PCT/QTEST");
+  public void getExperimentsForProject_IVAC_ALL_QL011(){
+    openbisClient.getExperimentsForProject("/IVAC_ALL/QL011");
   }
+  
+//~352 samples 29 datasets  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getDataSetsOfProjectByIdentifier_TEST28_QTEST(){
+    openbisClient.getDataSetsOfProjectByIdentifier("/TEST28/QTEST");
+  }
+  
+//~352 samples 29 datasets  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getDataSetsOfProject_with_getExperimentsOfProjectByIdentifier_TEST28_QTEST(){
+    ArrayList<String> ids = new ArrayList<String>();
+    for (Experiment e : openbisClient.getExperimentsOfProjectByIdentifier("/TEST28/QTEST"))
+      ids.add(e.getIdentifier());
+    openbisClient.listDataSetsForExperiments(ids);
+  }
+  
+//~80 samples 40 datasets 
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+
+  public void getDataSetsOfProjectByIdentifier_EXT_SCHENKE_LAYLAND_QKSFF(){
+    openbisClient.getDataSetsOfProjectByIdentifier("/EXT_SCHENKE_LAYLAND/QKSFF");
+  }
+  
+  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getDataSetsOfProject_with_getExperimentsOfProjectByIdentifier_EXT_SCHENKE_LAYLAND_QKSFF(){
+    ArrayList<String> ids = new ArrayList<String>();
+    for (Experiment e : openbisClient.getExperimentsOfProjectByIdentifier("/EXT_SCHENKE_LAYLAND/QKSFF"))
+      ids.add(e.getIdentifier());
+    openbisClient.listDataSetsForExperiments(ids);
+  }
+  //0 datasets  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+
+  public void getDataSetsOfProjectByIdentifier_IVAC_ALL_QL011(){
+    openbisClient.getDataSetsOfProjectByIdentifier("/IVAC_ALL/QL011");
+  }
+  
+  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getDataSetsOfProject_with_getExperimentsOfProjectByIdentifier_IVAC_ALL_QL011(){
+    ArrayList<String> ids = new ArrayList<String>();
+    for (Experiment e : openbisClient.getExperimentsOfProjectByIdentifier("/IVAC_ALL/QL011"))
+      ids.add(e.getIdentifier());
+    openbisClient.listDataSetsForExperiments(ids);
+  }
+//QJFPH 160 150
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getDataSetsOfProjectByIdentifier_MFT_FRICK_RNAPHOSPHO_TLR5_QJFPH(){
+  openbisClient.getDataSetsOfProjectByIdentifier("/MFT_FRICK_RNAPHOSPHO_TLR5/QJFPH");
+  }
+  
+  @Test
+  @PerfTest(invocations = 100, threads = 4)
+  public void getDataSetsOfProject_with_getExperimentsOfProjectByIdentifier_MFT_FRICK_RNAPHOSPHO_TLR5_QJFPH(){
+    ArrayList<String> ids = new ArrayList<String>();
+    for (Experiment e : openbisClient.getExperimentsOfProjectByIdentifier("/MFT_FRICK_RNAPHOSPHO_TLR5/QJFPH"))
+      ids.add(e.getIdentifier());
+    openbisClient.listDataSetsForExperiments(ids);
+  }
+  
+  
+  
+  
+  
+  
 }
