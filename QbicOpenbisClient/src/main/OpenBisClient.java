@@ -312,16 +312,16 @@ public class OpenBisClient {// implements Serializable {
   /**
    * Function to get all samples of a specific project
    * 
-   * @param projectIdentifier identifier or code of the openBIS project
+   * @param projIdentifierOrCode identifier or code of the openBIS project
    * @return list with all samples connected to the given project
    */
-  public List<Sample> getSamplesOfProject(String projectIdentifier) {
+  public List<Sample> getSamplesOfProject(String projIdentifierOrCode) {
     ensureLoggedIn();
     List<String> projects = new ArrayList<String>();
     List<Project> foundProjects = facade.listProjects();
     List<Sample> foundSamples = new ArrayList<Sample>();
     for (Project proj : foundProjects) {
-      if (projectIdentifier.equals(proj.getIdentifier())) {
+      if (projIdentifierOrCode.equals(proj.getIdentifier())) {
         projects.add(proj.getIdentifier());
       }
     }
@@ -363,17 +363,19 @@ public class OpenBisClient {// implements Serializable {
   public List<Experiment> getExperimentsForProject(Project project) {
     return this.getExperimentsOfProjectByIdentifier(project.getIdentifier());
   }
+
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
    * 
-   * @param projectIdentifer project identifer as defined by openbis,  for which the experiments should be listed
+   * @param projectIdentifer project identifer as defined by openbis, for which the experiments
+   *        should be listed
    * @return list with all experiments registered in this openBIS instance
    */
   public List<Experiment> getExperimentsForProject(String projectIdentifier) {
     return this.getExperimentsOfProjectByIdentifier(projectIdentifier);
   }
-  
+
 
   /**
    * returns a list of all Experiments connected to a Project code in openBIS
@@ -382,15 +384,19 @@ public class OpenBisClient {// implements Serializable {
    * @return list of all experiments of the given project
    */
   public List<Experiment> getExperimentsOfProjectByCode(String projectCode) {
-    String projID = "";
-    List<Project> projects = this.getFacade().listProjects();
-    for (Project p : projects) {
-      if (p.getCode().equals(projectCode))
-        projID = "/" + p.getSpaceCode() + "/" + p.getCode();
+    if (projectCode.contains("/") || projectCode.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      String projID = "";
+      List<Project> projects = this.getFacade().listProjects();
+      for (Project p : projects) {
+        if (p.getCode().equals(projectCode))
+          projID = "/" + p.getSpaceCode() + "/" + p.getCode();
+      }
+      if (!projID.isEmpty())
+        return getExperimentsOfProjectByIdentifier(projID);
+      return new ArrayList<Experiment>();
     }
-    if (!projID.isEmpty())
-      return getExperimentsOfProjectByIdentifier(projID);
-    return new ArrayList<Experiment>();
   }
 
   /**
@@ -496,14 +502,18 @@ public class OpenBisClient {// implements Serializable {
    * @return project with the given id
    */
   public Project getProjectByIdentifier(String projectIdentifier) {
-    List<Project> projects = this.listProjects();
-    Project project = null;
-    for (Project p : projects) {
-      if (p.getIdentifier().equals(projectIdentifier)) {
-        project = p;
+    if (!projectIdentifier.contains("/") || projectIdentifier.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      List<Project> projects = this.listProjects();
+      Project project = null;
+      for (Project p : projects) {
+        if (p.getIdentifier().equals(projectIdentifier)) {
+          project = p;
+        }
       }
+      return project;
     }
-    return project;
   }
 
   /**
@@ -513,15 +523,19 @@ public class OpenBisClient {// implements Serializable {
    * @return project with the given code
    */
   public Project getProjectByCode(String projectCode) {
-    List<Project> projects = this.listProjects();
-    Project project = null;
-    for (Project p : projects) {
-      if (p.getCode().equals(projectCode)) {
-        project = p;
-        break;
+    if (projectCode.contains("/") || projectCode.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      List<Project> projects = this.listProjects();
+      Project project = null;
+      for (Project p : projects) {
+        if (p.getCode().equals(projectCode)) {
+          project = p;
+          break;
+        }
       }
+      return project;
     }
-    return project;
   }
 
   /**
@@ -531,15 +545,19 @@ public class OpenBisClient {// implements Serializable {
    * @return experiment with the given code
    */
   public Experiment getExperimentByCode(String experimentCode) {
-    List<Experiment> experiments = this.listExperiments();
-    Experiment experiment = null;
-    for (Experiment e : experiments) {
-      if (e.getCode().equals(experimentCode)) {
-        experiment = e;
-        break;
+    if (experimentCode.contains("/") || experimentCode.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      List<Experiment> experiments = this.listExperiments();
+      Experiment experiment = null;
+      for (Experiment e : experiments) {
+        if (e.getCode().equals(experimentCode)) {
+          experiment = e;
+          break;
+        }
       }
+      return experiment;
     }
-    return experiment;
   }
 
   /**
@@ -549,15 +567,19 @@ public class OpenBisClient {// implements Serializable {
    * @return experiment with the given code
    */
   public Experiment getExperimentById(String experimentId) {
-    List<Experiment> experiments = this.listExperiments();
-    Experiment experiment = null;
-    for (Experiment e : experiments) {
-      if (e.getIdentifier().equals(experimentId)) {
-        experiment = e;
-        break;
+    if (!experimentId.contains("/") || experimentId.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      List<Experiment> experiments = this.listExperiments();
+      Experiment experiment = null;
+      for (Experiment e : experiments) {
+        if (e.getIdentifier().equals(experimentId)) {
+          experiment = e;
+          break;
+        }
       }
+      return experiment;
     }
-    return experiment;
   }
 
   /**
@@ -567,16 +589,20 @@ public class OpenBisClient {// implements Serializable {
    * @return project connected to the given experiment
    */
   public Project getProjectOfExperimentByIdentifier(String experimentIdentifier) {
-    List<Project> projects = this.facade.listProjects();
-    String project = experimentIdentifier.split(("/"))[2];
-    Project found_proj = null;
+    if (!experimentIdentifier.contains("/") || experimentIdentifier.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      List<Project> projects = this.facade.listProjects();
+      String project = experimentIdentifier.split(("/"))[2];
+      Project found_proj = null;
 
-    for (Project proj : projects) {
-      if (project.equals(proj.getIdentifier().split("/")[2])) {
-        found_proj = proj;
+      for (Project proj : projects) {
+        if (project.equals(proj.getIdentifier().split("/")[2])) {
+          found_proj = proj;
+        }
       }
+      return found_proj;
     }
-    return found_proj;
   }
 
   /**
@@ -588,9 +614,13 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfSampleByIdentifier(
       String sampleIdentifier) {
-    List<String> identifier = new ArrayList<String>();
-    identifier.add(sampleIdentifier);
-    return this.facade.listDataSetsForSamples(identifier);
+    if (!sampleIdentifier.contains("/") || sampleIdentifier.isEmpty())
+      throw new IllegalArgumentException();
+    else {
+      List<String> identifier = new ArrayList<String>();
+      identifier.add(sampleIdentifier);
+      return this.facade.listDataSetsForSamples(identifier);
+    }
   }
 
   /**
@@ -619,7 +649,11 @@ public class OpenBisClient {// implements Serializable {
    */
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfExperiment(
       String experimentPermID) {
-    return this.getFacade().listDataSetsForExperiment(experimentPermID);
+    String permPattern = "[0-9]{17}-[0-9]+";
+    if (!experimentPermID.matches(permPattern) || experimentPermID.isEmpty())
+      throw new IllegalArgumentException();
+    else
+      return this.getFacade().listDataSetsForExperiment(experimentPermID);
   }
 
   /**
@@ -952,7 +986,7 @@ public class OpenBisClient {// implements Serializable {
    * @param i the integer value which should be mapped
    * @return the resulting char value
    */
-  public char mapToChar(int i) {
+  public static char mapToChar(int i) {
     i += 48;
     if (i > 57) {
       i += 7;
@@ -966,7 +1000,7 @@ public class OpenBisClient {// implements Serializable {
    * @param s the barcode string
    * @return the checksum for the given barcode
    */
-  public char checksum(String s) {
+  public static char checksum(String s) {
     int i = 1;
     int sum = 0;
     for (int idx = 0; idx <= s.length() - 1; idx++) {
@@ -977,7 +1011,7 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Function to transform openBIS entity type to human readable text
+   * Function to transform openBIS entity type to human readable text. Performs String replacement and does not query openBIS!
    * 
    * @param entityCode the entity code as string
    * @return entity code as string in human readable text
@@ -994,7 +1028,7 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Function to get the download url for a file stored in the openBIS datastore server
+   * Function to get the download url for a file stored in the openBIS datastore server. Deprecated: Use getUrlForDataset()
    * 
    * @throws MalformedURLException Returns an download url for the openbis dataset with the given
    *         code and dataset_type. Throughs MalformedURLException if a url can not be created from
@@ -1004,6 +1038,7 @@ public class OpenBisClient {// implements Serializable {
    * @param openbisFilename name of the file stored in the given dataset
    * @return URL object of the download url for the given file
    */
+  @Deprecated
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
     String downloadURL = this.serverURL.substring(0, this.serverURL.length() - 1);
@@ -1270,7 +1305,7 @@ public class OpenBisClient {// implements Serializable {
    * Retrieve datastore download url of dataset
    * 
    * @param datasetCode Code of dataset
-   * @param datasetName Name of dataset
+   * @param datasetName File name of dataset
    * @return URL to datastore location
    */
   public URL getUrlForDataset(String datasetCode, String datasetName) throws MalformedURLException {
