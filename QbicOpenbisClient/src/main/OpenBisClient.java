@@ -850,7 +850,7 @@ public class OpenBisClient {// implements Serializable {
         return term.getLabel();
       }
     }
-    return "";
+    throw new IllegalArgumentException();
   }
 
 
@@ -1011,7 +1011,8 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Function to transform openBIS entity type to human readable text. Performs String replacement and does not query openBIS!
+   * Function to transform openBIS entity type to human readable text. Performs String replacement
+   * and does not query openBIS!
    * 
    * @param entityCode the entity code as string
    * @return entity code as string in human readable text
@@ -1028,7 +1029,8 @@ public class OpenBisClient {// implements Serializable {
   }
 
   /**
-   * Function to get the download url for a file stored in the openBIS datastore server. Deprecated: Use getUrlForDataset()
+   * Function to get the download url for a file stored in the openBIS datastore server. Deprecated:
+   * Use getUrlForDataset()
    * 
    * @throws MalformedURLException Returns an download url for the openbis dataset with the given
    *         code and dataset_type. Throughs MalformedURLException if a url can not be created from

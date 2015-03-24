@@ -550,7 +550,7 @@ public class TestOpenBisClient {
     try {
       System.out.println("testGetDataSetsOfExperimentByIdentifier"
           + openbisClient.getDataSetsOfExperimentByIdentifier("HPTI"));
-      fail("not an identifier");
+      fail("not an identifier"); //TODO seems to return the right datasets even if a code is used. either change function name or do something about it
     } catch (Exception e) {
       ASSERT.that(e).isInstanceOf(Exception.class);
     }
@@ -730,7 +730,14 @@ public class TestOpenBisClient {
             .getSampleTypeByString("Q_BIOLOGICAL_ENTITY"));
     for (PropertyType type : types) {
       if (type.getCode().equals("Q_NCBI_ORGANISM")) {
-        System.out.println(openbisClient.getCVLabelForProperty(type, "Homo_sapiens"));
+        ASSERT.that(openbisClient.getCVLabelForProperty(type, "0").equals("Other"));
+        ASSERT.that(openbisClient.getCVLabelForProperty(type, "10116").equals("Rattus norvegicus"));
+        try {
+          openbisClient.getCVLabelForProperty(type, "-10");
+          fail("should not work with non vocabulary code");
+        } catch (Exception e) {
+          ASSERT.that(e).isInstanceOf(Exception.class);
+        }
       }
     }
   }
@@ -783,7 +790,7 @@ public class TestOpenBisClient {
   }
 
   @Test
-  public void testGetDataStoreDownloadURL() throws MalformedURLException {
+  public void testGetDataStoreDownloadURL() throws MalformedURLException {//TODO deprecated
     String code = "20150317113748250-9094";
     String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
     ASSERT.that(openbisClient.getDataStoreDownloadURL(code, file).equals(
@@ -965,7 +972,7 @@ public class TestOpenBisClient {
             + "?mode=simpleHtml&sessionID=" + openbisClient.getSessionToken()));
     try {
       openbisClient.getUrlForDataset(code, "WRONG");
-      fail("should not work with nonexisting file name");
+      fail("should not work with nonexisting file name"); //TODO
     } catch (Exception e) {
       ASSERT.that(e).isInstanceOf(Exception.class);
     }
