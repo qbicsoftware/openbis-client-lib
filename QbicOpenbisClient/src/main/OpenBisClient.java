@@ -40,6 +40,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Vocabulary;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIdentifierId;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
 
 /**
@@ -783,6 +784,17 @@ public class OpenBisClient {// implements Serializable {
     ensureLoggedIn();
     System.out.println(this.openbisDssService.createReportFromAggregationService(this.sessionToken,
         "DSS1", "add-attachment", parameter));
+  }
+  
+  /**
+   * Queries an aggregation service for openBIS data
+   * @param name the name of the aggregation service, as specified in the config file of the openBIS instance
+   * @param parameters a map of parameters
+   * @return a QueryTableModel object containing the aggregated information
+   */
+  public QueryTableModel getAggregationService(String name, Map<String, Object> parameters) {
+    ensureLoggedIn();
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, "DSS1", name, parameters);
   }
 
   /**
