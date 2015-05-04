@@ -1,6 +1,7 @@
 package main;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -49,7 +50,11 @@ import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
  * 
  * @author wojnar
  */
-public class OpenBisClient {// implements Serializable {
+public class OpenBisClient  implements Serializable {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 6218517668296784635L;
   /**
    * 
    */
