@@ -318,16 +318,16 @@ public class OpenBisClient  implements Serializable {
   /**
    * Function to get all samples of a specific project
    * 
-   * @param projIdentifierOrCode identifier or code of the openBIS project
+   * @param projIdentifierOrCode identifier of the openBIS project
    * @return list with all samples connected to the given project
    */
-  public List<Sample> getSamplesOfProject(String projIdentifierOrCode) {
+  public List<Sample> getSamplesOfProject(String projIdentifier) {
     ensureLoggedIn();
     List<String> projects = new ArrayList<String>();
     List<Project> foundProjects = facade.listProjects();
     List<Sample> foundSamples = new ArrayList<Sample>();
     for (Project proj : foundProjects) {
-      if (projIdentifierOrCode.equals(proj.getIdentifier())) {
+      if (projIdentifier.equals(proj.getIdentifier())) {
         projects.add(proj.getIdentifier());
       }
     }
