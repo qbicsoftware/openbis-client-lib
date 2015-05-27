@@ -711,7 +711,13 @@ public class OpenBisClient  implements Serializable {
     ArrayList<String> ids = new ArrayList<String>();
     for (Experiment e : getExperimentsOfProjectByIdentifier(projectIdentifier))
       ids.add(e.getIdentifier());
-    return listDataSetsForExperiments(ids);
+    if(ids.isEmpty()){
+      return new ArrayList<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet>();
+    }
+    else{
+      return listDataSetsForExperiments(ids);
+    }
+    
     // List<Sample> samps = getSamplesOfProject(projectIdentifier);
     // List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> res =
     // new ArrayList<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet>();

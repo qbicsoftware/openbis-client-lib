@@ -43,7 +43,7 @@ public class TestOpenBisClient {
     config = new Properties();
     List<String> configs =
         new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
-            "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties"));
+            "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties", "/home/wojnar/QBiC/liferay-portal-6.2-ce-ga4/mainportlet-ext.properties"));
     for (String s : configs) {
       File f = new File(s);
       if (f.exists())
@@ -608,7 +608,7 @@ public class TestOpenBisClient {
   }
 
   @Test
-  public void testGetDataSetsOfProjectByIdentifier() {
+  public void testGetDataSetsOfProjectByIdentifier_project_with_datasets() {
     List<DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifier("/QBIC/QHPTI");
     ASSERT.that(dsets.size()).isEqualTo(43);
     try {
@@ -618,6 +618,20 @@ public class TestOpenBisClient {
       ASSERT.that(e).isInstanceOf(Exception.class);
     }
   }
+  @Test
+  public void testGetDataSetsOfProjectByIdentifier_project_with_no_experiments() {
+    List<DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifier("/ECKH/ECKH1");
+    ASSERT.that(dsets.size()).isEqualTo(0);
+    try {
+      openbisClient.getDataSetsOfProjectByIdentifier("ECKH1");
+      fail("not an identifier");
+    } catch (Exception e) {
+      ASSERT.that(e).isInstanceOf(Exception.class);
+    }
+  }
+  
+  
+  
 
   @Test
   public void testGetDataSetsByType() {
