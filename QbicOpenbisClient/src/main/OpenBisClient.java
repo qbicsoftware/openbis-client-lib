@@ -509,7 +509,7 @@ public class OpenBisClient  implements Serializable {
    */
   public Project getProjectByIdentifier(String projectIdentifier) {
     if (!projectIdentifier.contains("/") || projectIdentifier.isEmpty())
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException(String.format("project identifer %s is not a valid identifier", projectIdentifier));
     else {
       List<Project> projects = this.listProjects();
       Project project = null;
@@ -517,6 +517,9 @@ public class OpenBisClient  implements Serializable {
         if (p.getIdentifier().equals(projectIdentifier)) {
           project = p;
         }
+      }
+      if(project == null){
+        throw new IllegalArgumentException(String.format("project %s does not exist.", projectIdentifier));
       }
       return project;
     }
@@ -1052,8 +1055,10 @@ public class OpenBisClient  implements Serializable {
   }
 
   /**
-   * Function to get the download url for a file stored in the openBIS datastore server. Deprecated:
-   * Use getUrlForDataset()
+   * Function to get the download url for a file stored in the openBIS datastore server. 
+   * Note that this method does no checks, whether datasetcode or openbisFilename do exist.
+   * Deprecated: Use getUrlForDataset() instead
+   * 
    * 
    * @throws MalformedURLException Returns an download url for the openbis dataset with the given
    *         code and dataset_type. Throughs MalformedURLException if a url can not be created from
