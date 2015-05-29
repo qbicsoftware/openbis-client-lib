@@ -138,7 +138,7 @@ public class OpenBisClient  implements Serializable {
                 .tryToAuthenticateForAllServices(this.userId, this.password);
         break;
       } catch (Exception e) {
-        if (e.getMessage().contains("Read timed out")) {
+        if (e.getMessage() != null && e.getMessage().contains("Read timed out")) {
           if (this.timeout >= this.tolimit)
             throw new InvalidAuthenticationException("Login failed because of read timeout.");
           this.timeout += timeoutStep;
@@ -370,6 +370,58 @@ public class OpenBisClient  implements Serializable {
     return this.getExperimentsOfProjectByIdentifier(project.getIdentifier());
   }
 
+  /**
+   * Function to list all Experiments for a specific project which are registered in the openBIS
+   * instance.
+   * 
+   * @param project the project for which the experiments should be listed
+   * @return list with all experiments registered in this openBIS instance
+   */
+  public List<Experiment> getExperimentsForProject2(Project project) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
+    return getFacade().searchForExperiments(pc);
+  }
+ 
+  /**
+   * Function to list all Experiments for a specific project which are registered in the openBIS
+   * instance.
+   * 
+   * @param project the project for which the experiments should be listed
+   * @return list with all experiments registered in this openBIS instance
+   */
+  public List<Experiment> getExperimentsForProject2(String projectCode) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectCode));
+    return getFacade().searchForExperiments(pc);
+  }
+  
+  /**
+   * Function to list all Experiments for a specific project which are registered in the openBIS
+   * instance.
+   * 
+   * @param project the project for which the experiments should be listed
+   * @return list with all experiments registered in this openBIS instance
+   */
+  public List<Experiment> getExperimentsForProject3(Project project) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
+    return getOpenbisInfoService().searchForExperiments(getSessionToken(),pc);
+  }     
+ 
+  /**
+   * Function to list all Experiments for a specific project which are registered in the openBIS
+   * instance.
+   * 
+   * @param project the project for which the experiments should be listed
+   * @return list with all experiments registered in this openBIS instance
+   */
+  public List<Experiment> getExperimentsForProject3(String projectCode) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectCode));
+    return getOpenbisInfoService().searchForExperiments(getSessionToken(),pc);
+  }    
+  
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
@@ -730,7 +782,66 @@ public class OpenBisClient  implements Serializable {
     // }
     // return res;
   }
+  
+  /**
+   * Function to list all datasets of a specific openBIS project
+   * 
+   * @param projectIdentifier identifier of the openBIS project
+   * @return list with all datasets of the given project
+   */
+  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(
+      String projectIdentifier) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
+    SearchCriteria sc = new SearchCriteria();
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
+  } 
 
+    /**
+     * Function to list all datasets of a specific openBIS project
+     * 
+     * @param projectIdentifier identifier of the openBIS project
+     * @return list with all datasets of the given project
+     */
+    public List<DataSet> getDataSetsOfProjects(
+        List<Project> projectIdentifier) {
+      StringBuilder sb = new StringBuilder();
+      for(Project criteria : projectIdentifier){
+        sb.append(criteria.getCode());
+        sb.append(" ");
+      }
+      SearchCriteria sc = new SearchCriteria();
+      SearchCriteria pc = new SearchCriteria();
+      pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
+      
+      sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
+  }
+    
+    /**
+     * Function to list all datasets of a specific openBIS project
+     * 
+     * @param projectIdentifier identifier of the openBIS project
+     * @return list with all datasets of the given project
+     */
+    public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjects2(
+        List<Project> projectIdentifier) {
+      StringBuilder sb = new StringBuilder();
+      for(Project criteria : projectIdentifier){
+        sb.append(criteria.getCode());
+        sb.append(" ");
+      }
+      SearchCriteria sc = new SearchCriteria();
+      SearchCriteria pc = new SearchCriteria();
+      pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
+      
+      sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    return getFacade().searchForDataSets(sc);
+  }
+    
+    
+  
   /**
    * Function to list all datasets of a specific openBIS project
    * 
@@ -1222,6 +1333,33 @@ public class OpenBisClient  implements Serializable {
     }
   }
 
+  /**
+   * Compute status of project by checking status of the contained experiments
+   * Note: There is no check whether the given experiments really belong to one project.
+   * You have to enusre that yourself
+   * 
+   * @param experiments list of experiments of a project.
+   * @return ratio of finished experiments in this project
+   */
+  public float computeProjectStatus(List<Experiment> experiments) {
+    float finishedExperiments = 0f;
+
+    float numberExperiments = experiments.size();
+
+    for (Experiment e : experiments) {
+      if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
+        if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
+          finishedExperiments += 1.0;
+        };
+      }
+    }
+    if (numberExperiments > 0) {
+      return finishedExperiments / experiments.size();
+    } else {
+      return 0f;
+    }
+  }
+  
   /**
    * Returns a map of Labels (keys) and Codes (values) in a Vocabulary in openBIS
    * 

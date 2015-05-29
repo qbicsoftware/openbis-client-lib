@@ -642,7 +642,29 @@ public class TestOpenBisClient {
       ASSERT.that(e).isInstanceOf(Exception.class);
     }
   }
-  
+ 
+  @Test
+  public void testGetDataSetsOfProjectByIdentifierWithSearchCriteria_project_with_datasets() {
+    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/QBIC/QHPTI");
+    ASSERT.that(dsets.size()).isEqualTo(43);
+    try {
+      openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("QHPTI");
+      fail("not an identifier");
+    } catch (Exception e) {
+      ASSERT.that(e).isInstanceOf(Exception.class);
+    }
+  }
+  @Test
+  public void testGetDataSetsOfProjectByIdentifierWithSearchCriteria_project_with_no_experiments() {
+    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/ECKH/ECKH1");
+    ASSERT.that(dsets.size()).isEqualTo(0);
+    try {
+      openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("ECKH1");
+      fail("not an identifier");
+    } catch (Exception e) {
+      ASSERT.that(e).isInstanceOf(Exception.class);
+    }
+  }
   
   
 
