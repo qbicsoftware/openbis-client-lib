@@ -817,6 +817,21 @@ median:  15031
   return getFacade().searchForDataSets(sc);
   }
   
+  /**
+   * Function to list all datasets of a specific openBIS experiment
+   * 
+   * @param experimentCode code of the openBIS experiment
+   * @return list with all datasets of the given experiment
+   */
+  public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(
+      String experimentCode) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, experimentCode));
+    SearchCriteria sc = new SearchCriteria();
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
+  } 
+  
 
     /**
      * Function to list all datasets of a specific openBIS project
