@@ -1217,8 +1217,8 @@ median:  15031
   @Deprecated
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String downloadURL = this.serverURL.substring(0, this.serverURL.length() - 1);
-    downloadURL += "4";
+    String base = this.serverURL.split(":")[0];
+    String downloadURL = base+":444";
     downloadURL += "/datastore_server/";
 
     downloadURL += dataSetCode;
