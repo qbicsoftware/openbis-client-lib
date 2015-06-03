@@ -362,7 +362,7 @@ public class OpenBisClient  implements Serializable {
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
-   * 
+   * av: 19353 ms
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
    */
@@ -373,6 +373,11 @@ public class OpenBisClient  implements Serializable {
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
+   * runtime for all projects:
+   * samples: 25, 4 threads
+max:     14496
+average: 13705.6
+median:  13908
    * 
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
@@ -399,6 +404,11 @@ public class OpenBisClient  implements Serializable {
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
+   * 
+   * samples: 25, 4 threads
+max:     15627
+average: 14582.08
+median:  15031
    * 
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
@@ -797,6 +807,16 @@ public class OpenBisClient  implements Serializable {
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   } 
+  
+  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDatasetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier){
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
+    
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+  return getFacade().searchForDataSets(sc);
+  }
+  
 
     /**
      * Function to list all datasets of a specific openBIS project

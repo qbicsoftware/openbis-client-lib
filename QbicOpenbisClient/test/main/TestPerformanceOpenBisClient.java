@@ -14,6 +14,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
@@ -140,9 +141,32 @@ public class TestPerformanceOpenBisClient {
 //~80 samples 40 datasets 
   @Test
   @PerfTest(invocations = 25, threads = 4)
-
   public void getDataSetsOfProjectByIdentifierWithSearchCriteria_EXT_SCHENKE_LAYLAND_QKSFF(){
-    openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/EXT_SCHENKE_LAYLAND/QKSFF");
+    List<DataSet> datasets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/EXT_SCHENKE_LAYLAND/QKSFF");
+    if(!datasets.isEmpty()){
+      System.out.println(datasets.get(0).getDataSetTypeCode());
+      System.out.println(datasets.get(0).getExternalDataSetCode());
+      System.out.println(datasets.get(0).getExternalDataSetLink());
+      System.out.println(datasets.get(0).getExternalDataManagementSystem());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getCode());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getLabel());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getDatabaseInstance().getIdentifier());
+    } 
+  } 
+  
+  @Test
+  @PerfTest(invocations = 25, threads = 4)
+  public void getClientDataSetsOfProjectByIdentifierWithSearchCriteria_EXT_SCHENKE_LAYLAND_QKSFF(){
+    List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> datasets = openbisClient.getClientDatasetsOfProjectByIdentifierWithSearchCriteria("/EXT_SCHENKE_LAYLAND/QKSFF");
+    if(!datasets.isEmpty()){
+      System.out.println(datasets.get(0).getDataSetTypeCode());
+      System.out.println(datasets.get(0).getExternalDataSetCode());
+      System.out.println(datasets.get(0));
+      System.out.println(datasets.get(0).tryGetInternalPathInDataStore());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getCode());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getLabel());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getDatabaseInstance().getIdentifier());
+    } 
   } 
   
   
@@ -166,9 +190,33 @@ public class TestPerformanceOpenBisClient {
   //0 datasets  
   @Test
   @PerfTest(invocations = 25, threads = 4)
-
   public void getDataSetsOfProjectByIdentifierWithSearchCriteria_IVAC_ALL_QL011(){
-    openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/IVAC_ALL/QA011");
+    List<DataSet> datasets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/IVAC_ALL/QA011");
+    if(!datasets.isEmpty()){
+      System.out.println(datasets.get(0).getDataSetTypeCode());
+      System.out.println(datasets.get(0).getExternalDataSetCode());
+      System.out.println(datasets.get(0).getExternalDataSetLink());
+      System.out.println(datasets.get(0).getExternalDataManagementSystem());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getCode());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getLabel());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getDatabaseInstance().getIdentifier());
+    } 
+  }
+ 
+  //0 datasets  
+  @Test
+  @PerfTest(invocations = 25, threads = 4)
+  public void getClientDataSetsOfProjectByIdentifierWithSearchCriteria_IVAC_ALL_QL011(){
+    List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> datasets = openbisClient.getClientDatasetsOfProjectByIdentifierWithSearchCriteria("/IVAC_ALL/QA011");
+    if(!datasets.isEmpty()){
+      System.out.println(datasets.get(0).getDataSetTypeCode());
+      System.out.println(datasets.get(0).getExternalDataSetCode());
+      System.out.println(datasets.get(0).getExternalDataSetLink());
+      System.out.println(datasets.get(0).getExternalDataManagementSystem());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getCode());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getLabel());
+      //System.out.println(datasets.get(0).getExternalDataManagementSystem().getDatabaseInstance().getIdentifier());
+    } 
   }
   
   
@@ -191,7 +239,17 @@ public class TestPerformanceOpenBisClient {
   @Test
   @PerfTest(invocations = 25, threads = 4)
   public void getDataSetsOfProjectByIdentifierWithSearchCriteria_MFT_FRICK_RNAPHOSPHO_TLR5_QJFPH(){
-  openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/MFT_FRICK_RNAPHOSPHO_TLR5/QJFPH");
+  List<DataSet> datasets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/MFT_FRICK_RNAPHOSPHO_TLR5/QJFPH");
+  if(!datasets.isEmpty()){
+    System.out.println(datasets.get(0).getDataSetTypeCode());
+    System.out.println(datasets.get(0).getExternalDataSetCode());
+    System.out.println(datasets.get(0).getExternalDataSetLink());
+    System.out.println(datasets.get(0).getExternalDataManagementSystem());
+    //System.out.println(datasets.get(0).getExternalDataManagementSystem().getCode());
+    //System.out.println(datasets.get(0).getExternalDataManagementSystem().getLabel());
+    //System.out.println(datasets.get(0).getExternalDataManagementSystem().getDatabaseInstance().getIdentifier());
+  }
+  
   }
   
   @Test
@@ -275,6 +333,35 @@ public class TestPerformanceOpenBisClient {
   public void listExperimentsForProject4_QMARI(){
       openbisClient.getExperimentsOfProjectByCode("QMARI");
   }
+  @Test
+  @PerfTest(invocations = 25, threads = 4)
+  public void getSpaceMembers_QMARI(){
+      openbisClient.getSpaceMembers("ABI_SYSBIO");
+  }
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void getDataset1(){
+    ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataset = openbisClient.getFacade().getDataSet("20150224174804803-6961");
+  }
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void getDataset2(){
+    ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataset = openbisClient.getFacade().getDataSet("20150317114547138-9319"); 
+  }
   
-
+  
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void listfiles1(){
+    ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataset = openbisClient.getFacade().getDataSet("20150224174804803-6961");
+    dataset.listFiles("original", true);  
+  }
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void listfiles2(){
+    ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataset = openbisClient.getFacade().getDataSet("20150317114547138-9319");
+    dataset.listFiles("original", true);  
+  }
+  
+  
 }
