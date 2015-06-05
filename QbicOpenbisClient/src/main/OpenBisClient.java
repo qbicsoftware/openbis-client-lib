@@ -1217,12 +1217,26 @@ median:  15031
   @Deprecated
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(":")[0];
+    String base = this.serverURL.split(".de")[0]+".de";
     String downloadURL = base+":444";
     downloadURL += "/datastore_server/";
 
     downloadURL += dataSetCode;
     downloadURL += "/original/";
+    downloadURL += openbisFilename;
+    downloadURL += "?mode=simpleHtml&sessionID=";
+    downloadURL += this.getSessionToken();
+    return new URL(downloadURL);
+  }
+  
+  public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
+      throws MalformedURLException {
+    String base = this.serverURL.split(".de")[0]+".de";
+    String downloadURL = base+":444";
+    downloadURL += "/datastore_server/";
+
+    downloadURL += dataSetCode;
+    downloadURL += "/";
     downloadURL += openbisFilename;
     downloadURL += "?mode=simpleHtml&sessionID=";
     downloadURL += this.getSessionToken();
