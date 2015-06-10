@@ -654,6 +654,32 @@ median:  15031
   }
 
   /**
+   * Function to list all Experiments for a specific project which are registered in the openBIS
+   * instance.
+   * runtime for all projects:
+   * samples: 25, 4 threads
+max:     14496
+average: 13705.6
+median:  13908
+   * 
+   * @param project the project for which the experiments should be listed
+   * @return list with all experiments registered in this openBIS instance
+   */
+  public List<Experiment> getExperimentById2(String expIdentifer) {
+    if (expIdentifer == null || !expIdentifer.contains("/") || expIdentifer.isEmpty()){
+      throw new IllegalArgumentException();
+    }
+    String[] split = expIdentifer.split("/");
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, split[split.length-1]));
+    return getFacade().searchForExperiments(pc);
+  }
+  
+  
+  
+  
+  
+  /**
    * Function to retrieve the project of an experiment from openBIS
    * 
    * @param experimentIdentifier identifier of the openBIS experiment

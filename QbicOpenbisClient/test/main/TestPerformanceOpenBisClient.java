@@ -1,8 +1,11 @@
 package main;
 
 import java.io.FileReader;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.databene.contiperf.PerfTest;
@@ -21,6 +24,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClauseAttribute;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
 public class TestPerformanceOpenBisClient {
 
@@ -361,6 +365,47 @@ public class TestPerformanceOpenBisClient {
   public void listfiles2(){
     ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataset = openbisClient.getFacade().getDataSet("20150317114547138-9319");
     dataset.listFiles("original", true);  
+  }
+  
+  /**
+   * samples: 25, 4 threads
+max:     8118
+average: 6795.0
+median:  6623
+
+   */
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void getExperimentById(){
+    openbisClient.getExperimentById("/ABI_SYSBIO/QMARI/QMARIE3");
+  }
+ 
+  @Test
+  @PerfTest(invocations = 1, threads = 1 ) 
+  public void getExperimentById2(){
+    List<Experiment> experiments = openbisClient.getExperimentById2("/ABI_SYSBIO/QMARI/QMARIE3");
+    for(Experiment exp : experiments){
+      System.out.println(exp);
+    }
+  }
+  
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void get_projects_with_data(){
+    
+    List<String> codes = new ArrayList<String>();
+    List<Project> projects = openbisClient.listProjects();
+    for(Project project: projects) {
+      codes.add(project.getCode());
+    }
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("codes", codes);
+    QueryTableModel res = openbisClient.getAggregationService("get-projects-with-data", params);
+    for (Serializable[] ss : res.getRows()) {
+      System.out.println("next");
+      for(Object x : ss)
+        System.out.println(x.toString());
+    }
   }
   
   
