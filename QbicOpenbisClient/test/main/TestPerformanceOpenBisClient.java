@@ -1,5 +1,7 @@
 package main;
 
+import static com.google.common.truth.Truth.ASSERT;
+
 import java.io.FileReader;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import org.junit.Test;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
@@ -408,5 +411,15 @@ median:  6623
     }
   }
   
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void getSampleTypes(){
+    Map<String, SampleType> types = openbisClient.getSampleTypes();
+  }
+  @Test
+  @PerfTest(invocations = 25, threads = 4) 
+  public void getSampleTypeByString(){
+    openbisClient.getSampleTypeByString("Q_TEST_SAMPLE");
+  }  
   
 }

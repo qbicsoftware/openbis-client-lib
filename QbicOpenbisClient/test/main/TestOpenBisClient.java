@@ -8,8 +8,10 @@ import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import main.OpenBisClient;
@@ -1070,6 +1072,12 @@ public class TestOpenBisClient {
   public void testAddNewInstance() {
     // openbisClient.addNewInstance(params, service, number_of_samples_offset)
     fail("Not yet implemented");
+  }
+  
+  @Test
+  public void getSampleTypes(){
+    Map<String, SampleType> types = openbisClient.getSampleTypes();
+    ASSERT.that(types.size()).isGreaterThan(0);
   }
 
 }

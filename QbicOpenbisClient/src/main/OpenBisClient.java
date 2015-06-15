@@ -544,6 +544,9 @@ median:  15031
         this.getOpenbisInfoService().searchForSamples(this.sessionToken, sc);
     return foundSamples;
   }
+  
+
+  
 
   /**
    * Function to retrieve all projects of a given space from openBIS.
@@ -1068,6 +1071,23 @@ median:  13908
     }
     return st;
   }
+  
+  /**
+   * Function to retrieve all samples of a specific given type
+   * 
+   * @param type identifier of the openBIS sample type
+   * @return list with all samples of this given type
+   */
+  public Map<String,SampleType> getSampleTypes() {
+    List<SampleType> sampleTypes = this.getFacade().listSampleTypes();
+    HashMap<String,SampleType> types = new HashMap<String, SampleType>(sampleTypes.size());
+    for (SampleType t : sampleTypes) {
+      types.put(t.getCode(), t);
+    }
+    return types;
+  }
+  
+  
 
   /**
    * Function to get a ExperimentType object of a experiment type
