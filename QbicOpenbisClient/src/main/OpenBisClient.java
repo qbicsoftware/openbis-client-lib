@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang.WordUtils;
@@ -69,6 +70,7 @@ public class OpenBisClient  implements Serializable {
   private String password;
   private String serverURL;
 
+  private final String dss = "DSS1";
 
   public OpenBisClient(String loginid, String password, String serverURL) {
     this.userId = loginid;
@@ -972,7 +974,7 @@ median:  13908
   public void addAttachmentToProject(Map<String, Object> parameter) {
     ensureLoggedIn();
     System.out.println(this.openbisDssService.createReportFromAggregationService(this.sessionToken,
-        "DSS1", "add-attachment", parameter));
+        dss, "add-attachment", parameter));
   }
   
   /**
@@ -983,7 +985,7 @@ median:  13908
    */
   public QueryTableModel getAggregationService(String name, Map<String, Object> parameters) {
     ensureLoggedIn();
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, "DSS1", name, parameters);
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, name, parameters);
   }
 
   /**
@@ -1132,7 +1134,7 @@ median:  13908
    * @return object name of the QueryTableModel which is returned by the aggregation service
    */
   public String triggerIngestionService(String serviceName, Map<String, Object> parameters) {
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, "DSS1",
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss,
         serviceName, parameters).toString();
   }
 
@@ -1145,7 +1147,7 @@ median:  13908
    * @return object name of the QueryTableModel which is returned by the aggregation service
    */
   public String addParentChildConnection(Map<String, Object> parameters) {
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, "DSS1",
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss,
         "create-parent-child", parameters).toString();
   }
 
@@ -1172,7 +1174,7 @@ median:  13908
       params.put("code", barcode);
     }
     // System.out.println(params);
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, "DSS1",
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss,
         service, params).toString();
   }
 
@@ -1601,7 +1603,33 @@ median:  13908
 
     IOpenbisServiceFacade facade = this.getFacade();
     ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataSet = facade.getDataSet(datasetCode);
-    FileInfoDssDTO[] filelist = dataSet.listFiles("original/" + folder, false);
+    FileInfoDssDTO[] filelist = dataSet.listFiles((new StringBuilder("original/")).append(folder).toString(), false);
     return dataSet.getFile(filelist[0].getPathInDataSet());
   }
+  
+  /**
+   * returns file information for a given number of datasets.
+   * params should look something like this: {'codes': [datasetcode1,datasetcode2...]}
+   * returns a QueryTableModel with the following entries:
+   *  DATA_SET_CODE equals datasetcode given in params
+      RELATIVE_PATH normally in the form 'original/results/file.txt'
+      FILE_NAME just contains the basename e.g. 'file.txt'
+      SIZE_IN_BYTES  java long value
+      IS_DIRECTORY true or false
+      LAST_MODIFIED ...
+   * @param params
+   * @param IllegalArgumentException
+   * @return
+   */
+  public QueryTableModel queryFileInformation(Map<String, List<String> > params) throws IllegalArgumentException{
+    final String  key = "codes";
+    Map<String, Object> tmp = new HashMap<String, Object>();
+    if(params.containsKey(key)){
+      tmp.put(key,params.get(key)); 
+         }else{
+           throw new IllegalArgumentException(String.format("params should contain one entry, with key '%s'. Values should contain dataset codes.", key));
+         }
+    return getAggregationService("query-files", tmp); 
+  }
+  
 }

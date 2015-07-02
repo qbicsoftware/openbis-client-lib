@@ -22,6 +22,7 @@ import org.junit.Test;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
@@ -420,6 +421,25 @@ median:  6623
   @PerfTest(invocations = 25, threads = 4) 
   public void getSampleTypeByString(){
     openbisClient.getSampleTypeByString("Q_TEST_SAMPLE");
-  }  
+  }
+  
+  @Test
+  @PerfTest(invocations = 1, threads = 1) 
+  public void sampleParentsAndChildren(){
+    List<Sample> samples  = openbisClient.getSamplesofSpace("ABI_SYSBIO");
+    System.out.println("ABI_SYSBIO has + " + samples.size() + " number of samples.");
+    for(Sample sample : samples){
+      int parents = 0;
+      int children = 0;
+      try{
+        parents = openbisClient.getParents(sample.getCode()).size();//sample.getParents().size();
+        children = openbisClient.getChildrenSamples(sample).size();//sample.getChildren().size();
+      }catch(Exception e){
+        //shut up
+      }
+      System.out.println(sample.getCode() + " has " + parents + " parents and " + children + " children.");
+    }
+    
+  }
   
 }
