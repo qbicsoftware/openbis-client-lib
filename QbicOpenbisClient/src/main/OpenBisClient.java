@@ -314,7 +314,12 @@ public class OpenBisClient  implements Serializable {
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
+    if(foundSamples.size() < 1) {
+    	throw new IllegalArgumentException();
+    }
+    else {
     return foundSamples.get(0);
+    }
   }
 
   /**
@@ -863,6 +868,15 @@ median:  13908
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   } 
   
+  
+  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDataSetsOfExperimentByCodeWithSearchCriteria(
+      String experimentCode) {
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, experimentCode));
+    SearchCriteria sc = new SearchCriteria();
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    return getFacade().searchForDataSets(sc);
+  } 
 
     /**
      * Function to list all datasets of a specific openBIS project
