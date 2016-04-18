@@ -6,11 +6,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang.WordUtils;
@@ -24,7 +24,6 @@ import ch.systemsx.cisd.openbis.dss.generic.shared.api.v1.FileInfoDssDTO;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.EntityType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
@@ -32,6 +31,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyTypeGroup;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleFetchOption;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
@@ -39,6 +39,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchCl
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Vocabulary;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIdentifierId;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
@@ -51,7 +52,7 @@ import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
  * 
  * @author wojnar
  */
-public class OpenBisClient  implements Serializable {
+public class OpenBisClient implements Serializable {
   /**
    * 
    */
@@ -298,6 +299,7 @@ public class OpenBisClient  implements Serializable {
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
+
     return foundSamples;
   }
 
@@ -314,11 +316,10 @@ public class OpenBisClient  implements Serializable {
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
-    if(foundSamples.size() < 1) {
-    	throw new IllegalArgumentException();
-    }
-    else {
-    return foundSamples.get(0);
+    if (foundSamples.size() < 1) {
+      throw new IllegalArgumentException();
+    } else {
+      return foundSamples.get(0);
     }
   }
 
@@ -354,6 +355,47 @@ public class OpenBisClient  implements Serializable {
   }
 
   /**
+   * Function to get all samples of a specific project
+   * 
+   * @param projIdentifierOrCode identifier of the openBIS project
+   * @return list with all samples connected to the given project
+   */
+  public List<Sample> getSamplesOfProjectBySearchService(String projIdentifier) {
+    ensureLoggedIn();
+    List<Sample> foundSamples = new ArrayList<Sample>();
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
+        SearchCriteria.MatchClauseAttribute.PROJECT, projIdentifier));
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
+    return foundSamples;
+  }
+
+  /**
+   * Function to get all samples with their parents and children of a specific project
+   * 
+   * @param projIdentifierOrCode identifier of the openBIS project
+   * @return list with all samples connected to the given project
+   */
+  public List<Sample> getSamplesWithParentsAndChildrenOfProjectBySearchService(String projIdentifier) {
+    ensureLoggedIn();
+
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
+        SearchCriteria.MatchClauseAttribute.PROJECT, projIdentifier));
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    EnumSet<SampleFetchOption> fetchOptions =
+        EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES,
+            SampleFetchOption.DESCENDANTS);
+    List<Sample> allSamples = facade.searchForSamples(sc, fetchOptions);
+
+    return allSamples;
+  }
+
+
+  /**
    * returns a list of all Experiments connected to the project with the identifier from openBis
    * 
    * @param projectIdentifier identifier of the given openBIS project
@@ -368,8 +410,8 @@ public class OpenBisClient  implements Serializable {
 
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
-   * instance.
-   * av: 19353 ms
+   * instance. av: 19353 ms
+   * 
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
    */
@@ -379,22 +421,19 @@ public class OpenBisClient  implements Serializable {
 
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
-   * instance.
-   * runtime for all projects:
-   * samples: 25, 4 threads
-max:     14496
-average: 13705.6
-median:  13908
+   * instance. runtime for all projects: samples: 25, 4 threads max: 14496 average: 13705.6 median:
+   * 13908
    * 
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
    */
   public List<Experiment> getExperimentsForProject2(Project project) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
+        project.getCode()));
     return getFacade().searchForExperiments(pc);
   }
- 
+
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
@@ -407,25 +446,23 @@ median:  13908
     pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectCode));
     return getFacade().searchForExperiments(pc);
   }
-  
+
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
    * 
-   * samples: 25, 4 threads
-max:     15627
-average: 14582.08
-median:  15031
+   * samples: 25, 4 threads max: 15627 average: 14582.08 median: 15031
    * 
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
    */
   public List<Experiment> getExperimentsForProject3(Project project) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
-    return getOpenbisInfoService().searchForExperiments(getSessionToken(),pc);
-  }     
- 
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
+        project.getCode()));
+    return getOpenbisInfoService().searchForExperiments(getSessionToken(), pc);
+  }
+
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
@@ -436,9 +473,9 @@ median:  15031
   public List<Experiment> getExperimentsForProject3(String projectCode) {
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectCode));
-    return getOpenbisInfoService().searchForExperiments(getSessionToken(),pc);
-  }    
-  
+    return getOpenbisInfoService().searchForExperiments(getSessionToken(), pc);
+  }
+
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
    * instance.
@@ -551,9 +588,8 @@ median:  15031
         this.getOpenbisInfoService().searchForSamples(this.sessionToken, sc);
     return foundSamples;
   }
-  
 
-  
+
 
   /**
    * Function to retrieve all projects of a given space from openBIS.
@@ -581,7 +617,8 @@ median:  15031
    */
   public Project getProjectByIdentifier(String projectIdentifier) {
     if (!projectIdentifier.contains("/") || projectIdentifier.isEmpty())
-      throw new IllegalArgumentException(String.format("project identifer %s is not a valid identifier", projectIdentifier));
+      throw new IllegalArgumentException(String.format(
+          "project identifer %s is not a valid identifier", projectIdentifier));
     else {
       List<Project> projects = this.listProjects();
       Project project = null;
@@ -590,8 +627,9 @@ median:  15031
           project = p;
         }
       }
-      if(project == null){
-        throw new IllegalArgumentException(String.format("project %s does not exist.", projectIdentifier));
+      if (project == null) {
+        throw new IllegalArgumentException(String.format("project %s does not exist.",
+            projectIdentifier));
       }
       return project;
     }
@@ -665,30 +703,25 @@ median:  15031
 
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
-   * instance.
-   * runtime for all projects:
-   * samples: 25, 4 threads
-max:     14496
-average: 13705.6
-median:  13908
+   * instance. runtime for all projects: samples: 25, 4 threads max: 14496 average: 13705.6 median:
+   * 13908
    * 
    * @param project the project for which the experiments should be listed
    * @return list with all experiments registered in this openBIS instance
    */
   public List<Experiment> getExperimentById2(String expIdentifer) {
-    if (expIdentifer == null || !expIdentifer.contains("/") || expIdentifer.isEmpty()){
+    if (expIdentifer == null || !expIdentifer.contains("/") || expIdentifer.isEmpty()) {
       throw new IllegalArgumentException();
     }
     String[] split = expIdentifer.split("/");
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, split[split.length-1]));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
+        split[split.length - 1]));
     return getFacade().searchForExperiments(pc);
   }
-  
-  
-  
-  
-  
+
+
+
   /**
    * Function to retrieve the project of an experiment from openBIS
    * 
@@ -812,13 +845,12 @@ median:  13908
     ArrayList<String> ids = new ArrayList<String>();
     for (Experiment e : getExperimentsOfProjectByIdentifier(projectIdentifier))
       ids.add(e.getIdentifier());
-    if(ids.isEmpty()){
+    if (ids.isEmpty()) {
       return new ArrayList<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet>();
-    }
-    else{
+    } else {
       return listDataSetsForExperiments(ids);
     }
-    
+
     // List<Sample> samps = getSamplesOfProject(projectIdentifier);
     // List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> res =
     // new ArrayList<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet>();
@@ -828,47 +860,48 @@ median:  13908
     // }
     // return res;
   }
-  
+
   /**
    * Function to list all datasets of a specific openBIS project
    * 
    * @param projectIdentifier identifier of the openBIS project
    * @return list with all datasets of the given project
    */
-  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(
-      String projectIdentifier) {
+  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
+        projectIdentifier));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
-  } 
-  
-  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDatasetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier){
+  }
+
+  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDatasetsOfProjectByIdentifierWithSearchCriteria(
+      String projectIdentifier) {
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
-    
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
+        projectIdentifier));
+
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
-  return getFacade().searchForDataSets(sc);
+    return getFacade().searchForDataSets(sc);
   }
-  
+
   /**
    * Function to list all datasets of a specific openBIS experiment
    * 
    * @param experimentCode code of the openBIS experiment
    * @return list with all datasets of the given experiment
    */
-  public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(
-      String experimentCode) {
+  public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(String experimentCode) {
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, experimentCode));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
-  } 
-  
-  
+  }
+
+
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDataSetsOfExperimentByCodeWithSearchCriteria(
       String experimentCode) {
     SearchCriteria pc = new SearchCriteria();
@@ -876,52 +909,51 @@ median:  13908
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
-  } 
+  }
 
-    /**
-     * Function to list all datasets of a specific openBIS project
-     * 
-     * @param projectIdentifier identifier of the openBIS project
-     * @return list with all datasets of the given project
-     */
-    public List<DataSet> getDataSetsOfProjects(
-        List<Project> projectIdentifier) {
-      StringBuilder sb = new StringBuilder();
-      for(Project criteria : projectIdentifier){
-        sb.append(criteria.getCode());
-        sb.append(" ");
-      }
-      SearchCriteria sc = new SearchCriteria();
-      SearchCriteria pc = new SearchCriteria();
-      pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
-      
-      sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+  /**
+   * Function to list all datasets of a specific openBIS project
+   * 
+   * @param projectIdentifier identifier of the openBIS project
+   * @return list with all datasets of the given project
+   */
+  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
+    StringBuilder sb = new StringBuilder();
+    for (Project criteria : projectIdentifier) {
+      sb.append(criteria.getCode());
+      sb.append(" ");
+    }
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
+
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   }
-    
-    /**
-     * Function to list all datasets of a specific openBIS project
-     * 
-     * @param projectIdentifier identifier of the openBIS project
-     * @return list with all datasets of the given project
-     */
-    public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjects2(
-        List<Project> projectIdentifier) {
-      StringBuilder sb = new StringBuilder();
-      for(Project criteria : projectIdentifier){
-        sb.append(criteria.getCode());
-        sb.append(" ");
-      }
-      SearchCriteria sc = new SearchCriteria();
-      SearchCriteria pc = new SearchCriteria();
-      pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
-      
-      sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+
+  /**
+   * Function to list all datasets of a specific openBIS project
+   * 
+   * @param projectIdentifier identifier of the openBIS project
+   * @return list with all datasets of the given project
+   */
+  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjects2(
+      List<Project> projectIdentifier) {
+    StringBuilder sb = new StringBuilder();
+    for (Project criteria : projectIdentifier) {
+      sb.append(criteria.getCode());
+      sb.append(" ");
+    }
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
+
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
   }
-    
-    
-  
+
+
+
   /**
    * Function to list all datasets of a specific openBIS project
    * 
@@ -990,16 +1022,19 @@ median:  13908
     System.out.println(this.openbisDssService.createReportFromAggregationService(this.sessionToken,
         dss, "add-attachment", parameter));
   }
-  
+
   /**
    * Queries an aggregation service for openBIS data
-   * @param name the name of the aggregation service, as specified in the config file of the openBIS instance
+   * 
+   * @param name the name of the aggregation service, as specified in the config file of the openBIS
+   *        instance
    * @param parameters a map of parameters
    * @return a QueryTableModel object containing the aggregated information
    */
   public QueryTableModel getAggregationService(String name, Map<String, Object> parameters) {
     ensureLoggedIn();
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, name, parameters);
+    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, name,
+        parameters);
   }
 
   /**
@@ -1087,23 +1122,23 @@ median:  13908
     }
     return st;
   }
-  
+
   /**
    * Function to retrieve all samples of a specific given type
    * 
    * @param type identifier of the openBIS sample type
    * @return list with all samples of this given type
    */
-  public Map<String,SampleType> getSampleTypes() {
+  public Map<String, SampleType> getSampleTypes() {
     List<SampleType> sampleTypes = this.getFacade().listSampleTypes();
-    HashMap<String,SampleType> types = new HashMap<String, SampleType>(sampleTypes.size());
+    HashMap<String, SampleType> types = new HashMap<String, SampleType>(sampleTypes.size());
     for (SampleType t : sampleTypes) {
       types.put(t.getCode(), t);
     }
     return types;
   }
-  
-  
+
+
 
   /**
    * Function to get a ExperimentType object of a experiment type
@@ -1263,9 +1298,9 @@ median:  13908
   }
 
   /**
-   * Function to get the download url for a file stored in the openBIS datastore server. 
-   * Note that this method does no checks, whether datasetcode or openbisFilename do exist.
-   * Deprecated: Use getUrlForDataset() instead
+   * Function to get the download url for a file stored in the openBIS datastore server. Note that
+   * this method does no checks, whether datasetcode or openbisFilename do exist. Deprecated: Use
+   * getUrlForDataset() instead
    * 
    * 
    * @throws MalformedURLException Returns an download url for the openbis dataset with the given
@@ -1279,8 +1314,8 @@ median:  13908
   @Deprecated
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(".de")[0]+".de";
-    String downloadURL = base+":444";
+    String base = this.serverURL.split(".de")[0] + ".de";
+    String downloadURL = base + ":444";
     downloadURL += "/datastore_server/";
 
     downloadURL += dataSetCode;
@@ -1290,11 +1325,11 @@ median:  13908
     downloadURL += this.getSessionToken();
     return new URL(downloadURL);
   }
-  
+
   public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(".de")[0]+".de";
-    String downloadURL = base+":444";
+    String base = this.serverURL.split(".de")[0] + ".de";
+    String downloadURL = base + ":444";
     downloadURL += "/datastore_server/";
 
     downloadURL += dataSetCode;
@@ -1332,7 +1367,7 @@ median:  13908
    * @param sampleCode Code of the query sample
    * @return List of parent samples
    */
-  public List<Sample> getParents(String sampleCode) {
+  public List<Sample> getChildrenBySearchService(String sampleCode) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
@@ -1340,8 +1375,30 @@ median:  13908
     // List<Sample> foundSample = this.facade.searchForSamples(sc);
 
     SearchCriteria sampleSc = new SearchCriteria();
+    sampleSc.addSubCriteria(SearchSubCriteria.createSampleParentCriteria(sc));
+    List<Sample> foundParentSamples =
+        this.getOpenbisInfoService().searchForSamples(sessionToken, sampleSc);
+
+    return foundParentSamples;
+  }
+
+
+  /**
+   * Function to retrieve parent samples of a sample
+   * 
+   * @param sampleCode Code of the query sample
+   * @return List of parent samples
+   */
+  public List<Sample> getParentsBySearchService(String sampleCode) {
+    ensureLoggedIn();
+    SearchCriteria sc = new SearchCriteria();
+    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
+        SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
+
+    SearchCriteria sampleSc = new SearchCriteria();
     sampleSc.addSubCriteria(SearchSubCriteria.createSampleChildCriteria(sc));
-    List<Sample> foundParentSamples = this.facade.searchForSamples(sampleSc);
+    List<Sample> foundParentSamples =
+        this.getOpenbisInfoService().searchForSamples(sessionToken, sampleSc);
 
     return foundParentSamples;
   }
@@ -1445,9 +1502,9 @@ median:  13908
   }
 
   /**
-   * Compute status of project by checking status of the contained experiments
-   * Note: There is no check whether the given experiments really belong to one project.
-   * You have to enusre that yourself
+   * Compute status of project by checking status of the contained experiments Note: There is no
+   * check whether the given experiments really belong to one project. You have to enusre that
+   * yourself
    * 
    * @param experiments list of experiments of a project.
    * @return ratio of finished experiments in this project
@@ -1470,7 +1527,7 @@ median:  13908
       return 0f;
     }
   }
-  
+
   /**
    * Returns a map of Labels (keys) and Codes (values) in a Vocabulary in openBIS
    * 
@@ -1617,33 +1674,34 @@ median:  13908
 
     IOpenbisServiceFacade facade = this.getFacade();
     ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet dataSet = facade.getDataSet(datasetCode);
-    FileInfoDssDTO[] filelist = dataSet.listFiles((new StringBuilder("original/")).append(folder).toString(), false);
+    FileInfoDssDTO[] filelist =
+        dataSet.listFiles((new StringBuilder("original/")).append(folder).toString(), false);
     return dataSet.getFile(filelist[0].getPathInDataSet());
   }
-  
+
   /**
-   * returns file information for a given number of datasets.
-   * params should look something like this: {'codes': [datasetcode1,datasetcode2...]}
-   * returns a QueryTableModel with the following entries:
-   *  DATA_SET_CODE equals datasetcode given in params
-      RELATIVE_PATH normally in the form 'original/results/file.txt'
-      FILE_NAME just contains the basename e.g. 'file.txt'
-      SIZE_IN_BYTES  java long value
-      IS_DIRECTORY true or false
-      LAST_MODIFIED ...
+   * returns file information for a given number of datasets. params should look something like
+   * this: {'codes': [datasetcode1,datasetcode2...]} returns a QueryTableModel with the following
+   * entries: DATA_SET_CODE equals datasetcode given in params RELATIVE_PATH normally in the form
+   * 'original/results/file.txt' FILE_NAME just contains the basename e.g. 'file.txt' SIZE_IN_BYTES
+   * java long value IS_DIRECTORY true or false LAST_MODIFIED ...
+   * 
    * @param params
    * @param IllegalArgumentException
    * @return
    */
-  public QueryTableModel queryFileInformation(Map<String, List<String> > params) throws IllegalArgumentException{
-    final String  key = "codes";
+  public QueryTableModel queryFileInformation(Map<String, List<String>> params)
+      throws IllegalArgumentException {
+    final String key = "codes";
     Map<String, Object> tmp = new HashMap<String, Object>();
-    if(params.containsKey(key)){
-      tmp.put(key,params.get(key)); 
-         }else{
-           throw new IllegalArgumentException(String.format("params should contain one entry, with key '%s'. Values should contain dataset codes.", key));
-         }
-    return getAggregationService("query-files", tmp); 
+    if (params.containsKey(key)) {
+      tmp.put(key, params.get(key));
+    } else {
+      throw new IllegalArgumentException(String.format(
+          "params should contain one entry, with key '%s'. Values should contain dataset codes.",
+          key));
+    }
+    return getAggregationService("query-files", tmp);
   }
-  
+
 }
