@@ -1429,7 +1429,7 @@ public class OpenBisClient implements Serializable {
         }
         if (desc.toLowerCase().equals("homo sapiens"))
           desc = "Patient";
-        res.add(sample.getProperties().get("Q_SECONDARY_NAME") + " (" + desc + ' ' + id + ")");
+        res.add(desc + ' ' + id);
       } else
         res.add("unknown source");
     }
@@ -1473,7 +1473,7 @@ public class OpenBisClient implements Serializable {
     // Arrays.sort(samples);
 
     Vocabulary voc = getVocabulary("Q_NCBI_TAXONOMY");
-    String header = "Code\tSecondary Name\tSource Name\tExternal ID\tSample Type\tAttributes";
+    String header = "QBiC Code\tSecondary Name\tSource Name\tExternal ID\tSample Type\tAttributes";
     res.add(header);
     for (Sample sample : samples) {
       String code = sample.getCode();
