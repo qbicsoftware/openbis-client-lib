@@ -396,6 +396,27 @@ public class OpenBisClient implements Serializable {
 
 
   /**
+   * Function to get a sample with its parents and children
+   * 
+   * @param sampCode code of the openBIS sample
+   * @return sample
+   */
+  public List<Sample> getSamplesWithParentsAndChildren(String sampCode) {
+    ensureLoggedIn();
+
+    SearchCriteria sc = new SearchCriteria();
+    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
+        SearchCriteria.MatchClauseAttribute.CODE, sampCode));
+    EnumSet<SampleFetchOption> fetchOptions =
+        EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES,
+            SampleFetchOption.DESCENDANTS);
+    List<Sample> allSamples = this.getFacade().searchForSamples(sc, fetchOptions);
+
+    return allSamples;
+  }
+
+
+  /**
    * returns a list of all Experiments connected to the project with the identifier from openBis
    * 
    * @param projectIdentifier identifier of the given openBIS project
