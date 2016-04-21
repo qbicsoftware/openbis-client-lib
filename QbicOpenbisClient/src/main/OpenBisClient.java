@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import org.apache.commons.lang.WordUtils;
 import ch.systemsx.cisd.common.api.client.ServiceFinder;
 import ch.systemsx.cisd.common.exceptions.InvalidAuthenticationException;
 import ch.systemsx.cisd.common.exceptions.InvalidSessionException;
+import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.OpenbisServiceFacadeFactory;
 import ch.systemsx.cisd.openbis.dss.generic.shared.api.v1.FileInfoDssDTO;
@@ -236,6 +238,21 @@ public class OpenBisClient implements Serializable {
       spaces.add(sp.getCode());
     }
     return spaces;
+  }
+  
+  /**
+   * ingests external ids given a mapping between QBiC sample IDs and the external ids
+   * 
+   * @param idMap
+   */
+  public void setExternalIDs(Map<String, String> idMap) {
+    Map<String, Object> params = new HashMap<String, Object>();
+    List<String> ids = new ArrayList<String>(idMap.keySet());
+    List<String> types = new ArrayList<String>(Arrays.asList("Q_EXTERNALDB_ID"));
+    params.put("identifiers", ids);
+    params.put("types", types);
+    params.put("Q_EXTERNALDB_ID", idMap);
+    ingest("DSS1", "update-sample-metadata", params);
   }
 
   /**
@@ -1381,6 +1398,115 @@ public class OpenBisClient implements Serializable {
     }
     return results;
   }
+  
+  /**
+   * used by getProjectTSV to get the Patient(s)/Source(s) of a list of samples
+   */
+  private String fetchSource(List<Sample> samples, List<VocabularyTerm> terms, List<String> res) {
+    Set<Sample> roots = new HashSet<Sample>();
+    while (!samples.isEmpty()) {
+      Set<Sample> store = new HashSet<Sample>();
+      for (Sample sample : samples) {
+        if (!sample.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY"))
+          store.addAll(sample.getParents());
+        else
+          roots.add(sample);
+      }
+      samples = new ArrayList<Sample>(store);
+    }
+    for (Sample sample : roots) {
+      String id = sample.getCode();
+      try {
+        id = id.split("-")[1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+      }
+      String organism = sample.getProperties().get("Q_NCBI_ORGANISM");
+      if (organism != null) {
+        String desc = "";
+        for (VocabularyTerm term : terms) {
+          if (organism.equals(term.getCode()))
+            desc = term.getLabel();
+        }
+        if (desc.toLowerCase().equals("homo sapiens"))
+          desc = "Patient";
+        res.add(sample.getProperties().get("Q_SECONDARY_NAME") + " (" + desc + ' ' + id + ")");
+      } else
+        res.add("unknown source");
+    }
+    String[] resArr = new String[res.size()];
+    resArr = res.toArray(resArr);
+    return StringUtils.join(resArr, "+");
+  }
+
+  /**
+   * TODO implement function that, given a project, returns a graph model of the samples. probably
+   * use SampleFetchOption.DESCENDANTS
+   */
+
+  /**
+   * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
+   * Only one requested layer of the data model is returned. Experimental factors are returned in
+   * the properties xml format and should be parsed before the spreadsheet is presented to the user.
+   * 
+   * @param projectCode The 5 letter QBiC code of the project
+   * @param sampleType The openBIS sampleType that should be included in the result
+   * @return
+   */
+  public List<String> getProjectTSV(String projectCode, String sampleType) {
+    List<String> res = new ArrayList<String>();
+    // search all samples of project
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(SearchCriteria.MatchClause
+        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectCode));
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    EnumSet<SampleFetchOption> fetchOptions =
+        EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES);
+    List<Sample> allSamples = facade.searchForSamples(sc, fetchOptions);
+    // filter all samples by types
+    List<Sample> samples = new ArrayList<Sample>();
+    for (Sample s : allSamples) {
+      if (sampleType.equals(s.getSampleTypeCode()))
+        samples.add(s);
+    }
+    // sort remaining samples-
+    // Arrays.sort(samples);
+
+    Vocabulary voc = getVocabulary("Q_NCBI_TAXONOMY");
+    String header = "Code\tSecondary Name\tSource Name\tExternal ID\tSample Type\tAttributes";
+    res.add(header);
+    for (Sample sample : samples) {
+      String code = sample.getCode();
+      String row = "";
+      row += code + "\t";
+      String secName = sample.getProperties().get("Q_SECONDARY_NAME");
+      if (secName == null)
+        secName = "";
+      row += secName + "\t";
+      row += fetchSource(new ArrayList<Sample>(Arrays.asList(sample)), voc.getTerms(),
+          new ArrayList<String>()) + "\t";
+      String extID = sample.getProperties().get("Q_EXTERNALDB_ID");
+      if (extID == null)
+        extID = "";
+      row += extID + "\t";
+      String extrType = sample.getProperties().get("Q_PRIMARY_TISSUE");
+      if (extrType == null)
+        extrType = sample.getProperties().get("Q_SAMPLE_TYPE");
+      if (extrType == null)
+        extrType = "";
+      if (extrType.equals("CELL_LINE"))
+        extrType = sample.getProperties().get("Q_TISSUE_DETAILED");
+      row += extrType + "\t";
+      // row += sample.getSampleTypeCode()+ "\t";
+      String props = sample.getProperties().get("Q_PROPERTIES");
+      if (props == null)
+        props = "";
+      row += props;
+
+      res.add(row);
+    }
+    return res;
+  }
 
   /**
    * Function to retrieve parent samples of a sample
@@ -1568,6 +1694,14 @@ public class OpenBisClient implements Serializable {
     return null;
   }
 
+  public Vocabulary getVocabulary(String vocabularyCode) {
+    for (Vocabulary v : facade.listVocabularies()) {
+      if (v.getCode().equals(vocabularyCode))
+        return v;
+    }
+    return null;
+  }
+  
   /**
    * Returns a list of all Codes in a Vocabulary in openBIS. This is useful when labels don't exist
    * or are not needed.
