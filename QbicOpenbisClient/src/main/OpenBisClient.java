@@ -23,6 +23,7 @@ import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.OpenbisServiceFacadeFactory;
 import ch.systemsx.cisd.openbis.dss.generic.shared.api.v1.FileInfoDssDTO;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationChangingService;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType;
@@ -126,21 +127,19 @@ public class OpenBisClient implements Serializable {
     int timeoutStep = this.timeout;
     while (true) {
       try {
-        facade =
-            OpenbisServiceFacadeFactory.tryCreate(this.userId, this.password, this.serverURL,
-                this.timeout * 1000);
+        facade = OpenbisServiceFacadeFactory.tryCreate(this.userId, this.password, this.serverURL,
+            this.timeout * 1000);
         ServiceFinder serviceFinder =
             new ServiceFinder("openbis", IGeneralInformationService.SERVICE_URL);
         ServiceFinder serviceFinder2 =
             new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
 
-        this.setOpenbisInfoService(serviceFinder.createService(IGeneralInformationService.class,
-            this.serverURL));
+        this.setOpenbisInfoService(
+            serviceFinder.createService(IGeneralInformationService.class, this.serverURL));
         this.openbisDssService =
             serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
-        this.sessionToken =
-            this.getOpenbisInfoService()
-                .tryToAuthenticateForAllServices(this.userId, this.password);
+        this.sessionToken = this.getOpenbisInfoService()
+            .tryToAuthenticateForAllServices(this.userId, this.password);
         break;
       } catch (Exception e) {
         if (e.getMessage() != null && e.getMessage().contains("Read timed out")) {
@@ -151,8 +150,8 @@ public class OpenBisClient implements Serializable {
         } else {
           notrial++;
           if (notrial >= trialno)
-            throw new InvalidAuthenticationException(String.format("Login failed after %d trials.",
-                trialno));
+            throw new InvalidAuthenticationException(
+                String.format("Login failed after %d trials.", trialno));
           try {
             Thread.sleep(10);
           } catch (InterruptedException e1) {
@@ -239,7 +238,7 @@ public class OpenBisClient implements Serializable {
     }
     return spaces;
   }
-  
+
   /**
    * ingests external ids given a mapping between QBiC sample IDs and the external ids
    * 
@@ -301,8 +300,8 @@ public class OpenBisClient implements Serializable {
      * List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
      * return foundSamples;
      */
-    return this.getOpenbisInfoService()
-        .listSamplesForExperiment(sessionToken, experimentIdentifier);
+    return this.getOpenbisInfoService().listSamplesForExperiment(sessionToken,
+        experimentIdentifier);
   }
 
   /**
@@ -314,10 +313,24 @@ public class OpenBisClient implements Serializable {
   public List<Sample> getSamplesofSpace(String spaceIdentifier) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
+    sc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
 
     return foundSamples;
+  }
+
+  /**
+   * Updates or adds properties for one sample
+   * @param sampleID ID of long type, can be fetched from openBIS samples
+   * @param properties A map of all sample properties to be updated
+   */
+  public void updateSampleMetadata(long sampleID, Map<String, String> properties) {
+    ServiceFinder serviceFinder =
+        new ServiceFinder("openbis", IGeneralInformationChangingService.SERVICE_URL);
+    IGeneralInformationChangingService service =
+        serviceFinder.createService(IGeneralInformationChangingService.class, serverURL);
+    service.updateSampleProperties(sessionToken, sampleID, properties);
   }
 
   /**
@@ -331,7 +344,8 @@ public class OpenBisClient implements Serializable {
   public Sample getSampleByIdentifier(String sampleIdentifier) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleIdentifier));
+    sc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
     if (foundSamples.size() < 1) {
       throw new IllegalArgumentException();
@@ -382,8 +396,8 @@ public class OpenBisClient implements Serializable {
     List<Sample> foundSamples = new ArrayList<Sample>();
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
-        SearchCriteria.MatchClauseAttribute.PROJECT, projIdentifier));
+    pc.addMatchClause(SearchCriteria.MatchClause
+        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projIdentifier));
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
     return foundSamples;
@@ -395,17 +409,17 @@ public class OpenBisClient implements Serializable {
    * @param projIdentifierOrCode identifier of the openBIS project
    * @return list with all samples connected to the given project
    */
-  public List<Sample> getSamplesWithParentsAndChildrenOfProjectBySearchService(String projIdentifier) {
+  public List<Sample> getSamplesWithParentsAndChildrenOfProjectBySearchService(
+      String projIdentifier) {
     ensureLoggedIn();
 
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
-        SearchCriteria.MatchClauseAttribute.PROJECT, projIdentifier));
+    pc.addMatchClause(SearchCriteria.MatchClause
+        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projIdentifier));
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
-    EnumSet<SampleFetchOption> fetchOptions =
-        EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES,
-            SampleFetchOption.DESCENDANTS);
+    EnumSet<SampleFetchOption> fetchOptions = EnumSet.of(SampleFetchOption.ANCESTORS,
+        SampleFetchOption.PROPERTIES, SampleFetchOption.DESCENDANTS);
     List<Sample> allSamples = facade.searchForSamples(sc, fetchOptions);
 
     return allSamples;
@@ -422,11 +436,10 @@ public class OpenBisClient implements Serializable {
     ensureLoggedIn();
 
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
-        SearchCriteria.MatchClauseAttribute.CODE, sampCode));
-    EnumSet<SampleFetchOption> fetchOptions =
-        EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES,
-            SampleFetchOption.DESCENDANTS);
+    sc.addMatchClause(SearchCriteria.MatchClause
+        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, sampCode));
+    EnumSet<SampleFetchOption> fetchOptions = EnumSet.of(SampleFetchOption.ANCESTORS,
+        SampleFetchOption.PROPERTIES, SampleFetchOption.DESCENDANTS);
     List<Sample> allSamples = this.getFacade().searchForSamples(sc, fetchOptions);
 
     return allSamples;
@@ -467,8 +480,8 @@ public class OpenBisClient implements Serializable {
    */
   public List<Experiment> getExperimentsForProject2(Project project) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
-        project.getCode()));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
     return getFacade().searchForExperiments(pc);
   }
 
@@ -496,8 +509,8 @@ public class OpenBisClient implements Serializable {
    */
   public List<Experiment> getExperimentsForProject3(Project project) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
-        project.getCode()));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
     return getOpenbisInfoService().searchForExperiments(getSessionToken(), pc);
   }
 
@@ -589,8 +602,8 @@ public class OpenBisClient implements Serializable {
       return foundExps;
     } else {
       SearchCriteria sc = new SearchCriteria();
-      sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE,
-          spaceIdentifier));
+      sc.addMatchClause(
+          MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
       List<Experiment> foundExps =
           this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc);
       return foundExps;
@@ -655,8 +668,8 @@ public class OpenBisClient implements Serializable {
    */
   public Project getProjectByIdentifier(String projectIdentifier) {
     if (!projectIdentifier.contains("/") || projectIdentifier.isEmpty())
-      throw new IllegalArgumentException(String.format(
-          "project identifer %s is not a valid identifier", projectIdentifier));
+      throw new IllegalArgumentException(
+          String.format("project identifer %s is not a valid identifier", projectIdentifier));
     else {
       List<Project> projects = this.listProjects();
       Project project = null;
@@ -666,8 +679,8 @@ public class OpenBisClient implements Serializable {
         }
       }
       if (project == null) {
-        throw new IllegalArgumentException(String.format("project %s does not exist.",
-            projectIdentifier));
+        throw new IllegalArgumentException(
+            String.format("project %s does not exist.", projectIdentifier));
       }
       return project;
     }
@@ -753,8 +766,8 @@ public class OpenBisClient implements Serializable {
     }
     String[] split = expIdentifer.split("/");
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
-        split[split.length - 1]));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, split[split.length - 1]));
     return getFacade().searchForExperiments(pc);
   }
 
@@ -845,8 +858,8 @@ public class OpenBisClient implements Serializable {
     ensureLoggedIn();
     SearchCriteria ec = new SearchCriteria();
     String[] idSplit = experimentIdentifier.split("/");
-    ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE,
-        idSplit[idSplit.length - 1]));
+    ec.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, idSplit[idSplit.length - 1]));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -905,10 +918,11 @@ public class OpenBisClient implements Serializable {
    * @param projectIdentifier identifier of the openBIS project
    * @return list with all datasets of the given project
    */
-  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier) {
+  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(
+      String projectIdentifier) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
-        projectIdentifier));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -918,8 +932,8 @@ public class OpenBisClient implements Serializable {
       String projectIdentifier) {
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT,
-        projectIdentifier));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
 
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
@@ -963,7 +977,8 @@ public class OpenBisClient implements Serializable {
     }
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
 
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -984,7 +999,8 @@ public class OpenBisClient implements Serializable {
     }
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
+    pc.addMatchClause(
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
 
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
@@ -1221,8 +1237,9 @@ public class OpenBisClient implements Serializable {
    * @return object name of the QueryTableModel which is returned by the aggregation service
    */
   public String triggerIngestionService(String serviceName, Map<String, Object> parameters) {
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss,
-        serviceName, parameters).toString();
+    return this.openbisDssService
+        .createReportFromAggregationService(this.sessionToken, dss, serviceName, parameters)
+        .toString();
   }
 
   // TODO specify parameters needed for ingestion service
@@ -1254,15 +1271,15 @@ public class OpenBisClient implements Serializable {
     @SuppressWarnings("unchecked")
     Map<String, String> properties = (Map<String, String>) params.get("properties");
     if ((params.get("properties") != null) && properties.get("QBIC_BARCODE") != null) {
-      String barcode =
-          generateBarcode("/" + params.get("space").toString() + "/"
-              + params.get("project").toString(), number_of_samples_offset);
+      String barcode = generateBarcode(
+          "/" + params.get("space").toString() + "/" + params.get("project").toString(),
+          number_of_samples_offset);
       properties.put("QBIC_BARCODE", barcode);
       params.put("code", barcode);
     }
     // System.out.println(params);
-    return this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss,
-        service, params).toString();
+    return this.openbisDssService
+        .createReportFromAggregationService(this.sessionToken, dss, service, params).toString();
   }
 
   /**
@@ -1326,9 +1343,8 @@ public class OpenBisClient implements Serializable {
    */
   public String openBIScodeToString(String entityCode) {
     entityCode = WordUtils.capitalizeFully(entityCode.replace("_", " ").toLowerCase());
-    String edit_string =
-        entityCode.replace("Ngs", "NGS").replace("Hla", "HLA").replace("Rna", "RNA")
-            .replace("Dna", "DNA").replace("Ms", "MS");
+    String edit_string = entityCode.replace("Ngs", "NGS").replace("Hla", "HLA")
+        .replace("Rna", "RNA").replace("Dna", "DNA").replace("Ms", "MS");
     if (edit_string.startsWith("Q ")) {
       edit_string = edit_string.replace("Q ", "");
     }
@@ -1398,7 +1414,7 @@ public class OpenBisClient implements Serializable {
     }
     return results;
   }
-  
+
   /**
    * used by getProjectTSV to get the Patient(s)/Source(s) of a list of samples
    */
@@ -1517,8 +1533,8 @@ public class OpenBisClient implements Serializable {
   public List<Sample> getChildrenBySearchService(String sampleCode) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
-        SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
+    sc.addMatchClause(SearchCriteria.MatchClause
+        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
     // List<Sample> foundSample = this.facade.searchForSamples(sc);
 
     SearchCriteria sampleSc = new SearchCriteria();
@@ -1539,8 +1555,8 @@ public class OpenBisClient implements Serializable {
   public List<Sample> getParentsBySearchService(String sampleCode) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(
-        SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
+    sc.addMatchClause(SearchCriteria.MatchClause
+        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
 
     SearchCriteria sampleSc = new SearchCriteria();
     sampleSc.addSubCriteria(SearchSubCriteria.createSampleChildCriteria(sc));
@@ -1638,7 +1654,7 @@ public class OpenBisClient implements Serializable {
       if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
         if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
           finishedExperiments += 1.0;
-        };
+        } ;
       }
     }
     if (numberExperiments > 0) {
@@ -1665,7 +1681,7 @@ public class OpenBisClient implements Serializable {
       if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
         if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
           finishedExperiments += 1.0;
-        };
+        } ;
       }
     }
     if (numberExperiments > 0) {
@@ -1701,7 +1717,7 @@ public class OpenBisClient implements Serializable {
     }
     return null;
   }
-  
+
   /**
    * Returns a list of all Codes in a Vocabulary in openBIS. This is useful when labels don't exist
    * or are not needed.
