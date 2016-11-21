@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>life.qbic.openbis</groupId>
+	<artifactId>openbisclient</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>openBis client</name>
+
+	<prerequisites>
+		<maven>3</maven>
+	</prerequisites>
+
+
+	<repositories>
+		<repository>
+			<id>nexus_snap</id>
+			<name>qbic snapshots</name>
+			<url>https://peltzer.com.de/nexus/content/repositories/snapshots</url>
+		</repository>
+		<repository>
+			<id>nexus_release</id>
+			<name>qbic releases</name>
+			<url>https://peltzer.com.de/nexus/content/repositories/releases</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.5</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>csid-base</artifactId>
+			<version>13.04.8</version>
+		</dependency>
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>dss_client</artifactId>
+			<version>13.04.8</version>
+		</dependency>
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>raw-data-api</artifactId>
+			<version>13.04.8</version>
+		</dependency>
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>spring</artifactId>
+			<version>13.04.8</version>
+		</dependency>
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>stream-supporting-httpinvoker</artifactId>
+			<version>13.04.8</version>
+		</dependency>
+	</dependencies>
+
+
+
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>nexusRelease</id>
+			<name>Nexus Releases</name>
+			<url>https://peltzer.com.de/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>nexusSnap</id>
+			<name>Nexus Snapshots</name>
+			<url>https://peltzer.com.de/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>
