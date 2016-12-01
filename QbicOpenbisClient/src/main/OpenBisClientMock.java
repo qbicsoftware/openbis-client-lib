@@ -1,4 +1,4 @@
-package life.qbic.openbis.openbisclient;
+package main;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang.WordUtils;
 
 import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
