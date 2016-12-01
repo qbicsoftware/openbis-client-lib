@@ -1,3 +1,5 @@
+package main;
+
 import static com.google.common.truth.Truth.ASSERT;
 
 import java.io.FileReader;
