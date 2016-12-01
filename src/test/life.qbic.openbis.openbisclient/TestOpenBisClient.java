@@ -1,5 +1,3 @@
-package main;
-
 import static com.google.common.truth.Truth.ASSERT;
 import static org.junit.Assert.fail;
 
