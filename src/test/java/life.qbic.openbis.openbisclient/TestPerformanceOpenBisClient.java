@@ -1,4 +1,7 @@
+package life.qbic.openbis.openbisclient;
+
 import static com.google.common.truth.Truth.ASSERT;
+
 
 import java.io.FileReader;
 import java.io.Serializable;
@@ -7,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 
 import org.databene.contiperf.PerfTest;
 import org.databene.contiperf.junit.ContiPerfRule;
@@ -430,7 +434,7 @@ median:  6623
       int parents = 0;
       int children = 0;
       try{
-        parents = openbisClient.getParents(sample.getCode()).size();//sample.getParents().size();
+        //parents = openbisClient.getParents(sample.getCode()).size();//sample.getParents().size();
         children = openbisClient.getChildrenSamples(sample).size();//sample.getChildren().size();
       }catch(Exception e){
         //shut up

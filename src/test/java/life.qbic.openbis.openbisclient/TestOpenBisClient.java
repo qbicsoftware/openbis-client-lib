@@ -1,3 +1,5 @@
+package life.qbic.openbis.openbisclient;
+
 import static com.google.common.truth.Truth.ASSERT;
 import static org.junit.Assert.fail;
 
@@ -6,13 +8,12 @@ import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+
 import java.util.Properties;
 
-import main.OpenBisClient;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -860,7 +861,7 @@ public class TestOpenBisClient {
     }*/
   }
 
-  @Test
+  /*@Test
   public void testGetParentMap() {
     Map<Sample, List<Sample>> map =
         openbisClient.getParentMap(openbisClient.getSamplesOfProject("/ABI_SYSBIO/QMARI"));
@@ -883,13 +884,14 @@ public class TestOpenBisClient {
       }
     }
   }
+  +/
 
-  @Test
+ /* @Test
   public void testGetParents() {
     List<Sample> parents = openbisClient.getParents("QMARI074A9");
     ASSERT.that(parents.size()).isEqualTo(1);
     ASSERT.that(parents.get(0).getCode()).isEqualTo("QMARI002AC");
-  }
+  }*/
 
   @Test
   public void testGetChildrenSamples() {
