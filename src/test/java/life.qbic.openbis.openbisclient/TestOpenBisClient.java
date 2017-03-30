@@ -46,7 +46,7 @@ public class TestOpenBisClient {
         new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
             "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties",
                 "/home/wojnar/QBiC/liferay-portal-6.2-ce-ga4/mainportlet-ext.properties",
-                "/etc/portal_testing/portlet_testopenbis.properties"));
+                "/etc/portal_testing/portlet.properties"));
     for (String s : configs) {
       File f = new File(s);
       if (f.exists())

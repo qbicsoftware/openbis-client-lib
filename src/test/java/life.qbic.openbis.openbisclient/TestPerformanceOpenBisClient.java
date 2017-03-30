@@ -3,13 +3,10 @@ package life.qbic.openbis.openbisclient;
 import static com.google.common.truth.Truth.ASSERT;
 
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 
 import org.databene.contiperf.PerfTest;
@@ -41,8 +38,18 @@ public class TestPerformanceOpenBisClient {
   private static Properties config;
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
+
     config = new Properties();
-    config.load(new FileReader("/home/wojnar/QBiC/Portlets/GenericWorkflowInterfaceConfigurationFiles/portlets/portlets.properties"));
+    List<String> configs =
+            new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
+                    "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties",
+                    "/home/wojnar/QBiC/liferay-portal-6.2-ce-ga4/mainportlet-ext.properties",
+                    "/etc/portal_testing/portlet_testopenbis.properties"));
+    for (String s : configs) {
+      File f = new File(s);
+      if (f.exists())
+        config.load(new FileReader(s));
+    }
     openbisClient = new OpenBisClient( config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS), config.getProperty(DATASOURCE_URL));
     openbisClient.login();
   }
