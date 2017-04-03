@@ -1,0 +1,2 @@
+ignore:
+- "**/OpenBisClientMock.java" # glob accepted
