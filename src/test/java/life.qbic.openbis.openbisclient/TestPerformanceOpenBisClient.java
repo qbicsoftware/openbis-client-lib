@@ -11,12 +11,7 @@ import java.util.*;
 
 import org.databene.contiperf.PerfTest;
 import org.databene.contiperf.junit.ContiPerfRule;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
@@ -28,7 +23,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClauseAttribute;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
-
+@Ignore
 public class TestPerformanceOpenBisClient {
 
   private static OpenBisClient openbisClient;
@@ -44,7 +39,7 @@ public class TestPerformanceOpenBisClient {
             new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
                     "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties",
                     "/home/wojnar/QBiC/liferay-portal-6.2-ce-ga4/mainportlet-ext.properties",
-                    "/etc/portal_testing/portlet_testopenbis.properties"));
+                    "/etc/portal_testing/portlet.properties"));
     for (String s : configs) {
       File f = new File(s);
       if (f.exists())
