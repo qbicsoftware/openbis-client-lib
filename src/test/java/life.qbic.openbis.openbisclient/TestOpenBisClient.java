@@ -740,8 +740,6 @@ public class TestOpenBisClient {
         ASSERT.that(openbisClient.listVocabularyTermsForProperty(type).contains("Homo sapiens"));
         ASSERT.that(!openbisClient.listVocabularyTermsForProperty(type).contains("Liver"));
         ASSERT.that(!openbisClient.listVocabularyTermsForProperty(type).contains("Pan sapiens"));
-      } else {
-          openbisClient.listVocabularyTermsForProperty(type);
       }
     }
   }
