@@ -1,21 +1,17 @@
+package life.qbic.openbis.openbisclient;
+
 import static com.google.common.truth.Truth.ASSERT;
 
+
+import java.io.File;
 import java.io.FileReader;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+
 
 import org.databene.contiperf.PerfTest;
 import org.databene.contiperf.junit.ContiPerfRule;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
@@ -27,7 +23,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClauseAttribute;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
-
+@Ignore
 public class TestPerformanceOpenBisClient {
 
   private static OpenBisClient openbisClient;
@@ -37,8 +33,18 @@ public class TestPerformanceOpenBisClient {
   private static Properties config;
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
+
     config = new Properties();
-    config.load(new FileReader("/home/wojnar/QBiC/Portlets/GenericWorkflowInterfaceConfigurationFiles/portlets/portlets.properties"));
+    List<String> configs =
+            new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
+                    "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties",
+                    "/home/wojnar/QBiC/liferay-portal-6.2-ce-ga4/mainportlet-ext.properties",
+                    "/etc/portal_testing/portlet.properties"));
+    for (String s : configs) {
+      File f = new File(s);
+      if (f.exists())
+        config.load(new FileReader(s));
+    }
     openbisClient = new OpenBisClient( config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS), config.getProperty(DATASOURCE_URL));
     openbisClient.login();
   }
@@ -430,7 +436,7 @@ median:  6623
       int parents = 0;
       int children = 0;
       try{
-        parents = openbisClient.getParents(sample.getCode()).size();//sample.getParents().size();
+        //parents = openbisClient.getParents(sample.getCode()).size();//sample.getParents().size();
         children = openbisClient.getChildrenSamples(sample).size();//sample.getChildren().size();
       }catch(Exception e){
         //shut up
