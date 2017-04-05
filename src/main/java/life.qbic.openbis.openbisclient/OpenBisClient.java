@@ -1424,113 +1424,10 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   }
 
   /**
-   * used by getProjectTSV to get the Patient(s)/Source(s) of a list of samples
-   */
-  private String fetchSource(List<Sample> samples, List<VocabularyTerm> terms, List<String> res) {
-    Set<Sample> roots = new HashSet<Sample>();
-    while (!samples.isEmpty()) {
-      Set<Sample> store = new HashSet<Sample>();
-      for (Sample sample : samples) {
-        if (!sample.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY"))
-          store.addAll(sample.getParents());
-        else
-          roots.add(sample);
-      }
-      samples = new ArrayList<Sample>(store);
-    }
-    for (Sample sample : roots) {
-      String id = sample.getCode();
-      try {
-        id = id.split("-")[1];
-      } catch (ArrayIndexOutOfBoundsException e) {
-      }
-      String organism = sample.getProperties().get("Q_NCBI_ORGANISM");
-      if (organism != null) {
-        String desc = "";
-        for (VocabularyTerm term : terms) {
-          if (organism.equals(term.getCode()))
-            desc = term.getLabel();
-        }
-        if (desc.toLowerCase().equals("homo sapiens"))
-          desc = "Patient";
-        res.add(desc + ' ' + id);
-      } else
-        res.add("unknown source");
-    }
-    String[] resArr = new String[res.size()];
-    resArr = res.toArray(resArr);
-    return StringUtils.join(resArr, "+");
-  }
-
-  /**
    * TODO implement function that, given a project, returns a graph model of the samples. probably
    * use SampleFetchOption.DESCENDANTS
    */
 
-  /**
-   * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
-   * Only one requested layer of the data model is returned. Experimental factors are returned in
-   * the properties xml format and should be parsed before the spreadsheet is presented to the user.
-   * 
-   * @param projectCode The 5 letter QBiC code of the project
-   * @param sampleType The openBIS sampleType that should be included in the result
-   * @return
-   */
-  public List<String> getProjectTSV(String projectCode, String sampleType) {
-    List<String> res = new ArrayList<String>();
-    // search all samples of project
-    SearchCriteria sc = new SearchCriteria();
-    SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause
-        .createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectCode));
-    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
-    EnumSet<SampleFetchOption> fetchOptions =
-        EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES);
-    List<Sample> allSamples = facade.searchForSamples(sc, fetchOptions);
-    // filter all samples by types
-    List<Sample> samples = new ArrayList<Sample>();
-    for (Sample s : allSamples) {
-      if (sampleType.equals(s.getSampleTypeCode()))
-        samples.add(s);
-    }
-    // sort remaining samples-
-    // Arrays.sort(samples);
-
-    Vocabulary voc = getVocabulary("Q_NCBI_TAXONOMY");
-    String header = "QBiC Code\tSecondary Name\tSource Name\tExternal ID\tSample Type\tAttributes";
-    res.add(header);
-    for (Sample sample : samples) {
-      String code = sample.getCode();
-      String row = "";
-      row += code + "\t";
-      String secName = sample.getProperties().get("Q_SECONDARY_NAME");
-      if (secName == null)
-        secName = "";
-      row += secName + "\t";
-      row += fetchSource(new ArrayList<Sample>(Arrays.asList(sample)), voc.getTerms(),
-          new ArrayList<String>()) + "\t";
-      String extID = sample.getProperties().get("Q_EXTERNALDB_ID");
-      if (extID == null)
-        extID = "";
-      row += extID + "\t";
-      String extrType = sample.getProperties().get("Q_PRIMARY_TISSUE");
-      if (extrType == null)
-        extrType = sample.getProperties().get("Q_SAMPLE_TYPE");
-      if (extrType == null)
-        extrType = "";
-      if (extrType.equals("CELL_LINE"))
-        extrType = sample.getProperties().get("Q_TISSUE_DETAILED");
-      row += extrType + "\t";
-      // row += sample.getSampleTypeCode()+ "\t";
-      String props = sample.getProperties().get("Q_PROPERTIES");
-      if (props == null)
-        props = "";
-      row += props;
-
-      res.add(row);
-    }
-    return res;
-  }
 
   /**
    * Function to retrieve parent samples of a sample
@@ -1910,5 +1807,91 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     }
     return false;
   }
+
+
+  /**
+   * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
+   * Only one requested layer of the data model is returned. Experimental factors are returned in
+   * the properties xml format and should be parsed before the spreadsheet is presented to the user.
+   *
+   * @param projectCode The 5 letter QBiC code of the project
+   * @param sampleType The openBIS sampleType that should be included in the result
+   * @return List containing each line of the resulting TSV fil
+   */
+  @Override
+  public List<String> getProjectTSV(String projectCode, String sampleType) {
+    List<String> res = new ArrayList<String>();
+    // search all samples of project
+    SearchCriteria sc = new SearchCriteria();
+    SearchCriteria pc = new SearchCriteria();
+    pc.addMatchClause(SearchCriteria.MatchClause
+            .createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectCode));
+    sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
+    EnumSet<SampleFetchOption> fetchOptions =
+            EnumSet.of(SampleFetchOption.ANCESTORS, SampleFetchOption.PROPERTIES);
+    List<Sample> allSamples = facade.searchForSamples(sc, fetchOptions);
+    // filter all samples by types
+    List<Sample> samples = new ArrayList<Sample>();
+    for (Sample s : allSamples) {
+      if (sampleType.equals(s.getSampleTypeCode()))
+        samples.add(s);
+    }
+    // sort remaining samples-
+    // Arrays.sort(samples);
+
+    Vocabulary voc = getVocabulary("Q_NCBI_TAXONOMY");
+    String header = "QBiC Code\tSecondary Name\tLab ID\tSample Type\tAttributes\tSource";
+    if (!sampleType.equals("Q_BIOLOGICAL_ENTITY"))
+      header += "\tSource Name(s)\tSource Lab ID(s)";
+    if (sampleType.equals("Q_TEST_SAMPLE"))
+      header += "\tExtract Code(s)\tExtract Name(s)\tExtract Lab ID(s)";
+    res.add(header);
+    for (Sample sample : samples) {
+      String code = sample.getCode();
+      List<String> row = new ArrayList<String>();
+      row.add(code);
+      String secName = sample.getProperties().get("Q_SECONDARY_NAME");
+      if (secName == null)
+        secName = "";
+      row.add(secName);
+      String extID = sample.getProperties().get("Q_EXTERNALDB_ID");
+      if (extID == null)
+        extID = "";
+      row.add(extID);
+      String extrType = sample.getProperties().get("Q_PRIMARY_TISSUE");
+      if (extrType == null)
+        extrType = sample.getProperties().get("Q_SAMPLE_TYPE");
+      if (extrType == null)
+        extrType = "";
+      if (extrType.equals("CELL_LINE"))
+        extrType = sample.getProperties().get("Q_TISSUE_DETAILED");
+      row.add(extrType);
+      String props = sample.getProperties().get("Q_PROPERTIES");
+      if (props == null)
+        props = "<?xml";
+      row.add(props);
+      row.add(HelperMethods.fetchSource(new ArrayList<Sample>(Arrays.asList(sample)), voc.getTerms()));
+      if (!sampleType.equals("Q_BIOLOGICAL_ENTITY")) {
+        Set<Sample> sources = HelperMethods.fetchAncestorsOfType(new ArrayList<Sample>(Arrays.asList(sample)),
+                "Q_BIOLOGICAL_ENTITY");
+        row.add(HelperMethods.getPropertyOfSamples(sources, "Q_SECONDARY_NAME"));
+        row.add(HelperMethods.getPropertyOfSamples(sources, "Q_EXTERNALDB_ID"));
+      }
+      if (sampleType.equals("Q_TEST_SAMPLE")) {
+        Set<Sample> extracts = HelperMethods.fetchAncestorsOfType(new ArrayList<Sample>(Arrays.asList(sample)),
+                "Q_BIOLOGICAL_SAMPLE");
+        List<String> codeL = new ArrayList<String>();
+        for (Sample s : extracts) {
+          codeL.add(s.getCode());
+        }
+        row.add(org.apache.commons.lang.StringUtils.join(codeL, ", "));
+        row.add(HelperMethods.getPropertyOfSamples(extracts, "Q_SECONDARY_NAME"));
+        row.add(HelperMethods.getPropertyOfSamples(extracts, "Q_EXTERNALDB_ID"));
+      }
+      res.add(org.apache.commons.lang.StringUtils.join(row,"\t"));
+    }
+    return res;
+  }
+
 
 }
