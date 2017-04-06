@@ -6,13 +6,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileReader;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import java.util.List;
-import java.util.Map;
-
-import java.util.Properties;
+import java.util.*;
 
 
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
@@ -1014,6 +1008,51 @@ public class TestOpenBisClient {
   public void getSampleTypes(){
     Map<String, SampleType> types = openbisClient.getSampleTypes();
     ASSERT.that(types.size()).isGreaterThan(0);
+  }
+
+  @Test
+  public void testGetPropertyOfSamples() {
+    Set<Sample> input = new HashSet<Sample>(
+            Arrays.asList(openbisClient.getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-20"),
+                    openbisClient.getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-21"),
+                    openbisClient.getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-22")));
+    Set<String> correct = new HashSet<String>(
+            Arrays.asList("Puerto Rican ; female", "Puerto Rican ; male", "Tuscan ; female"));
+    String res = HelperMethods.getPropertyOfSamples(input, "Q_SECONDARY_NAME");
+    Set<String> testSet = new HashSet<String>(Arrays.asList(res.split(", ")));
+    ASSERT.that(correct.equals(testSet));
+  }
+
+  @Test
+  public void testFetchAncestorsOfType() {
+    List<Sample> all = openbisClient
+            .getSamplesWithParentsAndChildrenOfProjectBySearchService("/CONFERENCE_DEMO/QTGPR");
+    List<Sample> entities = new ArrayList<Sample>();
+    List<Sample> extracts = new ArrayList<Sample>();
+    ArrayList<Sample> tests = new ArrayList<Sample>();
+    for (Sample s : all) {
+      String type = s.getSampleTypeCode();
+      switch (type) {
+        case "Q_BIOLOGICAL_ENTITY":
+          entities.add(s);
+          break;
+        case "Q_BIOLOGICAL_SAMPLE":
+          extracts.add(s);
+          break;
+        case "Q_TEST_SAMPLE":
+          tests.add(s);
+          break;
+        default:
+          break;
+      }
+    }
+    ASSERT.that(HelperMethods.fetchAncestorsOfType(tests, "Q_BIOLOGICAL_ENTITY").equals(entities));
+    ASSERT.that(HelperMethods.fetchAncestorsOfType(tests, "Q_BIOLOGICAL_SAMPLE").equals(extracts));
+  }
+
+  @Test
+  public void testGetProjectTSV() {
+    ASSERT.that(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
   }
 
 }
