@@ -11,9 +11,39 @@
 	<groupId>life.qbic</groupId>
 	<artifactId>openbis-client-lib</artifactId>
 	<packaging>jar</packaging>
+<<<<<<< HEAD
 	<version>1.1.4-SNAPSHOT</version>
 	<name>openBIS client library</name>
 	<!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
+=======
+
+  <version>2.0-beta</version>
+  
+	<name>openBis client</name>
+
+	<prerequisites>
+		<maven>3</maven>
+	</prerequisites>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.7.201606060606</version>
+			</plugin>
+		</plugins>
+	</build>
+>>>>>>> Adjust pom.xml to prepare v2.0 beta
 	<repositories>
 		<repository>
 			<releases>
@@ -69,13 +99,19 @@
 		<dependency>
 			<groupId>life.qbic.openbis</groupId>
 			<artifactId>dss_client</artifactId>
-			<version>13.04.8</version>
+			<version>3-S253.0</version>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>life.qbic.openbis</groupId>
 			<artifactId>raw-data-api</artifactId>
 			<version>13.04.8</version>
+		</dependency>-->
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>openbis_api</artifactId>
+			<version>3-S253.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>life.qbic.openbis</groupId>
 			<artifactId>spring</artifactId>
