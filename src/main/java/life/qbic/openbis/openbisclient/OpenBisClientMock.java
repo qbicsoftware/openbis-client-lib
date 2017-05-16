@@ -1065,6 +1065,16 @@ public class OpenBisClientMock implements IOpenBisClient, Serializable {
     return null;
   }
 
+  @Override
+  public List<String> listVocabularyTermsForProperty(ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType property) {
+    return null;
+  }
+
+  @Override
+  public String getCVLabelForProperty(ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType propertyType, String propertyValue) {
+    return null;
+  }
+
   /**
    * Function to list the vocabulary terms for a given property which has been added to openBIS. The
    * property has to be a Controlled Vocabulary Property.
