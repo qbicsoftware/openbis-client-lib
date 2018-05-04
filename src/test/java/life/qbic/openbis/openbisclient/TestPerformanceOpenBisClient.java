@@ -35,16 +35,9 @@ public class TestPerformanceOpenBisClient {
   public static void setUpBeforeClass() throws Exception {
 
     config = new Properties();
-    List<String> configs =
-            new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
-                    "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties",
-                    "/home/wojnar/QBiC/liferay-portal-6.2-ce-ga4/mainportlet-ext.properties",
-                    "/etc/portal_testing/portlet.properties"));
-    for (String s : configs) {
-      File f = new File(s);
-      if (f.exists())
-        config.load(new FileReader(s));
-    }
+    config.setProperty(DATASOURCE_URL, "https://a.b.c:443");
+    config.setProperty(DATASOURCE_USER, "");
+    config.setProperty(DATASOURCE_PASS, "");
     openbisClient = new OpenBisClient( config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS), config.getProperty(DATASOURCE_URL));
     openbisClient.login();
   }

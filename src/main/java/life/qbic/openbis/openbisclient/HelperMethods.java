@@ -25,7 +25,7 @@ public class HelperMethods {
         for (Sample s : samples) {
             resL.add(s.getProperties().get(property));
         }
-        return org.apache.commons.lang.StringUtils.join(resL, ", ");
+        return org.apache.commons.lang3.StringUtils.join(resL, ", ");
     }
 
     /**
