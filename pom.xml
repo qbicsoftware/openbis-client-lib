@@ -1,79 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>life.qbic.openbis</groupId>
-	<artifactId>openbisclient</artifactId>
+	<parent>
+		<groupId>life.qbic</groupId>
+		<artifactId>lib-parent-pom</artifactId>
+		<version>1.0.1-SNAPSHOT</version>
+	</parent>
+	<groupId>life.qbic</groupId>
+	<artifactId>openbis-client-lib</artifactId>
 	<packaging>jar</packaging>
-
-  <version>1.1.3</version>
-  
-	<name>openBis client</name>
-
-	<prerequisites>
-		<maven>3</maven>
-	</prerequisites>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.7.201606060606</version>
-			</plugin>
-		</plugins>
-	</build>
+	<version>1.1.4-SNAPSHOT</version>
+	<name>openBIS client library</name>
+	<!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
 	<repositories>
 		<repository>
-			<id>nexus_snap</id>
-			<name>qbic snapshots</name>
-			<url>https://peltzer.com.de/nexus/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+			<id>nexus-snapshots</id>
+			<name>QBiC Snapshots</name>
+			<url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-snapshots</url>
 		</repository>
 		<repository>
-			<id>nexus_release</id>
-			<name>qbic releases</name>
-			<url>https://peltzer.com.de/nexus/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>nexus-releases</id>
+			<name>QBiC Releases</name>
+			<url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-releases</url>
 		</repository>
 	</repositories>
-
 	<dependencies>
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.2</version>
+			<groupId>com.google.truth</groupId>
+			<artifactId>truth</artifactId>
+			<version>0.25</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.10</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-		<!--<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.2</version>
-		</dependency>-->
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
 		</dependency>
+		<!-- openBIS dependencies -->
 		<dependency>
 			<groupId>life.qbic.openbis</groupId>
 			<artifactId>csid-base</artifactId>
@@ -100,57 +85,9 @@
 			<version>13.04.8</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.truth</groupId>
-			<artifactId>truth</artifactId>
-			<version>0.25</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.databene/contiperf -->
-		<dependency>
 			<groupId>org.databene</groupId>
 			<artifactId>contiperf</artifactId>
 			<version>2.3.4</version>
 		</dependency>
-
 	</dependencies>
-
-
-
-	<distributionManagement>
-		<repository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>nexusRelease</id>
-			<name>Nexus Releases</name>
-			<url>https://peltzer.com.de/nexus/content/repositories/releases/</url>
-		</repository>
-		<snapshotRepository>
-			<uniqueVersion>true</uniqueVersion>
-			<id>nexusSnap</id>
-			<name>Nexus Snapshots</name>
-			<url>https://peltzer.com.de/nexus/content/repositories/snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.7.201606060606</version>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<!-- select non-aggregate reports -->
-							<report>report</report>
-						</reports>
-					</reportSet>
-				</reportSets>
-			</plugin>
-		</plugins>
-	</reporting>
 </project>
