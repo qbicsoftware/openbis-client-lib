@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.text.WordUtils;
 
 import ch.systemsx.cisd.common.api.client.ServiceFinder;
 import ch.systemsx.cisd.common.exceptions.InvalidAuthenticationException;
@@ -47,7 +48,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIden
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
-import org.apache.commons.lang.WordUtils;
+
 
 
 /**
@@ -1884,11 +1885,11 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
         for (Sample s : extracts) {
           codeL.add(s.getCode());
         }
-        row.add(org.apache.commons.lang.StringUtils.join(codeL, ", "));
+        row.add(org.apache.commons.lang3.StringUtils.join(codeL, ", "));
         row.add(HelperMethods.getPropertyOfSamples(extracts, "Q_SECONDARY_NAME"));
         row.add(HelperMethods.getPropertyOfSamples(extracts, "Q_EXTERNALDB_ID"));
       }
-      res.add(org.apache.commons.lang.StringUtils.join(row,"\t"));
+      res.add(org.apache.commons.lang3.StringUtils.join(row,"\t"));
     }
     return res;
   }

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.text.WordUtils;
 
 import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
@@ -34,18 +35,11 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Vocabulary;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment.ExperimentInitializer;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
-import org.apache.commons.lang.WordUtils;
 
 
 public class OpenBisClientMock implements IOpenBisClient, Serializable {
-  /**
-   * 
-   */
+
   private static final long serialVersionUID = 6218517668296784635L;
-  /**
-   * 
-   */
-  // private static final long serialVersionUID = 3926210649301601498L;
   private String sessionToken = "mocktoken";
   private Random random;
   private String userId;
