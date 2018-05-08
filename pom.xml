@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>life.qbic</groupId>
-		<artifactId>lib-parent-pom</artifactId>
+		<artifactId>parent-pom</artifactId>
 		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 	<groupId>life.qbic</groupId>
@@ -43,11 +43,7 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<dependency>
-			<groupId>com.google.truth</groupId>
-			<artifactId>truth</artifactId>
-			<version>0.25</version>
-		</dependency>
+		<!-- other dependencies -->
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
@@ -58,6 +54,7 @@
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
 		</dependency>
+
 		<!-- openBIS dependencies -->
 		<dependency>
 			<groupId>life.qbic.openbis</groupId>

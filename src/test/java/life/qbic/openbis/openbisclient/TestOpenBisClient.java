@@ -1,10 +1,8 @@
 package life.qbic.openbis.openbisclient;
 
-import static com.google.common.truth.Truth.ASSERT;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-import java.io.File;
-import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.util.*;
 
@@ -64,19 +62,19 @@ public class TestOpenBisClient {
     openbisClient =
         new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
             config.getProperty(DATASOURCE_URL));
-    ASSERT.that(openbisClient.getFacade() != null);
+    assertThat(openbisClient.getFacade() != null);
     openbisClient =
         new OpenBisClient("user", config.getProperty(DATASOURCE_PASS),
             config.getProperty(DATASOURCE_URL));
-    ASSERT.that(!openbisClient.loggedin());
+    assertThat(!openbisClient.loggedin());
     openbisClient =
         new OpenBisClient(config.getProperty(DATASOURCE_USER), "wrongpassword",
             config.getProperty(DATASOURCE_URL));
-    ASSERT.that(!openbisClient.loggedin());
+    assertThat(!openbisClient.loggedin());
     openbisClient =
         new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
             "wrongurl");
-    ASSERT.that(!openbisClient.loggedin());
+    assertThat(!openbisClient.loggedin());
   }
 
   @Test
@@ -84,11 +82,11 @@ public class TestOpenBisClient {
     openbisClient =
         new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
             config.getProperty(DATASOURCE_URL));
-    ASSERT.that(openbisClient.loggedin());
+    assertThat(openbisClient.loggedin());
     openbisClient =
         new OpenBisClient("someuser", config.getProperty(DATASOURCE_PASS),
             config.getProperty(DATASOURCE_URL));
-    ASSERT.that(!openbisClient.loggedin());
+    assertThat(!openbisClient.loggedin());
   }
 
   @Test
@@ -96,9 +94,9 @@ public class TestOpenBisClient {
     openbisClient =
         new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
             config.getProperty(DATASOURCE_URL));
-    ASSERT.that(openbisClient.loggedin());
+    assertThat(openbisClient.loggedin());
     openbisClient.logout();
-    ASSERT.that(!openbisClient.loggedin());
+    assertThat(!openbisClient.loggedin());
   }
 
   @Test
@@ -107,44 +105,44 @@ public class TestOpenBisClient {
         new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
             config.getProperty(DATASOURCE_URL));
     openbisClient.login();
-    ASSERT.that(openbisClient.loggedin());
+    assertThat(openbisClient.loggedin());
     openbisClient.logout();
     openbisClient.login();
-    ASSERT.that(openbisClient.loggedin());
+    assertThat(openbisClient.loggedin());
   }
 
   @Test
   public void testGetSessionToken() {
     openbisClient.ensureLoggedIn();
-    ASSERT.that(openbisClient.getSessionToken().startsWith("admin"));
+    assertThat(openbisClient.getSessionToken().startsWith("admin"));
     openbisClient.logout();
     try {
       openbisClient.getSessionToken();
       fail("should not work when logged out");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);//
+      assertThat(e).isInstanceOf(Exception.class);//
     }
   }
 
   @Test
   public void testGetFacade() {
     openbisClient.ensureLoggedIn();
-    ASSERT.that(openbisClient.getFacade()).isInstanceOf(IOpenbisServiceFacade.class);
+    assertThat(openbisClient.getFacade()).isInstanceOf(IOpenbisServiceFacade.class);
     openbisClient.logout();
-    ASSERT.that(openbisClient.getFacade() == null);
+    assertThat(openbisClient.getFacade() == null);
   }
 
   @Test
   public void testGetOpenbisInfoService() {
     // test double login
     openbisClient.ensureLoggedIn();
-    ASSERT.that(openbisClient.getOpenbisInfoService()).isInstanceOf(
+    assertThat(openbisClient.getOpenbisInfoService()).isInstanceOf(
         IGeneralInformationService.class);
     openbisClient.ensureLoggedIn();
-    ASSERT.that(openbisClient.getOpenbisInfoService()).isInstanceOf(
+    assertThat(openbisClient.getOpenbisInfoService()).isInstanceOf(
         IGeneralInformationService.class);
     openbisClient.logout();
-    ASSERT.that(openbisClient.getOpenbisInfoService() == null);
+    assertThat(openbisClient.getOpenbisInfoService() == null);
   }
 
   @Test
@@ -152,9 +150,9 @@ public class TestOpenBisClient {
     openbisClient.ensureLoggedIn();
     IGeneralInformationService old = openbisClient.getOpenbisInfoService();
     openbisClient.setOpenbisInfoService(null);
-    ASSERT.that(openbisClient.getOpenbisInfoService() == null);
+    assertThat(openbisClient.getOpenbisInfoService() == null);
     openbisClient.setOpenbisInfoService(old);
-    ASSERT.that(openbisClient.getOpenbisInfoService().equals(old));
+    assertThat(openbisClient.getOpenbisInfoService().equals(old));
   }
 
   @Test
@@ -164,40 +162,40 @@ public class TestOpenBisClient {
       openbisClient.getSessionToken();
       fail("should not work when logged out");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);//
+      assertThat(e).isInstanceOf(Exception.class);//
     }
     // logout --> ensure
     openbisClient.ensureLoggedIn();
-    ASSERT.that(openbisClient.getSessionToken().startsWith("admin"));
+    assertThat(openbisClient.getSessionToken().startsWith("admin"));
     // login --> ensure
     openbisClient.login();
     openbisClient.ensureLoggedIn();
-    ASSERT.that(openbisClient.getSessionToken().startsWith("admin"));
+    assertThat(openbisClient.getSessionToken().startsWith("admin"));
   }
 
   @Test
   public void testListSpaces() {
-    ASSERT.that(openbisClient.listSpaces().size()).isAtLeast(49);// 49 at point of test
+    assertThat(openbisClient.listSpaces().size()).isAtLeast(49);// 49 at point of test
   }
 
   @Test
   public void testListProjects() {
-    ASSERT.that(openbisClient.listProjects().size()).isAtLeast(78);// 78 at point of test
-    ASSERT.that(openbisClient.listProjects().get(0)).isInstanceOf(Project.class);
+    assertThat(openbisClient.listProjects().size()).isAtLeast(78);// 78 at point of test
+    assertThat(openbisClient.listProjects().get(0)).isInstanceOf(Project.class);
   }
 
   @Test
   public void testListExperiments() {
     List<Experiment> exps = openbisClient.listExperiments();
-    ASSERT.that(exps.size()).isAtLeast(10);
-    ASSERT.that(exps.get(0)).isInstanceOf(Experiment.class);
+    assertThat(exps.size()).isAtLeast(10);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
   }
 
   @Test
   public void testGetSamplesofExperiment() {
 
     // get sample by experiment identifier
-    ASSERT.that(
+    assertThat(
         openbisClient.getSamplesofExperiment("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL").size())
         .isAtLeast(16);
     // try to get sample by experiment code fails
@@ -206,50 +204,50 @@ public class TestOpenBisClient {
       openbisClient.getSamplesofExperiment("PTX_SOLGEL").size();
       fail("should not work with experiment code alone");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);//
+      assertThat(e).isInstanceOf(Exception.class);//
     }
     // try to get sample by experiment type fails
     try {
       openbisClient.getSamplesofExperiment("MS_INJECT").size();
       fail("should not work with experiment code alone");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);//
+      assertThat(e).isInstanceOf(Exception.class);//
     }
     // try to get sample by experiment code fails
     try {
       openbisClient.getSamplesofExperiment("20140617164748908-3036").size();
       fail("should not work with code alone");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);//
+      assertThat(e).isInstanceOf(Exception.class);//
     }
   }
 
   @Test
   public void testGetSamplesofSpace() {
     List<Sample> samps = openbisClient.getSamplesofSpace("MFT_PICHLER_MULTISCALE");
-    ASSERT.that(samps.size()).isAtLeast(12);
-    ASSERT.that(samps.get(0)).isInstanceOf(Sample.class);
+    assertThat(samps.size()).isAtLeast(12);
+    assertThat(samps.get(0)).isInstanceOf(Sample.class);
   }
 
   @Test
   public void testGetSampleByIdentifier() {
     // it seems that this function really does not care, as long as the sample name is given
-    ASSERT.that(
+    assertThat(
         openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL/QSDPR002A2")
             .getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-    ASSERT.that(
+    assertThat(
         openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR002A2").getIdentifier())
         .isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-    ASSERT.that(openbisClient.getSampleByIdentifier("QSDPR002A2").getIdentifier()).isEqualTo(
+    assertThat(openbisClient.getSampleByIdentifier("QSDPR002A2").getIdentifier()).isEqualTo(
         "/MFT_PICHLER_MULTISCALE/QSDPR002A2");
 
-    ASSERT.that(
+    assertThat(
         openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/QSDPR002A2")
             .getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-    ASSERT.that(openbisClient.getSampleByIdentifier("/QSDPR/QSDPR002A2").getIdentifier())
+    assertThat(openbisClient.getSampleByIdentifier("/QSDPR/QSDPR002A2").getIdentifier())
         .isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
     // :)
-    ASSERT.that(
+    assertThat(
         openbisClient.getSampleByIdentifier("/I_do_not/care_what_is_upfront/QSDPR002A2")
             .getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
     // does not work by type
@@ -258,7 +256,7 @@ public class TestOpenBisClient {
                                                                         // java.lang.IndexOutOfBoundsException
       fail("should not work with type code alone");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
 
     }
     // does not work with dataset code
@@ -267,7 +265,7 @@ public class TestOpenBisClient {
                                                                                     // java.lang.IndexOutOfBoundsException
       fail("should not work with code alone");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
     // does not work with empty string
     try {
@@ -276,23 +274,23 @@ public class TestOpenBisClient {
                                                               // Search pattern '' is invalid.
       fail("should not work with empty string");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
     // does not work with null
     try {
       openbisClient.getSampleByIdentifier(null).getIdentifier();// -> NullPointerException
       fail("should not work with null");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(NullPointerException.class);
+      assertThat(e).isInstanceOf(NullPointerException.class);
     }
   }
 
   @Test
   public void testGetSamplesOfProject() {
     List<Sample> samps = openbisClient.getSamplesOfProject("/MFT_PICHLER_MULTISCALE/QSDPR");
-    ASSERT.that(samps.size()).isAtLeast(12);
-    ASSERT.that(samps.get(0)).isInstanceOf(Sample.class);
-    ASSERT.that(samps.equals(openbisClient.getSamplesOfProject("QSDPR")));// should work for id and
+    assertThat(samps.size()).isAtLeast(12);
+    assertThat(samps.get(0)).isInstanceOf(Sample.class);
+    assertThat(samps.equals(openbisClient.getSamplesOfProject("QSDPR")));// should work for id and
                                                                           // code
   }
 
@@ -300,13 +298,13 @@ public class TestOpenBisClient {
   public void testGetExperimentsOfProjectByIdentifier() {
     List<Experiment> exps =
         openbisClient.getExperimentsOfProjectByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR");
-    ASSERT.that(exps.size()).isAtLeast(1);
-    ASSERT.that(exps.get(0)).isInstanceOf(Experiment.class);
+    assertThat(exps.size()).isAtLeast(1);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
     try {
       openbisClient.getExperimentsOfProjectByIdentifier("QSDPR");
       fail("should not work with code alone");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
@@ -324,7 +322,7 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetExperimentsForProjectStringSuccessfully() {
-    ASSERT.that(openbisClient.getExperimentsForProject("/TEST28/QTEST").size()).isAtLeast(22);
+    assertThat(openbisClient.getExperimentsForProject("/TEST28/QTEST").size()).isAtLeast(22);
     // this one really cares about proper identifier
     openbisClient.getExperimentsForProject("/CONFERENCE_DEMO/QTGPR");
 
@@ -340,67 +338,67 @@ public class TestOpenBisClient {
   public void testGetExperimentsForProjectProject() {
     Project p = openbisClient.getProjectByIdentifier("/TEST28/QTEST");
     List<Experiment> exps = openbisClient.getExperimentsForProject(p);
-    ASSERT.that(exps.size()).isAtLeast(22);
-    ASSERT.that(openbisClient.getExperimentsForProject("/TEST28/QTEST").equals(exps));
+    assertThat(exps.size()).isAtLeast(22);
+    assertThat(openbisClient.getExperimentsForProject("/TEST28/QTEST").equals(exps));
   }
 
   @Test
   public void testGetExperimentsOfProjectByCode() {
-    ASSERT.that(openbisClient.getExperimentsOfProjectByCode("QTEST").size()).isAtLeast(22);
+    assertThat(openbisClient.getExperimentsOfProjectByCode("QTEST").size()).isAtLeast(22);
     try {
       System.out.println(openbisClient.getExperimentsOfProjectByCode("/TEST28/QTEST"));
       fail("not a code");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
   @Test
   public void testGetProjectExperimentMapping() {
     Map<String, List<Experiment>> map = openbisClient.getProjectExperimentMapping("IVAC_ALL");
-    ASSERT.that(map.keySet() != null);
+    assertThat(map.keySet() != null);
     for (String p : map.keySet()) {
-      ASSERT.that(openbisClient.getExperimentsOfProjectByIdentifier(p).equals(map.get(p)));
+      assertThat(openbisClient.getExperimentsOfProjectByIdentifier(p).equals(map.get(p)));
     }
   }
 
   @Test
   public void testGetExperimentsOfSpace() {
     List<Experiment> exps = openbisClient.getExperimentsOfSpace("MFT_PICHLER_MULTISCALE");
-    ASSERT.that(exps.size()).isAtLeast(8);
-    ASSERT.that(exps.get(0)).isInstanceOf(Experiment.class);
+    assertThat(exps.size()).isAtLeast(8);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
   }
 
   @Test
   public void testGetExperimentsOfType() {
     List<Experiment> exps = openbisClient.getExperimentsOfType("MS_INJECT");
-    ASSERT.that(exps.size()).isAtLeast(1);
-    ASSERT.that(exps.get(0)).isInstanceOf(Experiment.class);
+    assertThat(exps.size()).isAtLeast(1);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
     for (Experiment e : exps) {
-      ASSERT.that(e.getExperimentTypeCode().equals("MS_INJECT"));
+      assertThat(e.getExperimentTypeCode().equals("MS_INJECT"));
     }
   }
 
   @Test
   public void testGetSamplesOfType() {
     List<Sample> samps = openbisClient.getSamplesOfType("Q_MS_RUN");
-    ASSERT.that(samps.size()).isAtLeast(1);
-    ASSERT.that(samps.get(0)).isInstanceOf(Sample.class);
+    assertThat(samps.size()).isAtLeast(1);
+    assertThat(samps.get(0)).isInstanceOf(Sample.class);
     for (Sample e : samps) {
-      ASSERT.that(e.getSampleTypeCode().equals("Q_MS_RUN"));
+      assertThat(e.getSampleTypeCode().equals("Q_MS_RUN"));
     }
   }
 
   @Test
   public void testGetProjectsOfSpace() {
     List<Project> projs = openbisClient.getProjectsOfSpace("IVAC_ALL");
-    ASSERT.that(projs.size()).isAtLeast(13);
-    ASSERT.that(projs.get(0)).isInstanceOf(Project.class);
+    assertThat(projs.size()).isAtLeast(13);
+    assertThat(projs.get(0)).isInstanceOf(Project.class);
   }
 
   @Test
   public void testGetProjectByIdentifier() {
-    ASSERT.that(openbisClient.getProjectByIdentifier("/IVAC_ALL/QA001"))
+    assertThat(openbisClient.getProjectByIdentifier("/IVAC_ALL/QA001"))
         .isInstanceOf(Project.class);
 
     try {
@@ -408,7 +406,7 @@ public class TestOpenBisClient {
           + openbisClient.getProjectByIdentifier("QA001"));
       fail("not an identifier");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
 
     try {
@@ -416,7 +414,7 @@ public class TestOpenBisClient {
           + openbisClient.getProjectByIdentifier("/IVAC_ALL/QL001"));
       fail("does not exist");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
 
 
@@ -424,37 +422,37 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetProjectByCode() {
-    ASSERT.that(openbisClient.getProjectByCode("QA001")).isInstanceOf(Project.class);
+    assertThat(openbisClient.getProjectByCode("QA001")).isInstanceOf(Project.class);
     try {
       System.out
           .println("testGetProjectByCode" + openbisClient.getProjectByCode("/IVAC_ALL/QA001"));
       fail("not a code");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
   @Test
   public void testGetExperimentByCode() {
-    ASSERT.that(openbisClient.getExperimentByCode("PTX_SOLGEL")).isInstanceOf(Experiment.class);
+    assertThat(openbisClient.getExperimentByCode("PTX_SOLGEL")).isInstanceOf(Experiment.class);
     try {
       System.out.println("testGetExperimentByCode"
           + openbisClient.getExperimentByCode("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL"));
       fail("not a code");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
   @Test
   public void testGetExperimentById() {
-    ASSERT.that(openbisClient.getExperimentById("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL"))
+    assertThat(openbisClient.getExperimentById("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL"))
         .isInstanceOf(Experiment.class);
     try {
       System.out.println("testGetExperimentById" + openbisClient.getExperimentById("PTX_SOLGEL"));
       fail("not an identifier");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
@@ -463,44 +461,44 @@ public class TestOpenBisClient {
     Project p =
         openbisClient
             .getProjectOfExperimentByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL");
-    ASSERT.that(p).isInstanceOf(Project.class);
-    ASSERT.that(p.getCode().equals("QSDPR"));
+    assertThat(p).isInstanceOf(Project.class);
+    assertThat(p.getCode().equals("QSDPR"));
     try {
       System.out.println("testGetProjectOfExperimentByIdentifier"
           + openbisClient.getExperimentById("PTX_SOLGEL"));
       fail("not an identifier");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
   @Test
   public void testGetDataSetsOfSampleByIdentifier() {
     List<DataSet> dsets = openbisClient.getDataSetsOfSampleByIdentifier("/ABI_SYSBIO/QMARI117AV");
-    ASSERT.that(dsets.size()).isEqualTo(6);
+    assertThat(dsets.size()).isEqualTo(6);
     try {
       System.out.println("testGetDataSetsOfSampleByIdentifier"
           + openbisClient.getDataSetsOfSampleByIdentifier("QMARI117AV"));
       fail("not an identifier");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
   @Test
   public void testGetDataSetsOfSample() {
     // it does not really matter as long as you have the last part correctly
-    ASSERT.that(openbisClient.getDataSetsOfSample("/CONFERENCE_DEMO/NGS1QTGPR004AT").size()).isEqualTo(1);
+    assertThat(openbisClient.getDataSetsOfSample("/CONFERENCE_DEMO/NGS1QTGPR004AT").size()).isEqualTo(1);
 
     // does not throw any exception, just return 0
-    ASSERT.that(openbisClient.getDataSetsOfSample("MS_INJECT").size()).isEqualTo(0);
-    ASSERT.that(openbisClient.getDataSetsOfSample("20140617164748908-3036").size()).isEqualTo(0);
+    assertThat(openbisClient.getDataSetsOfSample("MS_INJECT").size()).isEqualTo(0);
+    assertThat(openbisClient.getDataSetsOfSample("20140617164748908-3036").size()).isEqualTo(0);
 
     try {
       openbisClient.getDataSetsOfSample("").size();
       fail("should not work with empty string");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);// ->
+      assertThat(e).isInstanceOf(Exception.class);// ->
                                                    // ch.systemsx.cisd.common.exceptions.UserFailureException:
                                                    // Search pattern '' is invalid.
     }
@@ -508,7 +506,7 @@ public class TestOpenBisClient {
       openbisClient.getDataSetsOfSample(null).size();
       fail("should not work with null");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(NullPointerException.class);
+      assertThat(e).isInstanceOf(NullPointerException.class);
     }
   }
 
@@ -516,20 +514,20 @@ public class TestOpenBisClient {
   public void testGetDataSetsOfExperiment() {
     Experiment ex = openbisClient.getExperimentByCode("HPTI");
     List<DataSet> dsets = openbisClient.getDataSetsOfExperiment(ex.getPermId());
-    ASSERT.that(dsets.size()).isEqualTo(43);
+    assertThat(dsets.size()).isEqualTo(43);
     try {
       System.out.println("testGetDataSetsOfExperiment"
           + openbisClient.getDataSetsOfExperiment("HPTI"));
       fail("not perm id but code");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
     try {
       System.out.println("testGetDataSetsOfExperiment"
           + openbisClient.getExperimentByCode("/QBIC/QHPTI/HPTI"));
       fail("not perm id but id");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
@@ -537,13 +535,13 @@ public class TestOpenBisClient {
   public void testGetDataSetsOfExperimentByIdentifier() {
     List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets =
         openbisClient.getDataSetsOfExperimentByIdentifier("/CONFERENCE_DEMO/QTGPRE/QTGPRE1");
-    ASSERT.that(dsets.size()).isEqualTo(0);
+    assertThat(dsets.size()).isEqualTo(0);
 
   }
 
   @Test
   public void testGetDataSetsOfExperimentByIdentifierWrongExperiment(){
-   ASSERT.that(openbisClient.getDataSetsOfExperimentByIdentifier("lulu")).isEmpty();
+   assertThat(openbisClient.getDataSetsOfExperimentByIdentifier("lulu")).isEmpty();
       //TODO seems to return the right datasets even if a code is used. either change function name or do something about it
      }
 
@@ -594,49 +592,49 @@ public class TestOpenBisClient {
   @Test
   public void testGetDataSetsOfSpaceByIdentifier() {
     List<DataSet> dsets = openbisClient.getDataSetsOfSpaceByIdentifier("CONFERENCE_DEMO");
-    ASSERT.that(dsets.size()).is(93);
-    ASSERT.that(dsets.get(0)).isInstanceOf(DataSet.class);
+    assertThat(dsets.size()).isEqualTo(93);
+    assertThat(dsets.get(0)).isInstanceOf(DataSet.class);
   }
 
   @Test
   public void testGetDataSetsOfProjectByIdentifier_project_with_datasets() {
     List<DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
-    ASSERT.that(dsets.size()).isEqualTo(93);
+    assertThat(dsets.size()).isEqualTo(93);
     try {
       openbisClient.getDataSetsOfProjectByIdentifier("QHPTI");
       fail("not an identifier");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
   @Test
   public void testGetDataSetsOfProjectByIdentifier_project_with_no_experiments() {
     List<DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifier("/DEFAULT/DEFAULT");
-    ASSERT.that(dsets.size()).isEqualTo(17);
+    assertThat(dsets.size()).isEqualTo(17);
     try {
       openbisClient.getDataSetsOfProjectByIdentifier("ECKH1");
       fail("not an identifier");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
   @Test
   public void testGetDataSetsOfProjectByIdentifierWithSearchCriteria_project_with_datasets() {
     List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/CONFERENCE_DEMO/QTGPR");
-    ASSERT.that(dsets.size()).isEqualTo(93);
+    assertThat(dsets.size()).isEqualTo(93);
 
-    ASSERT.that(openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("idonotexist")).isEmpty();
+    assertThat(openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("idonotexist")).isEmpty();
   }
 
   @Test
   public void testGetDataSetsOfProjectByIdentifierWithSearchCriteria_project_with_no_experiments() {
     List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/ECKH/ECKH1");
-    ASSERT.that(dsets.size()).isEqualTo(0);
+    assertThat(dsets.size()).isEqualTo(0);
     try {
       openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("idonotexist");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
@@ -646,11 +644,11 @@ public class TestOpenBisClient {
   public void testGetDataSetsByType() {
     List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets =
         openbisClient.getDataSetsByType("PDF");
-    ASSERT.that(dsets.size()).isAtLeast(3);
-    ASSERT.that(dsets.get(0)).isInstanceOf(
+    assertThat(dsets.size()).isAtLeast(3);
+    assertThat(dsets.get(0)).isInstanceOf(
         ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet.class);
     for (ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet s : dsets) {
-      ASSERT.that(s.getDataSetTypeCode().equals("PDF"));
+      assertThat(s.getDataSetTypeCode().equals("PDF"));
     }
   }
 
@@ -663,7 +661,7 @@ public class TestOpenBisClient {
                                                              // Illegal empty identifier
       fail("should not work with empty string");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
     try {
       openbisClient.listAttachmentsForSampleByIdentifier(null);// ->
@@ -671,9 +669,9 @@ public class TestOpenBisClient {
                                                                // Identifier cannot be null
       fail("null not an identifer");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
-    ASSERT.that(
+    assertThat(
         openbisClient.listAttachmentsForSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR002A2")
             .size()).isAtLeast(1);
     // this one really cares about proper identifier
@@ -681,40 +679,40 @@ public class TestOpenBisClient {
       openbisClient.listAttachmentsForSampleByIdentifier("QSDPR002A2");
       fail(" not an identifer");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
     try {
       openbisClient.listAttachmentsForSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR002A23");
       fail("that sample does not exist");
     } catch (Exception e) {// ->ch.systemsx.cisd.common.exceptions.UserFailureException: No sample
                            // found for id '/MFT_PICHLER_MULTISCALE/QSDPR002A23'.
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
   }
 
 
   @Test
   public void testGetSpaceMembers() {
-    ASSERT.that(openbisClient.getSpaceMembers("MNF_KOHLBACHER_ARZNEIMITTEL").contains("iisko01"));
-    ASSERT.that(openbisClient.getSpaceMembers("MNF_KOHLBACHER_ARZNEIMITTEL").contains("iisai01"));
-    ASSERT.that(!openbisClient.getSpaceMembers("MNF_KOHLBACHER_ARZNEIMITTEL").contains("kxmve01"));
-    ASSERT.that(openbisClient.getSpaceMembers("") == null);
+    assertThat(openbisClient.getSpaceMembers("MNF_KOHLBACHER_ARZNEIMITTEL").contains("iisko01"));
+    assertThat(openbisClient.getSpaceMembers("MNF_KOHLBACHER_ARZNEIMITTEL").contains("iisai01"));
+    assertThat(!openbisClient.getSpaceMembers("MNF_KOHLBACHER_ARZNEIMITTEL").contains("kxmve01"));
+    assertThat(openbisClient.getSpaceMembers("") == null);
   }
 
   @Test
   public void testListPropertiesForType() {
-    ASSERT.that(
+    assertThat(
         openbisClient.listPropertiesForType(
             openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).get(0)).isInstanceOf(
         PropertyType.class);
-    ASSERT.that(
+    assertThat(
         openbisClient.listPropertiesForType(openbisClient.getSampleTypeByString("Q_TEST_SAMPLE"))
             .get(0)).isInstanceOf(PropertyType.class);
     try {
       openbisClient.listPropertiesForType(openbisClient.getSampleTypeByString("unknown"));
       fail("should not work with non-existing type");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
 
   }
@@ -726,9 +724,9 @@ public class TestOpenBisClient {
             .getSampleTypeByString("Q_BIOLOGICAL_ENTITY"));
     for (PropertyType type : types) {
       if (type.getCode().equals("Q_NCBI_ORGANISM")) {
-        ASSERT.that(openbisClient.listVocabularyTermsForProperty(type).contains("Homo sapiens"));
-        ASSERT.that(!openbisClient.listVocabularyTermsForProperty(type).contains("Liver"));
-        ASSERT.that(!openbisClient.listVocabularyTermsForProperty(type).contains("Pan sapiens"));
+        assertThat(openbisClient.listVocabularyTermsForProperty(type).contains("Homo sapiens"));
+        assertThat(!openbisClient.listVocabularyTermsForProperty(type).contains("Liver"));
+        assertThat(!openbisClient.listVocabularyTermsForProperty(type).contains("Pan sapiens"));
       }
     }
   }
@@ -740,13 +738,13 @@ public class TestOpenBisClient {
             .getSampleTypeByString("Q_BIOLOGICAL_ENTITY"));
     for (PropertyType type : types) {
       if (type.getCode().equals("Q_NCBI_ORGANISM")) {
-        ASSERT.that(openbisClient.getCVLabelForProperty(type, "0").equals("Other"));
-        ASSERT.that(openbisClient.getCVLabelForProperty(type, "10116").equals("Rattus norvegicus"));
+        assertThat(openbisClient.getCVLabelForProperty(type, "0").equals("Other"));
+        assertThat(openbisClient.getCVLabelForProperty(type, "10116").equals("Rattus norvegicus"));
         try {
           openbisClient.getCVLabelForProperty(type, "-10");
           fail("should not work with non vocabulary code");
         } catch (Exception e) {
-          ASSERT.that(e).isInstanceOf(Exception.class);
+          assertThat(e).isInstanceOf(Exception.class);
         }
       }
     }
@@ -754,32 +752,32 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetSampleTypeByString() {
-    ASSERT.that(openbisClient.getSampleTypeByString("Q_TEST_SAMPLE"))
+    assertThat(openbisClient.getSampleTypeByString("Q_TEST_SAMPLE"))
         .isInstanceOf(SampleType.class);
-    ASSERT.that(openbisClient.getSampleTypeByString("unknown") == null);
+    assertThat(openbisClient.getSampleTypeByString("unknown") == null);
   }
 
   @Test
   public void testGetExperimentTypeByString() {
-    ASSERT.that(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(
+    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(
         ExperimentType.class);
-    ASSERT.that(openbisClient.getExperimentTypeByString("xyz") == null);
+    assertThat(openbisClient.getExperimentTypeByString("xyz") == null);
   }
 
   @Test
   public void testGetLabelsofProperties() {
     SampleType type = openbisClient.getSampleTypeByString("Q_BIOLOGICAL_ENTITY");
     Map<String, String> prop = openbisClient.getLabelsofProperties(type);
-    ASSERT.that(prop.get("Q_NCBI_ORGANISM").equals("NCBI organism"));
-    ASSERT.that(prop.size()).isNotNull();
-    ASSERT.that(prop.size()).isGreaterThan(0);
+    assertThat(prop.get("Q_NCBI_ORGANISM").equals("NCBI organism"));
+    assertThat(prop.size()).isNotNull();
+    assertThat(prop.size()).isGreaterThan(0);
   }
 
   @Test
   public void testGenerateBarcode() {
-    ASSERT.that(openbisClient.generateBarcode("/TEST28/QTEST", 0).startsWith("QTEST001"));
-    ASSERT.that(openbisClient.generateBarcode("/TEST28/QTEST", 99).startsWith("QTEST100"));
-    ASSERT.that(openbisClient.generateBarcode("/TEST28/QTEST", 1002).startsWith("QTEST004"));
+    assertThat(openbisClient.generateBarcode("/TEST28/QTEST", 0).startsWith("QTEST001"));
+    assertThat(openbisClient.generateBarcode("/TEST28/QTEST", 99).startsWith("QTEST100"));
+    assertThat(openbisClient.generateBarcode("/TEST28/QTEST", 1002).startsWith("QTEST004"));
   }
 
 
@@ -787,12 +785,12 @@ public class TestOpenBisClient {
   public void testChecksum() {
     String input = "QTEST005X";
     char output = OpenBisClient.checksum(input);
-    ASSERT.that(output == 'M');
+    assertThat(output == 'M');
   }
 
   @Test
   public void testOpenBIScodeToString() {
-    ASSERT.that(openbisClient.openBIScodeToString("Q_BIOLOGICAL_ENTITY")).isEqualTo(
+    assertThat(openbisClient.openBIScodeToString("Q_BIOLOGICAL_ENTITY")).isEqualTo(
         "Biological Entity");
   }
 
@@ -802,19 +800,19 @@ public class TestOpenBisClient {
     String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
     String url = openbisClient.getDataStoreDownloadURL(code, file).toString();
     String controlUrl = String.format("https://qbis.qbic.uni-tuebingen.de:444/datastore_server/%s/original/%s?mode=simpleHtml&sessionID=%s",code,file, openbisClient.getSessionToken());
-    ASSERT.that(url).isEqualTo(controlUrl);
+    assertThat(url).isEqualTo(controlUrl);
     //This method is deprecated so we will not further work on it. However, it is not checking correctness of code and filename.
     /*try {
       System.out.println(openbisClient.getDataStoreDownloadURL(code, "WRONG"));
       fail("should not work with nonexisting file name");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }
     try {
       openbisClient.getDataStoreDownloadURL("notacode", file);
       fail("should not work with nonexisting dataset code");
     } catch (Exception e) {
-      ASSERT.that(e).isInstanceOf(Exception.class);
+      assertThat(e).isInstanceOf(Exception.class);
     }*/
   }
 
@@ -827,13 +825,13 @@ public class TestOpenBisClient {
       for (Sample parent : map.get(child)) {
         switch (type) {
           case "Q_BIOLOGICAL_ENTITY":
-            ASSERT.that(parent == null);
+            assertThat(parent == null);
             break;
           case "Q_BIOLOGICAL_SAMPLE":
-            ASSERT.that(parent.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY"));
+            assertThat(parent.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY"));
             break;
           case "Q_TEST_SAMPLE":
-            ASSERT.that(parent.getSampleTypeCode().equals("Q_BIOLOGICAL_SAMPLE"));
+            assertThat(parent.getSampleTypeCode().equals("Q_BIOLOGICAL_SAMPLE"));
             break;
           default:
             break;
@@ -846,8 +844,8 @@ public class TestOpenBisClient {
   @Test
   public void testGetParents() {
     List<Sample> parents = openbisClient.getParentsBySearchService("QTGPR001A5");
-    ASSERT.that(parents.size()).isEqualTo(1);
-    ASSERT.that(parents.get(0).getCode()).isEqualTo("QTGPRENTITY-1");
+    assertThat(parents.size()).isEqualTo(1);
+    assertThat(parents.get(0).getCode()).isEqualTo("QTGPRENTITY-1");
   }
 
   @Test
@@ -855,40 +853,40 @@ public class TestOpenBisClient {
     List<Sample> children =
         openbisClient.getChildrenSamples(openbisClient
             .getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-1"));
-    ASSERT.that(children.size()).isAtLeast(1);
+    assertThat(children.size()).isAtLeast(1);
     List<String> codes = new ArrayList<String>();
     for (Sample s : children) {
       codes.add(s.getCode());
     }
-    ASSERT.that(codes.contains("QTGPR001A5"));
+    assertThat(codes.contains("QTGPR001A5"));
   }
 
 
   @Test
   public void testSpaceExists() {
-    ASSERT.that(openbisClient.spaceExists("ABI_SYSBIO"));
-    ASSERT.that(!openbisClient.spaceExists("DEEP_SPACE_NINE"));
+    assertThat(openbisClient.spaceExists("ABI_SYSBIO"));
+    assertThat(!openbisClient.spaceExists("DEEP_SPACE_NINE"));
   }
 
   @Test
   public void testProjectExists() {
-    ASSERT.that(openbisClient.projectExists("ABI_SYSBIO", "QMARI"));
-    ASSERT.that(!openbisClient.projectExists("ABI_SYSBIO", "QQQQQ"));
-    ASSERT.that(!openbisClient.projectExists("DEEP_SPACE_NINE", "QMARI"));
+    assertThat(openbisClient.projectExists("ABI_SYSBIO", "QMARI"));
+    assertThat(!openbisClient.projectExists("ABI_SYSBIO", "QQQQQ"));
+    assertThat(!openbisClient.projectExists("DEEP_SPACE_NINE", "QMARI"));
   }
 
   @Test
   public void testExpExists() {
-    ASSERT.that(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QMARIE3"));
-    ASSERT.that(!openbisClient.expExists("DEEP_SPACE_NINE", "QMARI", "QMARIE3"));
-    ASSERT.that(!openbisClient.expExists("ABI_SYSBIO", "QQQQQ", "QMARIE3"));
-    ASSERT.that(!openbisClient.expExists("ABI_SYSBIO", "QMARI", "QQQQQE3"));
+    assertThat(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QMARIE3"));
+    assertThat(!openbisClient.expExists("DEEP_SPACE_NINE", "QMARI", "QMARIE3"));
+    assertThat(!openbisClient.expExists("ABI_SYSBIO", "QQQQQ", "QMARIE3"));
+    assertThat(!openbisClient.expExists("ABI_SYSBIO", "QMARI", "QQQQQE3"));
   }
 
   @Test
   public void testSampleExists() {
-    ASSERT.that(openbisClient.sampleExists("QMARI074A9"));
-    ASSERT.that(!openbisClient.sampleExists("QQQQQ999XX"));
+    assertThat(openbisClient.sampleExists("QMARI074A9"));
+    assertThat(!openbisClient.sampleExists("QQQQQ999XX"));
   }
 
   //@Test
@@ -899,19 +897,19 @@ public class TestOpenBisClient {
   @Test
   public void testGetVocabCodesAndLabelsForVocab() {
     Map<String, String> map = openbisClient.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
-    ASSERT.that(map.get("Bos taurus")).isEqualTo("9913");
-    ASSERT.that(map.get("Sus scrofa")).isEqualTo("9823");
-    ASSERT.that(map.get("Other")).isEqualTo("0");
-    ASSERT.that(map.get("Hound of Baskervilles")).isEqualTo(null);
-    ASSERT.that(map.get("Bos_taurus")).isEqualTo(null);
+    assertThat(map.get("Bos taurus")).isEqualTo("9913");
+    assertThat(map.get("Sus scrofa")).isEqualTo("9823");
+    assertThat(map.get("Other")).isEqualTo("0");
+    assertThat(map.get("Hound of Baskervilles")).isEqualTo(null);
+    assertThat(map.get("Bos_taurus")).isEqualTo(null);
   }
 
   @Test
   public void testGetVocabCodesForVocab() {
     List<String> lis = openbisClient.getVocabCodesForVocab("Q_NCBI_TAXONOMY");
-    ASSERT.that(lis.contains("Homo sapiens"));
-    ASSERT.that(!lis.contains("Homo_sapiens"));
-    ASSERT.that(!lis.contains("Yeti sapiens"));
+    assertThat(lis.contains("Homo sapiens"));
+    assertThat(!lis.contains("Homo_sapiens"));
+    assertThat(!lis.contains("Yeti sapiens"));
   }
 
   @Test
@@ -919,7 +917,7 @@ public class TestOpenBisClient {
     String user = "iisko01";
     List<Experiment> exps = openbisClient.getExperimentsForUser(user);
     for (Experiment e : exps) {
-      ASSERT.that(openbisClient.getSpaceMembers(e.getIdentifier().split("/")[1]).contains(user));
+      assertThat(openbisClient.getSpaceMembers(e.getIdentifier().split("/")[1]).contains(user));
     }
   }
 
@@ -927,26 +925,26 @@ public class TestOpenBisClient {
   public void testListExperimentsOfProjects() {
     Project qshow = openbisClient.getProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
     List<Experiment> exps = openbisClient.listExperimentsOfProjects(Arrays.asList(qshow));
-    ASSERT.that(exps.size()).is(61);
+    assertThat(exps.size()).isEqualTo(61);
   }
 
   @Test
   public void testListDataSetsForExperiments() {
     List<DataSet> dsets =
         openbisClient.listDataSetsForExperiments(Arrays.asList("/CONFERENCE_DEMO/QTGPR/QTGPRE6"));
-    ASSERT.that(dsets.size()).isEqualTo(1);
+    assertThat(dsets.size()).isEqualTo(1);
   }
 
   @Test
   public void testListSamplesForProjects() {
     List<Sample> samps = openbisClient.listSamplesForProjects(Arrays.asList("/CONFERENCE_DEMO/QTGPR"));
-    ASSERT.that(samps.size()).isEqualTo(117);
+    assertThat(samps.size()).isEqualTo(117);
 
   }
 
   @Test
   public void testListDataSetsForSamples() {
-    ASSERT.that(
+    assertThat(
             openbisClient.listDataSetsForSamples(
                     Arrays.asList("/CONFERENCE_DEMO/NGSQTGPR003AL")).size()).isEqualTo(1);
   }
@@ -955,7 +953,7 @@ public class TestOpenBisClient {
   public void testGetUrlForDataset() throws MalformedURLException {
     String code = "20150317113748250-9094";
     String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
-    ASSERT.that(openbisClient.getUrlForDataset(code, file).equals(
+    assertThat(openbisClient.getUrlForDataset(code, file).equals(
         "https://qbis.qbic.uni-tuebingen.d4/datastore_server/" + code + "/original/" + file
             + "?mode=simpleHtml&sessionID=" + openbisClient.getSessionToken()));
     openbisClient.getUrlForDataset(code, "WRONG");
@@ -1002,7 +1000,7 @@ public class TestOpenBisClient {
   @Test
   public void getSampleTypes(){
     Map<String, SampleType> types = openbisClient.getSampleTypes();
-    ASSERT.that(types.size()).isGreaterThan(0);
+    assertThat(types.size()).isGreaterThan(0);
   }
 
   @Test
@@ -1015,7 +1013,7 @@ public class TestOpenBisClient {
             Arrays.asList("Puerto Rican ; female", "Puerto Rican ; male", "Tuscan ; female"));
     String res = HelperMethods.getPropertyOfSamples(input, "Q_SECONDARY_NAME");
     Set<String> testSet = new HashSet<String>(Arrays.asList(res.split(", ")));
-    ASSERT.that(correct.equals(testSet));
+    assertThat(correct.equals(testSet));
   }
 
   @Test
@@ -1041,13 +1039,13 @@ public class TestOpenBisClient {
           break;
       }
     }
-    ASSERT.that(HelperMethods.fetchAncestorsOfType(tests, "Q_BIOLOGICAL_ENTITY").equals(entities));
-    ASSERT.that(HelperMethods.fetchAncestorsOfType(tests, "Q_BIOLOGICAL_SAMPLE").equals(extracts));
+    assertThat(HelperMethods.fetchAncestorsOfType(tests, "Q_BIOLOGICAL_ENTITY").equals(entities));
+    assertThat(HelperMethods.fetchAncestorsOfType(tests, "Q_BIOLOGICAL_SAMPLE").equals(extracts));
   }
 
   @Test
   public void testGetProjectTSV() {
-    ASSERT.that(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
+    assertThat(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
   }
 
 }
