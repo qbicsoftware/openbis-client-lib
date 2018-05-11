@@ -57,6 +57,11 @@
 
 		<!-- openBIS dependencies -->
 		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
 			<groupId>life.qbic.openbis</groupId>
 			<artifactId>csid-base</artifactId>
 			<version>13.04.8</version>
