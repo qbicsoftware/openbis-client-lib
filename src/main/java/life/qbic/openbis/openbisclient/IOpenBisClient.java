@@ -1,20 +1,50 @@
 package life.qbic.openbis.openbisclient;
 
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
-import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.*;
-import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
-
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
-
+import ch.systemsx.cisd.common.api.client.ServiceFinder;
+import ch.systemsx.cisd.common.exceptions.InvalidAuthenticationException;
+import ch.systemsx.cisd.common.exceptions.InvalidSessionException;
+import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
+import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
+import ch.systemsx.cisd.openbis.dss.client.api.v1.OpenbisServiceFacadeFactory;
+import ch.systemsx.cisd.openbis.dss.generic.shared.api.v1.FileInfoDssDTO;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationChangingService;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.EntityType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyTypeGroup;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleFetchOption;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Vocabulary;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClauseAttribute;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIdentifierId;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
 public interface IOpenBisClient {
 
@@ -407,7 +437,7 @@ public interface IOpenBisClient {
    * @param projectIdentifier identifier of the openBIS project
    * @return list with all datasets of the given project
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier);
+  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier);
 
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDatasetsOfProjectByIdentifierWithSearchCriteria(
       String projectIdentifier);
@@ -418,7 +448,7 @@ public interface IOpenBisClient {
    * @param experimentCode code of the openBIS experiment
    * @return list with all datasets of the given experiment
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(String experimentCode);
+  public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(String experimentCode);
 
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDataSetsOfExperimentByCodeWithSearchCriteria(
       String experimentCode);
@@ -429,7 +459,7 @@ public interface IOpenBisClient {
    * @param projectIdentifier identifier of the openBIS project
    * @return list with all datasets of the given project
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfProjects(List<Project> projectIdentifier);
+  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier);
 
   /**
    * Function to list all datasets of a specific openBIS project
@@ -446,7 +476,7 @@ public interface IOpenBisClient {
    * @param type identifier of the openBIS type
    * @return list with all datasets of the given type
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsByType(String type);
+  public List<DataSet> getDataSetsByType(String type);
 
   /**
    * Function to list all attachments of a sample
@@ -454,7 +484,7 @@ public interface IOpenBisClient {
    * @param sampleIdentifier identifier of the openBIS sample
    * @return list with all attachments connected to the given sample
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier);
+  public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier);
 
   /**
    * Function to list all attachments of a project
@@ -462,7 +492,7 @@ public interface IOpenBisClient {
    * @param projectIdentifier identifier of the openBIS project
    * @return list with all attachments connected to the given project
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier);
+  public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier);
 
   /**
    * Function to add an attachment to a existing project in openBIS by calling the corresponding
@@ -496,7 +526,7 @@ public interface IOpenBisClient {
    * @param entity_type entitiy type
    * @return list of properties which are assigned to the entity type
    */
-  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType> listPropertiesForType(EntityType entity_type);
+  public List<PropertyType> listPropertiesForType(EntityType entity_type);
 
   /**
    * Function to list the vocabulary terms for a given property which has been added to openBIS. The
@@ -522,7 +552,7 @@ public interface IOpenBisClient {
    * @param sampleType the sample type as string
    * @return the SampleType object of the corresponding sample type
    */
-  public ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType getSampleTypeByString(String sampleType);
+  public SampleType getSampleTypeByString(String sampleType);
 
   /**
    * Function to retrieve all samples of a specific given type
@@ -530,7 +560,7 @@ public interface IOpenBisClient {
    * @param type identifier of the openBIS sample type
    * @return list with all samples of this given type
    */
-  public Map<String, ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType> getSampleTypes();
+  public Map<String, SampleType> getSampleTypes();
 
   /**
    * Function to get a ExperimentType object of a experiment type

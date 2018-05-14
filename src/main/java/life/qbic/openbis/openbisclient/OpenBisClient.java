@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -15,17 +16,34 @@ import java.util.Set;
 
 import org.apache.commons.text.WordUtils;
 
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.*;
+import ch.systemsx.cisd.common.api.client.ServiceFinder;
 import ch.systemsx.cisd.common.exceptions.InvalidAuthenticationException;
 import ch.systemsx.cisd.common.exceptions.InvalidSessionException;
-import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
+import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.IOpenbisServiceFacade;
 import ch.systemsx.cisd.openbis.dss.client.api.v1.OpenbisServiceFacadeFactory;
 import ch.systemsx.cisd.openbis.dss.generic.shared.api.v1.FileInfoDssDTO;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationChangingService;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationService;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.*;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Attachment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ControlledVocabularyPropertyType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.EntityType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyTypeGroup;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Role;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleFetchOption;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClause;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchCriteria.MatchClauseAttribute;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SearchSubCriteria;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Vocabulary;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.project.ProjectIdentifierId;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.id.sample.SampleIdentifierId;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
@@ -266,7 +284,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
 
     for (String s : spaces) {
       SearchCriteria sc = new SearchCriteria();
-      sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.SPACE, s));
+      sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, s));
       foundExps.addAll(this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc));
     }
     return foundExps;
@@ -305,7 +323,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.SPACE, spaceIdentifier));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
 
     return foundSamples;
@@ -337,7 +355,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
     sc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, sampleIdentifier));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleIdentifier));
     List<Sample> foundSamples = this.getOpenbisInfoService().searchForSamples(sessionToken, sc);
     if (foundSamples.size() < 1) {
       throw new IllegalArgumentException();
@@ -472,7 +490,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   public List<Experiment> getExperimentsForProject2(Project project) {
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, project.getCode()));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
     return getFacade().searchForExperiments(pc);
   }
 
@@ -485,7 +503,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
    */
   public List<Experiment> getExperimentsForProject2(String projectCode) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectCode));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectCode));
     return getFacade().searchForExperiments(pc);
   }
 
@@ -501,7 +519,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   public List<Experiment> getExperimentsForProject3(Project project) {
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, project.getCode()));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, project.getCode()));
     return getOpenbisInfoService().searchForExperiments(getSessionToken(), pc);
   }
 
@@ -514,7 +532,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
    */
   public List<Experiment> getExperimentsForProject3(String projectCode) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectCode));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectCode));
     return getOpenbisInfoService().searchForExperiments(getSessionToken(), pc);
   }
 
@@ -594,7 +612,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     } else {
       SearchCriteria sc = new SearchCriteria();
       sc.addMatchClause(
-          SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.SPACE, spaceIdentifier));
+          MatchClause.createAttributeMatch(MatchClauseAttribute.SPACE, spaceIdentifier));
       List<Experiment> foundExps =
           this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc);
       return foundExps;
@@ -610,7 +628,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   public List<Experiment> getExperimentsOfType(String type) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.TYPE, type));
+    sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.TYPE, type));
     List<Experiment> foundExps =
         this.getOpenbisInfoService().searchForExperiments(this.sessionToken, sc);
     return foundExps;
@@ -625,7 +643,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   public List<Sample> getSamplesOfType(String type) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.TYPE, type));
+    sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.TYPE, type));
     List<Sample> foundSamples =
         this.getOpenbisInfoService().searchForSamples(this.sessionToken, sc);
     return foundSamples;
@@ -758,7 +776,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     String[] split = expIdentifer.split("/");
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, split[split.length - 1]));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, split[split.length - 1]));
     return getFacade().searchForExperiments(pc);
   }
 
@@ -816,7 +834,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
       String sampleCode) {
     ensureLoggedIn();
     SearchCriteria ec = new SearchCriteria();
-    ec.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, sampleCode));
+    ec.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, sampleCode));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createSampleCriteria(ec));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -850,7 +868,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     SearchCriteria ec = new SearchCriteria();
     String[] idSplit = experimentIdentifier.split("/");
     ec.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, idSplit[idSplit.length - 1]));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, idSplit[idSplit.length - 1]));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(ec));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -913,7 +931,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
       String projectIdentifier) {
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectIdentifier));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -924,7 +942,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, projectIdentifier));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, projectIdentifier));
 
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
@@ -938,7 +956,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
    */
   public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(String experimentCode) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, experimentCode));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, experimentCode));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -948,7 +966,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDataSetsOfExperimentByCodeWithSearchCriteria(
       String experimentCode) {
     SearchCriteria pc = new SearchCriteria();
-    pc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, experimentCode));
+    pc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, experimentCode));
     SearchCriteria sc = new SearchCriteria();
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
@@ -969,7 +987,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, sb.toString()));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
 
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
@@ -991,7 +1009,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
     SearchCriteria sc = new SearchCriteria();
     SearchCriteria pc = new SearchCriteria();
     pc.addMatchClause(
-        SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.PROJECT, sb.toString()));
+        MatchClause.createAttributeMatch(MatchClauseAttribute.PROJECT, sb.toString()));
 
     sc.addSubCriteria(SearchSubCriteria.createExperimentCriteria(pc));
     return getFacade().searchForDataSets(sc);
@@ -1028,7 +1046,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
   public List<DataSet> getDataSetsByType(String type) {
     ensureLoggedIn();
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.TYPE, type));
+    sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.TYPE, type));
     return getOpenbisInfoService().searchForDataSetsOnBehalfOfUser(sessionToken, sc, userId);
   }
 
@@ -1113,16 +1131,6 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
       }
     }
     return property_types;
-  }
-
-  @Override
-  public List<String> listVocabularyTermsForProperty(ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType property) {
-    return null;
-  }
-
-  @Override
-  public String getCVLabelForProperty(ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType propertyType, String propertyValue) {
-    return null;
   }
 
   /**
@@ -1528,7 +1536,7 @@ public class OpenBisClient implements IOpenBisClient, Serializable {
    */
   public boolean sampleExists(String name) {
     SearchCriteria sc = new SearchCriteria();
-    sc.addMatchClause(SearchCriteria.MatchClause.createAttributeMatch(SearchCriteria.MatchClauseAttribute.CODE, name));
+    sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, name));
     for (Sample x : this.getOpenbisInfoService().searchForSamples(sessionToken, sc)) {
       if (x.getCode().equals(name))
         return true;
