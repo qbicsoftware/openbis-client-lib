@@ -7,7 +7,7 @@
 # - deploy to maven using profile "release-build" if pushed to master branch 
 # - deploy to maven using profile "development-build" if pushed to development branch
 
-echo "[INFO] installing repository (compile, test, verify (integration tests), install)"
+echo "[INFO] installing artifact (compile, test, verify (integration tests), install)"
 mvn --activate-profiles !development-build,!release-build --settings .travis.settings.xml clean cobertura:cobertura install
 if [ "$TRAVIS_EVENT_TYPE" = "push" ]; then
     if [ "$TRAVIS_BRANCH" = "master" ]; then
