@@ -43,7 +43,11 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- other dependencies -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+		</dependency>
+		<!-- http client dependencies -->
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
@@ -54,8 +58,9 @@
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
 		</dependency>
-
 		<!-- openBIS dependencies -->
+		<!-- Override version coming from the parent POM!
+		     openBIS libs depend on commons-lang 2.6 -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
