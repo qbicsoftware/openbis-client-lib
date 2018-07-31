@@ -2,7 +2,7 @@
 #
 
 # use fast-boot container-based hosts
-sudo: false 
+sudo: false
 dist: trusty
 
 # no need to check for oracle's java
@@ -21,7 +21,7 @@ branches:
   - development
 
 # added to make logs look cleaner, crisper, certified fresh
-before_install: unset _JAVA_OPTIONS 
+before_install: unset _JAVA_OPTIONS
 
 # speed up builds by telling Travis that we don't need any special "installation"
 install: true
@@ -29,15 +29,15 @@ install: true
 # as agreed in our SOP, build everything (don't deploy, just try to 'mvn install' locally, which covers all phases)
 script: mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml clean cobertura:cobertura install
 # upload code coverage report, generate maven site (javadocs, documentation, static code analysis, etc.)
-after_success: 
+after_success:
 - bash <(curl -s https://codecov.io/bash)
 - mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml site
 
 # upload to maven
 deploy:
-  # as agreed in our SOP, builds on development branch will deploy to our maven repository after validating
-  # the artifact has a proper SNAPSHOT version
-  # artifact will be installed in our testing instance if it is a .war file
+# as agreed in our SOP, builds on development branch will deploy to our maven repository after validating
+# the artifact has a proper SNAPSHOT version
+# artifact will be installed in our testing instance if it is a .war file
 - skip_cleanup: true
   provider: script
   script: mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
@@ -60,12 +60,12 @@ notifications:
   email:
     on_success: never
     on_failure: never
-  slack: 
+  slack:
     on_success: never
     on_failure: always
     # edit the following section if you want to get slack notifications
     rooms:
-      - secure: "***"
+    - secure: "***"
 env:
   global:
   - secure: 00Nnx5VPkDhCBRvzag9lHNqwy+nE7TZAlCAqDbpNChmeUkrXu2LnkAbYyGRn4tAy5tmBYdYpDuH5wRT6mArF+5A7LrUkBh2pWnawMTDpvz4/rMe7kj+PK/e8OCCZQ4l+y2HxTGwQJc8B35heQj8n5N8wF48p4UheNuW0xpn58/2qgex9PWmLKGlz31ysGj8CzuDykJxX9XyiR3/eAUrePoyBosvMFJ2gbDFLIXmu7SHFrFLWL9sv10NpoC1vjtwzASyL+Q+ioLwvMiiSwnCGkpM+lSlHxIl86NJLme5bRUewb2QHekqMF/rLTK9JFAKC5j79iwv+f0bEPe3gr+VvSc6WW/fh7BO+hS+hNvIafueYsJJnlE0CSewbP9+VBD/XeKU3w0P9LjlVbYGN7G4fc/PlMcH79/i4jlcdqomFz4vgAGKXHxU/a/SSA40TXzCsAayeVPEdEfZUMNHAPceUdmcmfJKtcx5eQuS/jc6S3qbtjvIG+lXHQ/l6BlDcRU+LZ3BsgUAFhqtBcTkhKfJT4UdC9JmaSpGKFcfTJfi8Pv/ha8U+D/a78HQ0iU7kfic4zcpCWyxA1bLu0f+62qVQo/ZOFZh3C8uZrx/XObqm18W+68FIpPhdEZvdttjPb3WdV6hp9n9AQxve5NqjJHWy6hvwjG7XpqYtgPSzlwibuLo=
