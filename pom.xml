@@ -1,100 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project 
-	xmlns="http://maven.apache.org/POM/4.0.0" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>life.qbic</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>1.1.2</version>
-	</parent>
-	<groupId>life.qbic</groupId>
-	<artifactId>openbis-client-lib</artifactId>
-	<packaging>jar</packaging>
-	<version>1.2.0-SNAPSHOT</version>
-	<name>openBIS client library</name>
-	<!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
-	<repositories>
-		<repository>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<id>nexus-snapshots</id>
-			<name>QBiC Snapshots</name>
-			<url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-snapshots</url>
-		</repository>
-		<repository>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>nexus-releases</id>
-			<name>QBiC Releases</name>
-			<url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-releases</url>
-		</repository>
-	</repositories>
-	<dependencies>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-text</artifactId>
-		</dependency>
-		<!-- http client dependencies -->
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.10</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-httpclient</groupId>
-			<artifactId>commons-httpclient</artifactId>
-			<version>3.1</version>
-		</dependency>
-		<!-- openBIS dependencies -->
-		<!-- Override version coming from the parent POM!
-		     openBIS libs depend on commons-lang 2.6 -->
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
-		</dependency>
-		<dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>csid-base</artifactId>
-			<version>13.04.8</version>
-		</dependency>
-		<dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>dss_client</artifactId>
-			<version>13.04.8</version>
-		</dependency>
-		<dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>raw-data-api</artifactId>
-			<version>13.04.8</version>
-		</dependency>
-		<dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>spring</artifactId>
-			<version>13.04.8</version>
-		</dependency>
-		<dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>stream-supporting-httpinvoker</artifactId>
-			<version>13.04.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.databene</groupId>
-			<artifactId>contiperf</artifactId>
-			<version>2.3.4</version>
-		</dependency>
-	</dependencies>
+<project
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>life.qbic</groupId>
+    <artifactId>portlet-parent-pom</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>project-manager-portlet</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>Project Manager Portlet</name>
+  <url>http://github.com/qbicsoftware/project-manager-portlet</url>
+  <description>Project manager portlett to view followed projects</description>
+  <packaging>war</packaging>
+  <!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+      <id>nexus-snapshots</id>
+      <name>QBiC Snapshots</name>
+      <url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-snapshots</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>nexus-releases</id>
+      <name>QBiC Releases</name>
+      <url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-releases</url>
+    </repository>
+  </repositories>
+  <!--
+    To avoid inconsistencies across projects, plase check which librares are already
+    contained before adding new ones under <dependencies>.
+
+    You can use the following maven command to generate a dependency tree and list all
+    maven artifacts (libraries) that are available:
+
+      $ mvn dependency:tree
+
+    Check your IDE's documentation to display maven's dependency tree.
+  -->
+  <dependencies>
+    <!-- replaces liferayandvaadinutils (version defined in parent POM) -->
+    <dependency>
+      <groupId>life.qbic</groupId>
+      <artifactId>portal-utils-lib</artifactId>
+    </dependency>
+
+    <!-- openBIS API (version defined in parent POM) -->
+    <dependency>
+      <groupId>life.qbic.openbis</groupId>
+      <artifactId>openbis_api</artifactId>
+    </dependency>
+
+
+    <!-- Access to our custom databases (portlets use direct JDBC to access data for now),
+       but we will create a client library that portlets will use
+       (version  is defined in the parent POM hierarchy (/portal/pom.xml)) -->
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+    </dependency>
+
+  </dependencies>
 </project>
