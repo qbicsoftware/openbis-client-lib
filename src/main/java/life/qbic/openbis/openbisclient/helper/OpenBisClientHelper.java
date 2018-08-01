@@ -2,7 +2,7 @@ package life.qbic.openbis.openbisclient.helper;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 
-public class OpenBisHelper {
+public class OpenBisClientHelper {
 
   public static SampleFetchOptions fetchAllSamples(){
     SampleFetchOptions sampleFetchOptions = new SampleFetchOptions();
@@ -21,6 +21,7 @@ public class OpenBisHelper {
     sampleFetchOptions.withSpace();
     sampleFetchOptions.withTags();
     sampleFetchOptions.withType();
+    sampleFetchOptions.withParents();
 
     return sampleFetchOptions;
   }
