@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import life.qbic.openbis.openbisclient.helper.OpenBisHelper;
+import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
 
 public class OpenBisClient implements IOpenBisClient{
 
@@ -157,12 +157,15 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
     ensureLoggedIn();
-    SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
-    sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
 
-    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria,
-        OpenBisHelper.fetchAllSamples());
-    return samplesOfExperiment.getObjects();
+      SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
+      sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
+
+      SearchResult<Sample> samplesOfExperiment = v3
+          .searchSamples(sessionToken, sampleSearchCriteria,
+              OpenBisClientHelper.fetchAllSamples());
+      return samplesOfExperiment.getObjects();
+
   }
 
   /**
@@ -177,7 +180,8 @@ public class OpenBisClient implements IOpenBisClient{
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withSpace().withCode().thatEquals(spaceIdentifier);
 
-    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, OpenBisHelper.fetchAllSamples());
+    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, OpenBisClientHelper
+        .fetchAllSamples());
     return samplesOfExperiment.getObjects();
   }
 

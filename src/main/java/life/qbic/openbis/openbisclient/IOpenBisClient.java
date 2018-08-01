@@ -102,7 +102,7 @@ public interface IOpenBisClient {
    * @return list with all samples of the given experiment
    *
    */
-  public List<Sample> getSamplesofExperiment(String experimentIdentifier);
+  public List<Sample> getSamplesofExperiment(String experimentIdentifier) ;
 
   /**
    * Function to retrieve all samples of a given space
