@@ -27,8 +27,8 @@ public class TestOpenBisClient {
     config = new Properties();
     config.setProperty(DATASOURCE_URL,
         "https://qbis.qbic.uni-tuebingen.de/openbis/openbis" + IApplicationServerApi.SERVICE_URL);
-    config.setProperty(DATASOURCE_USER, "zxmqw74");
-    config.setProperty(DATASOURCE_PASS, "JSSvN08!t");
+    config.setProperty(DATASOURCE_USER, "");
+    config.setProperty(DATASOURCE_PASS, "");
   }
 
   @AfterClass
