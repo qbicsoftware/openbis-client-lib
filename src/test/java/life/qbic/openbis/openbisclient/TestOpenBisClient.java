@@ -6,6 +6,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 import java.util.List;
 import java.util.Properties;
 import org.junit.After;
@@ -95,8 +96,7 @@ public class TestOpenBisClient {
     assertThat(openbisClient.loggedin());
   }
 
-  @Test()
-  //TODO @Rike, @Luis:  I am not sure if it is good practice to just set the session token to null?
+  @Test
   public void testGetSessionToken() {
     openbisClient.ensureLoggedIn();
     assertThat(openbisClient.getSessionToken() != null);
@@ -124,11 +124,10 @@ public class TestOpenBisClient {
   }
 
   @Test
-  //TODO Further tests needed --> maybe throwing error if code is not an experiment? right now the list is just empty.
   public void testGetSamplesofExperiment() {
     List<Sample> samples = openbisClient.getSamplesofExperiment("QA001E1");
-    assertThat(samples.size() == 1);
-
+    Sample sample = samples.get(0);
+    TestOpenBisClientHelper.assertSampleAllFetched(sample);
   }
 
 //
