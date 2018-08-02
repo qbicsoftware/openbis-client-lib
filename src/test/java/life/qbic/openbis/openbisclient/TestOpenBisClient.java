@@ -1,12 +1,21 @@
 package life.qbic.openbis.openbisclient;
 
 import static com.google.common.truth.Truth.assertThat;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertExperimentCompletetlyFetched;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertProjectCompletelyFetched;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertSampleCompletetlyFetched;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
-import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 import org.junit.After;
@@ -18,18 +27,26 @@ import org.junit.Test;
 public class TestOpenBisClient {
 
   private static OpenBisClient openbisClient;
-  private static String DATASOURCE_USER = "datasource.user";
-  private static String DATASOURCE_PASS = "datasource.password";
-  private static String DATASOURCE_URL = "datasource.url";
+  private static String DATASOURCE_URL;
   private static Properties config;
+  private static String PROPERTIES_PATH = "/Users/spaethju/qbic-ext.properties";
 
   @BeforeClass
   public static void setUpBeforeClass() {
     config = new Properties();
-    config.setProperty(DATASOURCE_URL,
-        "https://qbis.qbic.uni-tuebingen.de/openbis/openbis" + IApplicationServerApi.SERVICE_URL);
-    config.setProperty(DATASOURCE_USER, "");
-    config.setProperty(DATASOURCE_PASS, "");
+    try {
+
+      InputStream input = new FileInputStream(PROPERTIES_PATH);
+
+      // load a properties file
+      config = new Properties();
+      config.load(input);
+
+    } catch (Exception e){
+      System.out.println("Could not load the property file.");
+      e.printStackTrace();
+    }
+    DATASOURCE_URL = "https://qbis.qbic.uni-tuebingen.de/openbis/openbis" + IApplicationServerApi.SERVICE_URL;
   }
 
   @AfterClass
@@ -40,8 +57,7 @@ public class TestOpenBisClient {
   public void setUp() {
 
     openbisClient =
-        new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
-            config.getProperty(DATASOURCE_URL));
+        new OpenBisClient(config.getProperty("datasource.user"), config.getProperty("datasource.password"), DATASOURCE_URL);
     openbisClient.login();
   }
 
@@ -73,64 +89,67 @@ public class TestOpenBisClient {
 
   @Test
   public void testLoggedin() {
-    assertThat(openbisClient.loggedin());
+    assertTrue(openbisClient.loggedin());
     openbisClient =
-        new OpenBisClient("someuser", config.getProperty(DATASOURCE_PASS),
-            config.getProperty(DATASOURCE_URL));
-    assertThat(!openbisClient.loggedin());
+        new OpenBisClient("someuser", config.getProperty("datasource.password"), DATASOURCE_URL);
+    assertFalse(openbisClient.loggedin());
   }
 
   @Test
   public void testLogout() {
-    assertThat(openbisClient.loggedin());
+    assertTrue(openbisClient.loggedin());
     openbisClient.logout();
-    assertThat(!openbisClient.loggedin());
+    assertFalse(openbisClient.loggedin());
   }
 
   @Test
   public void testLogin() {
-    openbisClient.login();
-    assertThat(openbisClient.loggedin());
+    assertTrue(openbisClient.loggedin());
     openbisClient.logout();
     openbisClient.login();
-    assertThat(openbisClient.loggedin());
+    assertTrue(openbisClient.loggedin());
   }
 
   @Test()
-  //TODO @Rike, @Luis:  I am not sure if it is good practice to just set the session token to null?
   public void testGetSessionToken() {
-    openbisClient.ensureLoggedIn();
-    assertThat(openbisClient.getSessionToken() != null);
+    assertNotNull(openbisClient.getSessionToken());
+    assertTrue(openbisClient.getV3().isSessionActive(openbisClient.getSessionToken()));
+    String old_sessiontoken = openbisClient.getSessionToken();
     openbisClient.logout();
-    assertThat(openbisClient.getSessionToken() == null);
+    assertNull(openbisClient.getSessionToken());
+    assertFalse(openbisClient.getV3().isSessionActive(old_sessiontoken));
   }
 
   @Test
   public void testListSpaces() {
-    assertThat(openbisClient.listSpaces().size()).isAtLeast(7);// 7 for zxmqw74 at point of test
+    List<String> spaceIdentifiers = openbisClient.listSpaces();
+    assertThat(spaceIdentifiers.size()).isAtLeast(7);// 7 for zxmqw74 at point of test
+    assertEquals(spaceIdentifiers.get(0).getClass(), String.class);
   }
 
   @Test
   public void testListProjects() {
-    System.out.println(openbisClient.listProjects().size());
-    assertThat(openbisClient.listProjects().size()).isAtLeast(143);// 143 for zxmqw at point of test
-    assertThat(openbisClient.listProjects().get(0)).isInstanceOf(Project.class);
+    List<Project> projects = openbisClient.listProjects();
+    assertThat(projects.size()).isAtLeast(143);// 143 for zxmqw74 at point of test
+    assertEquals(projects.get(0).getClass(), Project.class);
+    //TODO samples could not been fetched
+    assertProjectCompletelyFetched(projects.get(0));
   }
 
   @Test
   public void testListExperiments() {
-    List<Experiment> exps = openbisClient.listExperiments();
-    assertThat(exps.size()).isAtLeast(10);
-    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
+    List<Experiment> experiments = openbisClient.listExperiments();
+    assertThat(experiments.size()).isAtLeast(10);
+    assertEquals(experiments.get(0).getClass(), Experiment.class);
+    assertExperimentCompletetlyFetched(experiments.get(0));
   }
 
   @Test
-  //TODO Further tests needed --> maybe throwing error if code is not an experiment? right now the list is just empty.
   public void testGetSamplesofExperiment() {
     List<Sample> samples = openbisClient.getSamplesofExperiment("QA001E1");
     Sample sample = samples.get(0);
-    TestOpenBisClientHelper.assertSampleAllFetched(sample);
-    assertThat(samples.size() == 1);
+    assertEquals(sample.getClass(), Sample.class);
+    assertSampleCompletetlyFetched(sample);
   }
 
 //

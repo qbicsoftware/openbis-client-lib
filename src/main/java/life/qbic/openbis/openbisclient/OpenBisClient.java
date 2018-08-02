@@ -1,14 +1,16 @@
 package life.qbic.openbis.openbisclient;
 
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentsCompletely;
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchProjectsCompletely;
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
+
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
@@ -26,23 +28,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
-
 
 public class OpenBisClient implements IOpenBisClient{
 
   private String userId, password, sessionToken;
-  private final int TIMEOUT = 10000;
+  private final int TIMEOUT = 100000;
   private IApplicationServerApi v3;
 
   public OpenBisClient(String userId, String password, String serverURL) {
     this.userId = userId;
     this.password = password;
-
     // get a reference to AS API
     v3 = HttpInvokerUtils
         .createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
     sessionToken = null;
+  }
+
+  //TODO Added for testing reasons...
+  public IApplicationServerApi getV3() {
+    return v3;
   }
 
   /**
@@ -64,6 +68,7 @@ public class OpenBisClient implements IOpenBisClient{
   public void logout() {
     if (loggedin()) {
       v3.logout(sessionToken);
+      //TODO Set sessionToken to null?
       sessionToken = null;
     } else {
     }
@@ -129,7 +134,7 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<Project> listProjects() {
     ensureLoggedIn();
-    SearchResult<Project> projects = v3.searchProjects(sessionToken, new ProjectSearchCriteria(), new ProjectFetchOptions());
+    SearchResult<Project> projects = v3.searchProjects(sessionToken, new ProjectSearchCriteria(), fetchProjectsCompletely());
     return projects.getObjects();
   }
 
@@ -141,7 +146,7 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<Experiment> listExperiments() {
     ensureLoggedIn();
-    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, new ExperimentSearchCriteria(), new ExperimentFetchOptions());
+    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, new ExperimentSearchCriteria(), fetchExperimentsCompletely());
     return experiments.getObjects();
   }
 
@@ -159,13 +164,14 @@ public class OpenBisClient implements IOpenBisClient{
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
     ensureLoggedIn();
 
-      SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
-      sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
+    SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
+    sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
 
-      SearchResult<Sample> samplesOfExperiment = v3
-          .searchSamples(sessionToken, sampleSearchCriteria,
-              OpenBisClientHelper.fetchAllSamples());
-      return samplesOfExperiment.getObjects();
+    SearchResult<Sample> samplesOfExperiment = v3
+        .searchSamples(sessionToken, sampleSearchCriteria,
+            fetchSamplesCompletely());
+    return samplesOfExperiment.getObjects();
+
   }
 
   /**
@@ -179,9 +185,8 @@ public class OpenBisClient implements IOpenBisClient{
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withSpace().withCode().thatEquals(spaceIdentifier);
-    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, OpenBisClientHelper
-        .fetchAllSamples());
 
+    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
   }
 
@@ -327,30 +332,16 @@ public class OpenBisClient implements IOpenBisClient{
   }
 
   @Override
-  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
-    return null;
-  }
-
-
   public List<DataSet> getDataSetsByType(String type) {
     return null;
   }
 
+  @Override
   public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
     return null;
   }
 
   @Override
-  public void addAttachmentToProject(Map<String, Object> parameter) {
-
-  }
-
-  @Override
-  public Set<String> getSpaceMembers(String spaceCode) {
-    return null;
-  }
-
-
   public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
     return null;
   }
