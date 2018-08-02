@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 public class OpenBisClient implements IOpenBisClient{
 
   private String userId, password, sessionToken;
@@ -166,12 +167,10 @@ public class OpenBisClient implements IOpenBisClient{
 
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
-
     SearchResult<Sample> samplesOfExperiment = v3
         .searchSamples(sessionToken, sampleSearchCriteria,
             fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
-
   }
 
   /**
@@ -185,8 +184,8 @@ public class OpenBisClient implements IOpenBisClient{
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withSpace().withCode().thatEquals(spaceIdentifier);
-
     SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+
     return samplesOfExperiment.getObjects();
   }
 
@@ -332,16 +331,30 @@ public class OpenBisClient implements IOpenBisClient{
   }
 
   @Override
+  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
+    return null;
+  }
+
+
   public List<DataSet> getDataSetsByType(String type) {
     return null;
   }
 
-  @Override
   public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
     return null;
   }
 
   @Override
+  public void addAttachmentToProject(Map<String, Object> parameter) {
+
+  }
+
+  @Override
+  public Set<String> getSpaceMembers(String spaceCode) {
+    return null;
+  }
+
+
   public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
     return null;
   }

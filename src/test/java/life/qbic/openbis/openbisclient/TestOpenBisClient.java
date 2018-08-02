@@ -145,6 +145,7 @@ public class TestOpenBisClient {
   }
 
   @Test
+  //TODO Further tests needed --> maybe throwing error if code is not an experiment? right now the list is just empty.
   public void testGetSamplesofExperiment() {
     List<Sample> samples = openbisClient.getSamplesofExperiment("QA001E1");
     Sample sample = samples.get(0);
