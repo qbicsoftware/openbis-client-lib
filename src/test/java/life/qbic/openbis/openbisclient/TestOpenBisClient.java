@@ -96,7 +96,8 @@ public class TestOpenBisClient {
     assertThat(openbisClient.loggedin());
   }
 
-  @Test
+  @Test()
+  //TODO @Rike, @Luis:  I am not sure if it is good practice to just set the session token to null?
   public void testGetSessionToken() {
     openbisClient.ensureLoggedIn();
     assertThat(openbisClient.getSessionToken() != null);
@@ -124,10 +125,12 @@ public class TestOpenBisClient {
   }
 
   @Test
+  //TODO Further tests needed --> maybe throwing error if code is not an experiment? right now the list is just empty.
   public void testGetSamplesofExperiment() {
     List<Sample> samples = openbisClient.getSamplesofExperiment("QA001E1");
     Sample sample = samples.get(0);
     TestOpenBisClientHelper.assertSampleAllFetched(sample);
+    assertThat(samples.size() == 1);
   }
 
 //
@@ -956,5 +959,4 @@ public class TestOpenBisClient {
 //  public void testGetProjectTSV() {
 //    assertThat(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
 //  }
-
 }
