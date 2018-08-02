@@ -6,6 +6,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 import java.util.List;
 import java.util.Properties;
 import org.junit.After;
@@ -127,8 +128,9 @@ public class TestOpenBisClient {
   //TODO Further tests needed --> maybe throwing error if code is not an experiment? right now the list is just empty.
   public void testGetSamplesofExperiment() {
     List<Sample> samples = openbisClient.getSamplesofExperiment("QA001E1");
+    Sample sample = samples.get(0);
+    TestOpenBisClientHelper.assertSampleAllFetched(sample);
     assertThat(samples.size() == 1);
-
   }
 
 //
@@ -957,5 +959,4 @@ public class TestOpenBisClient {
 //  public void testGetProjectTSV() {
 //    assertThat(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
 //  }
-
 }

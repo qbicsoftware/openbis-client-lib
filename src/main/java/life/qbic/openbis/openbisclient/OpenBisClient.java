@@ -26,7 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import life.qbic.openbis.openbisclient.helper.OpenBisHelper;
+import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
+
 
 public class OpenBisClient implements IOpenBisClient{
 
@@ -157,12 +158,14 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
     ensureLoggedIn();
-    SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
-    sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
 
-    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria,
-        OpenBisHelper.fetchAllSamples());
-    return samplesOfExperiment.getObjects();
+      SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
+      sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
+
+      SearchResult<Sample> samplesOfExperiment = v3
+          .searchSamples(sessionToken, sampleSearchCriteria,
+              OpenBisClientHelper.fetchAllSamples());
+      return samplesOfExperiment.getObjects();
   }
 
   /**
@@ -176,8 +179,9 @@ public class OpenBisClient implements IOpenBisClient{
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withSpace().withCode().thatEquals(spaceIdentifier);
+    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, OpenBisClientHelper
+        .fetchAllSamples());
 
-    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, OpenBisHelper.fetchAllSamples());
     return samplesOfExperiment.getObjects();
   }
 
@@ -323,16 +327,30 @@ public class OpenBisClient implements IOpenBisClient{
   }
 
   @Override
+  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
+    return null;
+  }
+
+
   public List<DataSet> getDataSetsByType(String type) {
     return null;
   }
 
-  @Override
   public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
     return null;
   }
 
   @Override
+  public void addAttachmentToProject(Map<String, Object> parameter) {
+
+  }
+
+  @Override
+  public Set<String> getSpaceMembers(String spaceCode) {
+    return null;
+  }
+
+
   public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
     return null;
   }
