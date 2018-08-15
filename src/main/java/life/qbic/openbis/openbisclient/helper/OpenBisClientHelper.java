@@ -6,7 +6,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchO
 
 public class OpenBisClientHelper {
 
-  public static SampleFetchOptions fetchSamplesCompletely(){
+  public static SampleFetchOptions fetchSamplesCompletely() {
     SampleFetchOptions sampleFetchOptions = new SampleFetchOptions();
     sampleFetchOptions.withChildrenUsing(sampleFetchOptions);
     sampleFetchOptions.withExperiment();
@@ -29,7 +29,7 @@ public class OpenBisClientHelper {
     return sampleFetchOptions;
   }
 
-  public static ProjectFetchOptions fetchProjectsCompletely(){
+  public static ProjectFetchOptions fetchProjectsCompletely() {
     ProjectFetchOptions projectFetchOptions = new ProjectFetchOptions();
     projectFetchOptions.withAttachments();
     projectFetchOptions.withHistory();
@@ -45,7 +45,7 @@ public class OpenBisClientHelper {
     return projectFetchOptions;
   }
 
-  public static ExperimentFetchOptions fetchExperimentsCompletely(){
+  public static ExperimentFetchOptions fetchExperimentsCompletely() {
     ExperimentFetchOptions experimentFetchOptions = new ExperimentFetchOptions();
     experimentFetchOptions.withAttachments();
     experimentFetchOptions.withHistory();

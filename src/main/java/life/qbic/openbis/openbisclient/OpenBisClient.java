@@ -29,11 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+public class OpenBisClient implements IOpenBisClient {
 
-public class OpenBisClient implements IOpenBisClient{
-
-  private String userId, password, sessionToken;
   private final int TIMEOUT = 100000;
+  private String userId, password, sessionToken;
   private IApplicationServerApi v3;
 
   public OpenBisClient(String userId, String password, String serverURL) {
@@ -69,7 +68,7 @@ public class OpenBisClient implements IOpenBisClient{
   public void logout() {
     if (loggedin()) {
       v3.logout(sessionToken);
-      //TODO Set sessionToken to null?
+      //TODO Set sessionToken to null
       sessionToken = null;
     } else {
     }
@@ -118,7 +117,8 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<String> listSpaces() {
     ensureLoggedIn();
-    SearchResult<Space> spaces = v3.searchSpaces(sessionToken, new SpaceSearchCriteria(), new SpaceFetchOptions());
+    SearchResult<Space> spaces = v3
+        .searchSpaces(sessionToken, new SpaceSearchCriteria(), new SpaceFetchOptions());
     List<String> spaceIdentifiers = new ArrayList<>();
     for (Space space : spaces.getObjects()) {
       spaceIdentifiers.add(space.getCode());
@@ -135,7 +135,8 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<Project> listProjects() {
     ensureLoggedIn();
-    SearchResult<Project> projects = v3.searchProjects(sessionToken, new ProjectSearchCriteria(), fetchProjectsCompletely());
+    SearchResult<Project> projects = v3
+        .searchProjects(sessionToken, new ProjectSearchCriteria(), fetchProjectsCompletely());
     return projects.getObjects();
   }
 
@@ -147,7 +148,9 @@ public class OpenBisClient implements IOpenBisClient{
   @Override
   public List<Experiment> listExperiments() {
     ensureLoggedIn();
-    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, new ExperimentSearchCriteria(), fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments = v3
+        .searchExperiments(sessionToken, new ExperimentSearchCriteria(),
+            fetchExperimentsCompletely());
     return experiments.getObjects();
   }
 
@@ -155,11 +158,11 @@ public class OpenBisClient implements IOpenBisClient{
   /**
    * Function to retrieve all samples of a given experiment Note: seems to throw a
    * ch.systemsx.cisd.common.exceptions.UserFailureException if wrong identifier given TODO Should
-   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
+   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my
+   * opinion
    *
    * @param experimentIdentifier identifier/code (both should work) of the openBIS experiment
    * @return list with all samples of the given experiment
-   *
    */
   @Override
   public List<Sample> getSamplesofExperiment(String experimentIdentifier) {
@@ -167,10 +170,12 @@ public class OpenBisClient implements IOpenBisClient{
 
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
+
     SearchResult<Sample> samplesOfExperiment = v3
         .searchSamples(sessionToken, sampleSearchCriteria,
             fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
+
   }
 
   /**
@@ -184,8 +189,9 @@ public class OpenBisClient implements IOpenBisClient{
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withSpace().withCode().thatEquals(spaceIdentifier);
-    SearchResult<Sample> samplesOfExperiment = v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
 
+    SearchResult<Sample> samplesOfExperiment = v3
+        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
   }
 
@@ -331,30 +337,16 @@ public class OpenBisClient implements IOpenBisClient{
   }
 
   @Override
-  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
-    return null;
-  }
-
-
   public List<DataSet> getDataSetsByType(String type) {
     return null;
   }
 
+  @Override
   public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
     return null;
   }
 
   @Override
-  public void addAttachmentToProject(Map<String, Object> parameter) {
-
-  }
-
-  @Override
-  public Set<String> getSpaceMembers(String spaceCode) {
-    return null;
-  }
-
-
   public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
     return null;
   }

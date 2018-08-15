@@ -93,14 +93,15 @@ public interface IOpenBisClient {
   public List<Experiment> listExperiments();
 
   // TODO use search service with experiment code ?
+
   /**
    * Function to retrieve all samples of a given experiment Note: seems to throw a
    * ch.systemsx.cisd.common.exceptions.UserFailureException if wrong identifier given TODO Should
-   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
+   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my
+   * opinion
    *
    * @param experimentIdentifier identifier/code (both should work) of the openBIS experiment
    * @return list with all samples of the given experiment
-   *
    */
   public List<Sample> getSamplesofExperiment(String experimentIdentifier);
 
@@ -225,7 +226,7 @@ public interface IOpenBisClient {
    * instance.
    *
    * @param projectIdentifier project identifer as defined by openbis, for which the experiments
-   *        should be listed
+   * should be listed
    * @return list with all experiments registered in this openBIS instance
    */
   public List<Experiment> getExperimentsForProject(String projectIdentifier);
@@ -281,6 +282,7 @@ public interface IOpenBisClient {
 
   /**
    * Returns Space names a given user should be able to see
+   *
    * @param userID Username found in openBIS
    * @return List of space names with projects this user has access to
    */
@@ -288,7 +290,7 @@ public interface IOpenBisClient {
 
   /**
    * Returns wether a user is instance admin in openBIS
-   * @param userID
+   *
    * @return true, if user is instance admin, false otherwise
    */
   public boolean isUserAdmin(String userID);
@@ -557,6 +559,7 @@ public interface IOpenBisClient {
   public String triggerIngestionService(String serviceName, Map<String, Object> parameters);
 
   // TODO specify parameters needed for ingestion service
+
   /**
    * Function to add children samples to a sample (parent) using the corresponding ingestition
    * service
@@ -567,6 +570,7 @@ public interface IOpenBisClient {
   public String addParentChildConnection(Map<String, Object> parameters);
 
   // TODO probably not needed anymore
+
   /**
    * Function to trigger the registration of new openBIS instances like projects, experiments and
    * samples. (This function also used to trigger the barcode generation for samples.)
@@ -574,7 +578,7 @@ public interface IOpenBisClient {
    * @param params map with needed information for registration process
    * @param service name of the service for the corresponding registration
    * @param number_of_samples_offset offset to generate correct barcodes (depending on number of
-   *        samples) by accounting for delay of registration process
+   * samples) by accounting for delay of registration process
    * @return object name of the QueryTableModel which is returned by the aggregation service
    */
   public String addNewInstance(Map<String, Object> params, String service,
@@ -605,14 +609,13 @@ public interface IOpenBisClient {
    * this method does no checks, whether datasetcode or openbisFilename do exist. Deprecated: Use
    * getUrlForDataset() instead
    *
-   *
-   * @throws MalformedURLException Returns an download url for the openbis dataset with the given
-   *         code and dataset_type. Throughs MalformedURLException if a url can not be created from
-   *         the given parameters. NOTE: datastoreURL differs from serverURL only by the port ->
-   *         quick hack used
    * @param dataSetCode code of the openBIS dataset
    * @param openbisFilename name of the file stored in the given dataset
    * @return URL object of the download url for the given file
+   * @throws MalformedURLException Returns an download url for the openbis dataset with the given
+   * code and dataset_type. Throughs MalformedURLException if a url can not be created from the
+   * given parameters. NOTE: datastoreURL differs from serverURL only by the port -> quick hack
+   * used
    */
   @Deprecated
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
@@ -625,18 +628,18 @@ public interface IOpenBisClient {
    * Returns a Map that maps samples to a list of samples of their parent samples
    *
    * @param samples A list of openBIS samples
-   * @return Map<Sample, List<Sample>> containing a mapping between children and parents of samples
+   * @return Map<Sample ,   List < Sample>> containing a mapping between children and parents of samples
    */
   public Map<Sample, List<Sample>> getParentMap(List<Sample> samples);
 
   /**
    * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
    * Only one requested layer of the data model is returned. Experimental factors are returned in
-   * the properties xml format and should be parsed before the spreadsheet is presented to the user.
+   * the properties xml format and should be parsed before the spreadsheet is presented to the
+   * user.
    *
    * @param projectCode The 5 letter QBiC code of the project
    * @param sampleType The openBIS sampleType that should be included in the result
-   * @return
    */
   public List<String> getProjectTSV(String projectCode, String sampleType);
 
@@ -749,7 +752,7 @@ public interface IOpenBisClient {
    *
    * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
    * @param serviceName label of the ingestion service to call (this is defined in the ingestion
-   *        service properties)
+   * service properties)
    * @param params A Map of parameters to send to the ingestion service
    */
   public void ingest(String dss, String serviceName, Map<String, Object> params);

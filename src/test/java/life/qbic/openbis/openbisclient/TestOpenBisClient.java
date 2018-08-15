@@ -42,11 +42,12 @@ public class TestOpenBisClient {
       config = new Properties();
       config.load(input);
 
-    } catch (Exception e){
+    } catch (Exception e) {
       System.out.println("Could not load the property file.");
       e.printStackTrace();
     }
-    DATASOURCE_URL = "https://qbis.qbic.uni-tuebingen.de/openbis/openbis" + IApplicationServerApi.SERVICE_URL;
+    DATASOURCE_URL =
+        "https://qbis.qbic.uni-tuebingen.de/openbis/openbis" + IApplicationServerApi.SERVICE_URL;
   }
 
   @AfterClass
@@ -57,7 +58,8 @@ public class TestOpenBisClient {
   public void setUp() {
 
     openbisClient =
-        new OpenBisClient(config.getProperty("datasource.user"), config.getProperty("datasource.password"), DATASOURCE_URL);
+        new OpenBisClient(config.getProperty("datasource.user"),
+            config.getProperty("datasource.password"), DATASOURCE_URL);
     openbisClient.login();
   }
 
