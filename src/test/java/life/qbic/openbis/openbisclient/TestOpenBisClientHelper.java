@@ -53,7 +53,8 @@ public class TestOpenBisClientHelper {
     project.getSpace();
   }
 
-  public static void assertExperimentCompletetlyFetched(Experiment experiment) throws NotFetchedException {
+  public static void assertExperimentCompletetlyFetched(Experiment experiment)
+      throws NotFetchedException {
     experiment.getAttachments();
     experiment.getCode();
     experiment.getDataSets();
