@@ -14,15 +14,20 @@ import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
+import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class TestOpenBisClient {
 
@@ -30,6 +35,9 @@ public class TestOpenBisClient {
   private static String DATASOURCE_URL;
   private static Properties config;
   private static String PROPERTIES_PATH = "/Users/spaethju/qbic-ext.properties";
+
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
   @BeforeClass
   public static void setUpBeforeClass() {
@@ -47,7 +55,7 @@ public class TestOpenBisClient {
       e.printStackTrace();
     }
     DATASOURCE_URL =
-        "https://qbis.qbic.uni-tuebingen.de/openbis/openbis" + IApplicationServerApi.SERVICE_URL;
+        config.getProperty("datasource.url") + IApplicationServerApi.SERVICE_URL;
   }
 
   @AfterClass
@@ -69,25 +77,27 @@ public class TestOpenBisClient {
     openbisClient = null;
   }
 
-//  @Test
-//  public void testOpenBisClient() {
-//    openbisClient =
-//        new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
-//            config.getProperty(DATASOURCE_URL));
-//    assertThat(openbisClient.getFacade() != null);
-//    openbisClient =
-//        new OpenBisClient("user", config.getProperty(DATASOURCE_PASS),
-//            config.getProperty(DATASOURCE_URL));
-//    assertThat(!openbisClient.loggedin());
-//    openbisClient =
-//        new OpenBisClient(config.getProperty(DATASOURCE_USER), "wrongpassword",
-//            config.getProperty(DATASOURCE_URL));
-//    assertThat(!openbisClient.loggedin());
-//    openbisClient =
-//        new OpenBisClient(config.getProperty(DATASOURCE_USER), config.getProperty(DATASOURCE_PASS),
-//            "wrongurl");
-//    assertThat(!openbisClient.loggedin());
-//  }
+  @Test
+  public void testOpenBisClient() {
+    openbisClient =
+        new OpenBisClient(config.getProperty("datasource.user"),
+            config.getProperty("datasource.password"),
+            DATASOURCE_URL);
+    assertNotNull(openbisClient);
+    openbisClient =
+        new OpenBisClient("user", config.getProperty("datasource.password"),
+            DATASOURCE_URL);
+    assertFalse(openbisClient.loggedin());
+    openbisClient =
+        new OpenBisClient(config.getProperty("datasource.user"), "wrongpassword",
+            DATASOURCE_URL);
+    assertFalse(openbisClient.loggedin());
+    openbisClient =
+        new OpenBisClient(config.getProperty("datasource.user"),
+            config.getProperty("datasource.pass"),
+            "wrongurl");
+    assertFalse(openbisClient.loggedin());
+  }
 
   @Test
   public void testLoggedin() {
@@ -147,101 +157,132 @@ public class TestOpenBisClient {
   }
 
   @Test
-  //TODO Further tests needed --> maybe throwing error if code is not an experiment? right now the list is just empty.
   public void testGetSamplesofExperiment() {
+    // Identifier exists
     List<Sample> samples = openbisClient.getSamplesofExperiment("QA001E1");
     Sample sample = samples.get(0);
     assertEquals(sample.getClass(), Sample.class);
     assertSampleCompletetlyFetched(sample);
+
+    // Identifier null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getSamplesofExperiment(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesofExperiment("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesofExperiment("doesnotexist");
+
   }
 
-//
-//  @Test
-//  public void testGetSamplesofSpace() {
-//    List<Sample> samps = openbisClient.getSamplesofSpace("MFT_PICHLER_MULTISCALE");
-//    assertThat(samps.size()).isAtLeast(12);
-//    assertThat(samps.get(0)).isInstanceOf(Sample.class);
-//  }
-//
-//  @Test
-//  public void testGetSampleByIdentifier() {
-//    // it seems that this function really does not care, as long as the sample name is given
-//    assertThat(
-//        openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL/QSDPR002A2")
-//            .getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-//    assertThat(
-//        openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR002A2").getIdentifier())
-//        .isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-//    assertThat(openbisClient.getSampleByIdentifier("QSDPR002A2").getIdentifier()).isEqualTo(
-//        "/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-//
-//    assertThat(
-//        openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/QSDPR002A2")
-//            .getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-//    assertThat(openbisClient.getSampleByIdentifier("/QSDPR/QSDPR002A2").getIdentifier())
-//        .isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-//    // :)
-//    assertThat(
-//        openbisClient.getSampleByIdentifier("/I_do_not/care_what_is_upfront/QSDPR002A2")
-//            .getIdentifier()).isEqualTo("/MFT_PICHLER_MULTISCALE/QSDPR002A2");
-//    // does not work by type
-//    try {
-//      openbisClient.getSampleByIdentifier("MS_INJECT").getIdentifier(); // ->
-//      // java.lang.IndexOutOfBoundsException
-//      fail("should not work with type code alone");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//
-//    }
-//    // does not work with dataset code
-//    try {
-//      openbisClient.getSampleByIdentifier("20140617164748908-3036").getIdentifier();// ->
-//      // java.lang.IndexOutOfBoundsException
-//      fail("should not work with code alone");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//    // does not work with empty string
-//    try {
-//      openbisClient.getSampleByIdentifier("").getIdentifier();// ->
-//      // ch.systemsx.cisd.common.exceptions.UserFailureException:
-//      // Search pattern '' is invalid.
-//      fail("should not work with empty string");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//    // does not work with null
-//    try {
-//      openbisClient.getSampleByIdentifier(null).getIdentifier();// -> NullPointerException
-//      fail("should not work with null");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(NullPointerException.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetSamplesOfProject() {
-//    List<Sample> samps = openbisClient.getSamplesOfProject("/MFT_PICHLER_MULTISCALE/QSDPR");
-//    assertThat(samps.size()).isAtLeast(12);
-//    assertThat(samps.get(0)).isInstanceOf(Sample.class);
-//    assertThat(samps.equals(openbisClient.getSamplesOfProject("QSDPR")));// should work for id and
-//    // code
-//  }
-//
-//  @Test
-//  public void testGetExperimentsOfProjectByIdentifier() {
-//    List<Experiment> exps =
-//        openbisClient.getExperimentsOfProjectByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR");
-//    assertThat(exps.size()).isAtLeast(1);
-//    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
-//    try {
-//      openbisClient.getExperimentsOfProjectByIdentifier("QSDPR");
-//      fail("should not work with code alone");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
+  @Test
+  public void testGetSamplesofSpace() {
+    List<Sample> samps = openbisClient.getSamplesofSpace("MFT_PICHLER_MULTISCALE");
+    assertThat(samps.size()).isAtLeast(12);
+    assertThat(samps.get(0)).isInstanceOf(Sample.class);
+    assertSampleCompletetlyFetched(samps.get(0));
+
+    // Identifier null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getSamplesofSpace(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesofSpace("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesofSpace("doesnotexist");
+  }
+
+  @Test
+  public void testGetSampleByIdentifier() {
+    SampleIdentifier sampleId = openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE" + "/MSQMUSP061A9").getIdentifier();
+    // Identifier exists
+    assertThat(sampleId).isEqualTo(new SampleIdentifier("/MFT_PICHLER_MULTISCALE"
+        + "/MSQMUSP061A9"));
+
+    // Identifier exists
+    Sample sample = openbisClient.getSampleByIdentifier("/MFT_PICHLER_MULTISCALE" +
+        "/MSQMUSP061A9");
+    assertSampleCompletetlyFetched(sample);
+
+  // Identifier wrong
+    exception.expect(IndexOutOfBoundsException.class);
+    openbisClient.getSampleByIdentifier("/I_do_not/care_what_is_upfront/MSQMUSP061A9")
+        .getIdentifier();
+    openbisClient.getSampleByIdentifier("DOESNOTEXIST");
+
+    // Identifier empty
+    exception.expect(RuntimeException.class);
+    openbisClient.getSampleByIdentifier("");
+
+    // Identifier Null
+    exception.expect(IllegalArgumentException.class);
+    openbisClient.getSampleByIdentifier(null);
+
+  }
+
+  @Test
+  public void testGetSamplesOfProject() {
+    // Code or Identifier exists
+    List<Sample> sampsById = openbisClient.getSamplesOfProject("/MFT_SYNERGY_GLIOBLASTOMA_TREATMENT"
+        + "/QGTSG");
+    List<Sample> sampsByCode = openbisClient.getSamplesOfProject(
+        "/MFT_SYNERGY_GLIOBLASTOMA_TREATMENT"
+        + "/QGTSG");
+    assertThat(sampsByCode.size()).isAtLeast(1);
+    assertThat(sampsById.size()).isAtLeast(1);
+    assertEquals(sampsByCode.size(), sampsById.size());
+
+    assertThat(sampsByCode.get(0)).isInstanceOf(Sample.class);
+    assertSampleCompletetlyFetched(sampsByCode.get(0));
+
+    // Code/identifier null
+    exception.expect(IllegalArgumentException.class);
+    openbisClient.getSamplesOfProject(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesOfProject("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesOfProject("doesnotexist");
+  }
+
+  @Test
+  public void testGetExperimentsOfProjectByIdentifier() {
+    // Id exists
+    List<Experiment> expsById =
+        openbisClient.getExperimentsOfProjectByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR");
+    assertThat(expsById.size()).isAtLeast(1);
+    assertThat(expsById.get(0)).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(expsById.get(0));
+
+    // Code instead ID
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfProjectByIdentifier("QSDPR");
+
+    // Id null
+    exception.expect(IllegalArgumentException.class);
+    openbisClient.getExperimentsOfProjectByIdentifier(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfProjectByIdentifier("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfProjectByIdentifier("doesnotexist");
+
+  }
+
 //  @Test (expected = UserFailureException.class)
 //  public void testGetExperimentsForProjectString() {
 //
@@ -275,137 +316,277 @@ public class TestOpenBisClient {
 //    assertThat(exps.size()).isAtLeast(22);
 //    assertThat(openbisClient.getExperimentsForProject("/TEST28/QTEST").equals(exps));
 //  }
-//
-//  @Test
-//  public void testGetExperimentsOfProjectByCode() {
-//    assertThat(openbisClient.getExperimentsOfProjectByCode("QTEST").size()).isAtLeast(22);
-//    try {
-//      System.out.println(openbisClient.getExperimentsOfProjectByCode("/TEST28/QTEST"));
-//      fail("not a code");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetProjectExperimentMapping() {
-//    Map<String, List<Experiment>> map = openbisClient.getProjectExperimentMapping("IVAC_ALL");
-//    assertThat(map.keySet() != null);
-//    for (String p : map.keySet()) {
-//      assertThat(openbisClient.getExperimentsOfProjectByIdentifier(p).equals(map.get(p)));
-//    }
-//  }
-//
-//  @Test
-//  public void testGetExperimentsOfSpace() {
-//    List<Experiment> exps = openbisClient.getExperimentsOfSpace("MFT_PICHLER_MULTISCALE");
-//    assertThat(exps.size()).isAtLeast(8);
-//    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
-//  }
-//
-//  @Test
-//  public void testGetExperimentsOfType() {
-//    List<Experiment> exps = openbisClient.getExperimentsOfType("MS_INJECT");
-//    assertThat(exps.size()).isAtLeast(1);
-//    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
-//    for (Experiment e : exps) {
-//      assertThat(e.getExperimentTypeCode().equals("MS_INJECT"));
-//    }
-//  }
-//
-//  @Test
-//  public void testGetSamplesOfType() {
-//    List<Sample> samps = openbisClient.getSamplesOfType("Q_MS_RUN");
-//    assertThat(samps.size()).isAtLeast(1);
-//    assertThat(samps.get(0)).isInstanceOf(Sample.class);
-//    for (Sample e : samps) {
-//      assertThat(e.getSampleTypeCode().equals("Q_MS_RUN"));
-//    }
-//  }
-//
-//  @Test
-//  public void testGetProjectsOfSpace() {
-//    List<Project> projs = openbisClient.getProjectsOfSpace("IVAC_ALL");
-//    assertThat(projs.size()).isAtLeast(13);
-//    assertThat(projs.get(0)).isInstanceOf(Project.class);
-//  }
-//
-//  @Test
-//  public void testGetProjectByIdentifier() {
-//    assertThat(openbisClient.getProjectByIdentifier("/IVAC_ALL/QA001"))
-//        .isInstanceOf(Project.class);
-//
-//    try {
-//      System.out.println("testGetProjectByIdentifier"
-//          + openbisClient.getProjectByIdentifier("QA001"));
-//      fail("not an identifier");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//
-//    try {
-//      System.out.println("testGetProjectByIdentifier"
-//          + openbisClient.getProjectByIdentifier("/IVAC_ALL/QL001"));
-//      fail("does not exist");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//
-//
-//  }
-//
-//  @Test
-//  public void testGetProjectByCode() {
-//    assertThat(openbisClient.getProjectByCode("QA001")).isInstanceOf(Project.class);
-//    try {
-//      System.out
-//          .println("testGetProjectByCode" + openbisClient.getProjectByCode("/IVAC_ALL/QA001"));
-//      fail("not a code");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetExperimentByCode() {
-//    assertThat(openbisClient.getExperimentByCode("PTX_SOLGEL")).isInstanceOf(Experiment.class);
-//    try {
-//      System.out.println("testGetExperimentByCode"
-//          + openbisClient.getExperimentByCode("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL"));
-//      fail("not a code");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetExperimentById() {
-//    assertThat(openbisClient.getExperimentById("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL"))
-//        .isInstanceOf(Experiment.class);
-//    try {
-//      System.out.println("testGetExperimentById" + openbisClient.getExperimentById("PTX_SOLGEL"));
-//      fail("not an identifier");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetProjectOfExperimentByIdentifier() {
-//    Project p =
-//        openbisClient
-//            .getProjectOfExperimentByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL");
-//    assertThat(p).isInstanceOf(Project.class);
-//    assertThat(p.getCode().equals("QSDPR"));
-//    try {
-//      System.out.println("testGetProjectOfExperimentByIdentifier"
-//          + openbisClient.getExperimentById("PTX_SOLGEL"));
-//      fail("not an identifier");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
+
+  @Test
+  public void testGetExperimentsOfProjectByCode() {
+    // Code exists
+    List<Experiment> expsByCode =
+        openbisClient.getExperimentsOfProjectByCode("QSDPR");
+    assertThat(expsByCode.size()).isAtLeast(1);
+    assertThat(expsByCode.get(0)).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(expsByCode.get(0));
+
+    // ID instead Code
+    //TODO works as well --> can be combined with getExperimentsOfProjectByIdentifier
+    openbisClient.getExperimentsOfProjectByCode("/MFT_PICHLER_MULTISCALE/QSDPR");
+    List<Experiment> expsById = openbisClient.getExperimentsOfProjectByCode(
+        "/MFT_PICHLER_MULTISCALE/QSDPR");
+    assertThat(expsById.size()).isAtLeast(1);
+    assertThat(expsById.get(0)).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(expsById.get(0));
+
+    // Id null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getExperimentsOfProjectByCode(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfProjectByCode("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfProjectByCode("does/not/exist");
+  }
+
+  @Test
+  public void testGetProjectExperimentMapping() {
+    Map<String, List<Experiment>> map = openbisClient.getProjectExperimentMapping("IVAC_ALL");
+    assertNotNull(map.keySet());
+    for (String p : map.keySet()) {
+      assertEquals(openbisClient.getExperimentsOfProjectByCode(p).size(),map.get(p).size());
+    }
+
+    // Id null
+    //TODO error message instead returning empty list
+    openbisClient.getProjectExperimentMapping(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getProjectExperimentMapping("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getProjectExperimentMapping("does/not/exist");
+
+
+  }
+
+  @Test
+  public void testGetExperimentsOfSpace() {
+    List<Experiment> exps = openbisClient.getExperimentsOfSpace("MFT_PICHLER_MULTISCALE");
+    assertThat(exps.size()).isAtLeast(8);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(exps.get(0));
+
+    // Id null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getExperimentsOfSpace(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfSpace("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfSpace("does/not/exist");
+  }
+
+  @Test
+  public void testGetExperimentsOfType() {
+    List<Experiment> exps = openbisClient.getExperimentsOfType("MS_INJECT");
+    assertThat(exps.size()).isAtLeast(1);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
+    for (Experiment e : exps) {
+      assertEquals(e.getType().getCode(),"MS_INJECT");
+    }
+    assertExperimentCompletetlyFetched(exps.get(0));
+
+    // Id null
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfType(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfType("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentsOfType("does/not/exist");
+  }
+
+  @Test
+  public void testGetSamplesOfType() {
+    List<Sample> samps = openbisClient.getSamplesOfType("Q_MS_RUN");
+    assertThat(samps.size()).isAtLeast(1);
+    assertThat(samps.get(0)).isInstanceOf(Sample.class);
+    for (Sample e : samps) {
+      assertEquals(e.getType().getCode(),"Q_MS_RUN");
+    }
+
+    assertSampleCompletetlyFetched(samps.get(0));
+
+    // Id null
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesOfType(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesOfType("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getSamplesOfType("does/not/exist");
+  }
+
+  @Test
+  public void testGetProjectsOfSpace() {
+    List<Project> projs = openbisClient.getProjectsOfSpace("IVAC_ALL");
+    assertThat(projs.size()).isAtLeast(13);
+    assertThat(projs.get(0)).isInstanceOf(Project.class);
+    assertProjectCompletelyFetched(projs.get(0));
+
+    // Id null
+    //TODO error message instead returning empty list
+    openbisClient.getProjectsOfSpace(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getProjectsOfSpace("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getProjectsOfSpace("does/not/exist");
+  }
+
+  @Test
+  public void testGetProjectByIdentifier() {
+    Project project = openbisClient.getProjectByIdentifier("/IVAC_ALL/QA001");
+    assertThat(project).isInstanceOf(Project.class);
+    assertProjectCompletelyFetched(project);
+
+    //Code instead ID
+    //TODO should throw different error and not IndexOutOfBounds or should work for Identifier
+    //TODO and Code both. Can be combined with getProjectByCode()
+    exception.expect(IndexOutOfBoundsException.class);
+    openbisClient.getProjectByIdentifier("QA001");
+
+    // Id null
+    //TODO error message instead returning empty list
+    openbisClient.getProjectByIdentifier(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getProjectByIdentifier("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getProjectByIdentifier("does/not/exist");
+  }
+
+  @Test
+  public void testGetProjectByCode() {
+    Project project = openbisClient.getProjectByCode("QA001");
+    assertThat(project).isInstanceOf(Project.class);
+    assertProjectCompletelyFetched(project);
+
+    //Code instead ID
+    //TODO should throw different error and not IndexOutOfBounds or should work for Identifier
+    //TODO and Code both. Can be combined with getProjectByCode()
+    exception.expect(IndexOutOfBoundsException.class);
+    openbisClient.getProjectByCode("/IVAC_ALL/QA001");
+
+    // Id null
+    //TODO error message instead returning empty list
+    openbisClient.getProjectByCode(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getProjectByCode("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getProjectByCode("does/not/exist");
+  }
+
+  @Test
+  public void testGetExperimentByCode() {
+    Experiment experiment = openbisClient.getExperimentByCode("PTX_SOLGEL");
+    assertThat(experiment).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(experiment);
+
+    //ID instead code works as well
+    //TODO can be combined with getExperimentById
+    openbisClient.getExperimentByCode("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL");
+    assertThat(experiment).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(experiment);
+
+    // Code null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getExperimentByCode(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentByCode("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentByCode("does/not/exist");
+  }
+
+  @Test
+  public void testGetExperimentById() {
+    Experiment experiment = openbisClient.getExperimentById("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL");
+    assertThat(experiment).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(experiment);
+
+    //Code instead ID works as well
+    //TODO can be combined with getExperimentByCode
+    exception.expect(UserFailureException.class);
+    openbisClient.getExperimentById("PTX_SOLGEL");
+
+    // Code null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getExperimentById(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentById("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getExperimentById("does/not/exist");
+
+  }
+
+  @Test
+  public void testGetProjectOfExperimentByIdentifier() {
+    Project p = openbisClient.getProjectOfExperimentByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR/PTX_SOLGEL");
+    assertThat(p).isInstanceOf(Project.class);
+    assertEquals(p.getCode(),"QSDPR");
+
+    // Code instead ID
+    exception.expect(UserFailureException.class);
+    openbisClient.getProjectOfExperimentByIdentifier("PTX_SOLGEL");
+
+    // Code null
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointerException");
+    openbisClient.getProjectOfExperimentByIdentifier(null);
+
+    // Identifier empty
+    //TODO error message instead returning empty list
+    openbisClient.getProjectOfExperimentByIdentifier("");
+
+    // Identifier does not exist
+    //TODO error message instead returning empty list
+    openbisClient.getProjectOfExperimentByIdentifier("does/not/exist");
+
+  }
+
 //  @Test
 //  public void testGetDataSetsOfSampleByIdentifier() {
 //    List<DataSet> dsets = openbisClient.getDataSetsOfSampleByIdentifier("/ABI_SYSBIO/QMARI117AV");

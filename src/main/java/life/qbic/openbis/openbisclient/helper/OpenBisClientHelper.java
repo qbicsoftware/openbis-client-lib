@@ -18,7 +18,6 @@ public class OpenBisClientHelper {
     sampleFetchOptions.withMaterialProperties();
     sampleFetchOptions.withModifier();
     //TODO Project could not be fetched
-    //sampleFetchOptions.withProject();
     sampleFetchOptions.withProperties();
     sampleFetchOptions.withRegistrator();
     sampleFetchOptions.withSpace();
@@ -39,7 +38,6 @@ public class OpenBisClientHelper {
     projectFetchOptions.withExperiments();
     projectFetchOptions.withLeader();
     //TODO Samples could not be fetched
-    //projectFetchOptions.withSamples();
     projectFetchOptions.withSpace();
 
     return projectFetchOptions;
@@ -54,9 +52,8 @@ public class OpenBisClientHelper {
     experimentFetchOptions.withSamples();
     experimentFetchOptions.withDataSets();
     experimentFetchOptions.withMaterialProperties();
-    experimentFetchOptions.withProject();
+    experimentFetchOptions.withProjectUsing(fetchProjectsCompletely());
     experimentFetchOptions.withProperties();
-    experimentFetchOptions.withSamples();
     experimentFetchOptions.withTags();
     experimentFetchOptions.withType();
 
