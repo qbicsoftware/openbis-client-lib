@@ -1,8 +1,10 @@
 package life.qbic.openbis.openbisclient;
 
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 
 public class TestOpenBisClientHelper {
@@ -72,5 +74,43 @@ public class TestOpenBisClientHelper {
     experiment.getTags();
     experiment.getType();
     experiment.getSamples();
+  }
+
+  public static void assertDataSetCompletelyFetched(DataSet dataSet) throws NotFetchedException {
+    dataSet.getProperties();
+    dataSet.getRegistrationDate();
+    dataSet.getType();
+    dataSet.getChildren();
+    dataSet.getCode();
+    dataSet.getComponents();
+    dataSet.getExperiment();
+    dataSet.getFetchOptions();
+    dataSet.getHistory();
+    dataSet.getMaterialProperties();
+    dataSet.getModificationDate();
+    dataSet.getModifier();
+    dataSet.getParents();
+    dataSet.getPermId();
+    dataSet.getRegistrator();
+    dataSet.getTags();
+    dataSet.getAccessDate();
+    dataSet.getContainers();
+    dataSet.getDataProducer();
+    dataSet.getDataProductionDate();
+    dataSet.getDataStore();
+    dataSet.getLinkedData();
+    dataSet.getPhysicalData();
+    dataSet.getSample();
+  }
+
+  public static void assertSampleTypeCompletelyFetched(SampleType sampleType)
+      throws NotFetchedException {
+    sampleType.getCode();
+    sampleType.getDescription();
+    sampleType.getFetchOptions();
+    sampleType.getModificationDate();
+    sampleType.getPermId();
+    sampleType.getGeneratedCodePrefix();
+    sampleType.getPropertyAssignments();
   }
 }
