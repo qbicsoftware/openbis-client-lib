@@ -1,11 +1,16 @@
 package life.qbic.openbis.openbisclient;
 
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchDataSetsCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentsCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchProjectsCompletely;
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSampleTypesCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
@@ -13,11 +18,14 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleTypeSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
+import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +37,7 @@ public class OpenBisClient implements IOpenBisClient {
   private final int TIMEOUT = 100000;
   private String userId, password, sessionToken;
   private IApplicationServerApi v3;
+  private IDataStoreServerApi dss3;
 
   public OpenBisClient(String userId, String password, String serverURL) {
     this.userId = userId;
@@ -36,6 +45,7 @@ public class OpenBisClient implements IOpenBisClient {
     // get a reference to AS API
     v3 = HttpInvokerUtils
         .createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
+    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serverURL, TIMEOUT);
     sessionToken = null;
   }
 
@@ -188,6 +198,7 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Sample> samplesOfExperiment = v3
         .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
+
   }
 
 //  @Override
@@ -213,7 +224,8 @@ public class OpenBisClient implements IOpenBisClient {
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withOrOperator();
     sampleSearchCriteria.withExperiment().withProject().withCode().thatEquals(projIdentifier);
-    sampleSearchCriteria.withExperiment().withProject().withId().thatEquals(new ProjectIdentifier(projIdentifier));
+    sampleSearchCriteria.withExperiment().withProject().withId()
+        .thatEquals(new ProjectIdentifier(projIdentifier));
 
     SearchResult<Sample> samples = v3
         .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
@@ -241,7 +253,9 @@ public class OpenBisClient implements IOpenBisClient {
   public List<Experiment> getExperimentsOfProjectByIdentifier(String projectIdentifier) {
     ensureLoggedIn();
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    sc.withOrOperator();
     sc.withProject().withId().thatEquals(new ProjectIdentifier(projectIdentifier));
+    sc.withProject().withCode().thatEquals(projectIdentifier);
 
     SearchResult<Experiment> experiments = v3
         .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
@@ -377,7 +391,9 @@ public class OpenBisClient implements IOpenBisClient {
   public Project getProjectByIdentifier(String projectIdentifier) {
     ensureLoggedIn();
     ProjectSearchCriteria sc = new ProjectSearchCriteria();
+    sc.withOrOperator();
     sc.withId().thatEquals(new ProjectIdentifier(projectIdentifier));
+    sc.withCode().thatEquals(projectIdentifier);
 
     SearchResult<Project> projects = v3
         .searchProjects(sessionToken, sc, fetchProjectsCompletely());
@@ -387,9 +403,10 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public Project getProjectByCode(String projectCode) {
-    //TODO can be combined with getProjectByIdentifier()
     ensureLoggedIn();
     ProjectSearchCriteria sc = new ProjectSearchCriteria();
+    sc.withOrOperator();
+    sc.withId().thatEquals(new ProjectIdentifier(projectCode));
     sc.withCode().thatEquals(projectCode);
 
     SearchResult<Project> projects = v3
@@ -412,9 +429,9 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public Experiment getExperimentById(String experimentId) {
-    //TODO Can be combined with getExperimentByCode()
     ensureLoggedIn();
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    sc.withOrOperator();
     sc.withId().thatEquals(new ExperimentIdentifier(experimentId));
 
     SearchResult<Experiment> experiment = v3
@@ -433,8 +450,6 @@ public class OpenBisClient implements IOpenBisClient {
     ensureLoggedIn();
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
-
-
     SearchResult<Experiment> experiment = v3
         .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
@@ -445,32 +460,42 @@ public class OpenBisClient implements IOpenBisClient {
 //  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
 //    return null;
 //  }
-//
-//  @Override
-//  public List<DataSet> getDataSetsByType(String type) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
-//    return null;
-//  }
-//
+
+  @Override
+  public List<DataSet> getDataSetsByType(String type) {
+    ensureLoggedIn();
+    DataSetSearchCriteria sc = new DataSetSearchCriteria();
+    sc.withType().withCode().thatEquals(type);
+
+    SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
+
+    return dataSets.getObjects();
+  }
+
+  @Override
+  public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier) {
+    ensureLoggedIn();
+
+    return getSampleByIdentifier(sampleIdentifier).getAttachments();
+  }
+
+  @Override
+  public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier) {
+    ensureLoggedIn();
+
+    return getProjectByIdentifier(projectIdentifier).getAttachments();
+  }
+
 //  @Override
 //  public void addAttachmentToProject(Map<String, Object> parameter) {
 //    //TODO Wait for openbis test instance
 //  }
-//
+
 //  @Override
 //  public Set<String> getSpaceMembers(String spaceCode) {
 //    return null;
 //  }
-//
+
 //  @Override
 //  public List<String> listVocabularyTermsForProperty(PropertyType property) {
 //    return null;
@@ -480,12 +505,18 @@ public class OpenBisClient implements IOpenBisClient {
 //  public String getCVLabelForProperty(PropertyType propertyType, String propertyValue) {
 //    return null;
 //  }
-//
-//  @Override
-//  public SampleType getSampleTypeByString(String sampleType) {
-//    return null;
-//  }
-//
+
+  @Override
+  public SampleType getSampleTypeByString(String sampleType) {
+    SampleTypeSearchCriteria sc = new SampleTypeSearchCriteria();
+    sc.withCode().thatEquals(sampleType);
+
+    SearchResult<SampleType> sampleTypes = v3.searchSampleTypes(sessionToken, sc,
+        fetchSampleTypesCompletely());
+
+    return sampleTypes.getObjects().get(0);
+  }
+
 //  @Override
 //  public Map<String, SampleType> getSampleTypes() {
 //    return null;
@@ -510,12 +541,48 @@ public class OpenBisClient implements IOpenBisClient {
 //
 //    return null;
 //  }
-//
-//  @Override
-//  public String generateBarcode(String proj, int number_of_samples_offset) {
-//    return null;
-//  }
-//
+
+  @Override
+  public String generateBarcode(String proj, int number_of_samples_offset) {
+    Project project = getProjectByIdentifier(proj);
+    int numberOfSamples = getSamplesOfProject(project.getCode()).size();
+    String barcode = project.getCode() + String.format("%03d", (numberOfSamples + 1)) + "S";
+    barcode += checksum(barcode);
+
+    return barcode;
+  }
+
+  /**
+   * Function map an integer value to a char
+   *
+   * @param i the integer value which should be mapped
+   * @return the resulting char value
+   */
+  public static char mapToChar(int i) {
+    i += 48;
+    if (i > 57) {
+      i += 7;
+    }
+    return (char) i;
+  }
+
+  /**
+   * Function to generate the checksum for the given barcode string
+   *
+   * @param s the barcode string
+   * @return the checksum for the given barcode
+   */
+  public static char checksum(String s) {
+    int i = 1;
+    int sum = 0;
+    for (int idx = 0; idx <= s.length() - 1; idx++) {
+      sum += (((int) s.charAt(idx))) * i;
+      i += 1;
+    }
+    return mapToChar(sum % 34);
+  }
+
+
 //  @Override
 //  public String openBIScodeToString(String entityCode) {
 //    return null;
@@ -532,12 +599,12 @@ public class OpenBisClient implements IOpenBisClient {
 //      throws MalformedURLException {
 //    return null;
 //  }
-//
-//  @Override
-//  public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
-//    return null;
-//  }
-//
+
+  @Override
+  public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
+    return null;
+  }
+
 //  @Override
 //  public List<String> getProjectTSV(String projectCode, String sampleType) {
 //    return null;
@@ -552,32 +619,32 @@ public class OpenBisClient implements IOpenBisClient {
 //  public List<Sample> getParentsBySearchService(String sampleCode) {
 //    return null;
 //  }
-//
-//  @Override
-//  public List<Sample> getChildrenSamples(Sample sample) {
-//    return null;
-//  }
-//
-//  @Override
-//  public boolean spaceExists(String spaceCode) {
-//    return false;
-//  }
-//
-//  @Override
-//  public boolean projectExists(String spaceCode, String projectCode) {
-//    return false;
-//  }
-//
-//  @Override
-//  public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
-//    return false;
-//  }
-//
-//  @Override
-//  public boolean sampleExists(String sampleCode) {
-//    return false;
-//  }
-//
+
+  @Override
+  public List<Sample> getChildrenSamples(Sample sample) {
+    return null;
+  }
+
+  @Override
+  public boolean spaceExists(String spaceCode) {
+    return false;
+  }
+
+  @Override
+  public boolean projectExists(String spaceCode, String projectCode) {
+    return false;
+  }
+
+  @Override
+  public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
+    return false;
+  }
+
+  @Override
+  public boolean sampleExists(String sampleCode) {
+    return false;
+  }
+
 //  @Override
 //  public float computeProjectStatus(Project project) {
 //    return 0;
@@ -612,17 +679,17 @@ public class OpenBisClient implements IOpenBisClient {
 //  public void ingest(String dss, String serviceName, Map<String, Object> params) {
 //
 //  }
-//
-//  @Override
-//  public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Sample> listSamplesForProjects(List<String> projectIdentifiers) {
-//    return null;
-//  }
-//
+
+  @Override
+  public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
+    return null;
+  }
+
+  @Override
+  public List<Sample> listSamplesForProjects(List<String> projectIdentifiers) {
+    return null;
+  }
+
 //  @Override
 //  public URL getUrlForDataset(String datasetCode, String datasetName) throws MalformedURLException {
 //    return null;

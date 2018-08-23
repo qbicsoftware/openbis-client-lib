@@ -1,8 +1,10 @@
 package life.qbic.openbis.openbisclient.helper;
 
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
 
 public class OpenBisClientHelper {
 
@@ -58,6 +60,35 @@ public class OpenBisClientHelper {
     experimentFetchOptions.withType();
 
     return experimentFetchOptions;
+  }
+
+  public static DataSetFetchOptions fetchDataSetsCompletely() {
+    DataSetFetchOptions dataSetFetchOptions = new DataSetFetchOptions();
+    dataSetFetchOptions.withProperties();
+    dataSetFetchOptions.withChildren();
+    dataSetFetchOptions.withComponents();
+    dataSetFetchOptions.withContainers();
+    dataSetFetchOptions.withDataStore();
+    dataSetFetchOptions.withExperiment();
+    dataSetFetchOptions.withHistory();
+    dataSetFetchOptions.withLinkedData();
+    dataSetFetchOptions.withMaterialProperties();
+    dataSetFetchOptions.withModifier();
+    dataSetFetchOptions.withParents();
+    dataSetFetchOptions.withPhysicalData();
+    dataSetFetchOptions.withRegistrator();
+    dataSetFetchOptions.withSample();
+    dataSetFetchOptions.withTags();
+    dataSetFetchOptions.withType();
+
+    return dataSetFetchOptions;
+  }
+
+  public static SampleTypeFetchOptions fetchSampleTypesCompletely() {
+    SampleTypeFetchOptions sampleTypeFetchOption = new SampleTypeFetchOptions();
+    sampleTypeFetchOption.withPropertyAssignments();
+
+    return sampleTypeFetchOption;
   }
 
 }

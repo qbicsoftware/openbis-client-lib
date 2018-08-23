@@ -1,8 +1,11 @@
 package life.qbic.openbis.openbisclient;
 
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import java.util.List;
 import java.util.Map;
 
@@ -157,6 +160,7 @@ public interface IOpenBisClient {
 //  public List<Sample> getSamplesWithParentsAndChildren(String sampCode);
 //
 //
+
   /**
    * returns a list of all Experiments connected to the project with the identifier from openBis
    *
@@ -223,6 +227,7 @@ public interface IOpenBisClient {
 //   */
 //  public List<Experiment> getExperimentsForProject(String projectIdentifier);
 //
+
   /**
    * returns a list of all Experiments connected to a Project code in openBIS
    *
@@ -337,83 +342,83 @@ public interface IOpenBisClient {
    */
   public Project getProjectOfExperimentByIdentifier(String experimentIdentifier);
 
-////  /**
-////   * Function to list all datasets of a specific sample (watch out there are different dataset
-////   * classes)
-////   *
-////   * @param sampleIdentifier identifier of the openBIS sample
-////   * @return list with all datasets of the given sample
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfSampleByIdentifier(
-////      String sampleIdentifier);
-////
-////  /**
-////   * Function to list all datasets of a specific sample (watch out there are different dataset
-////   * classes)
-////   *
-////   * @param sampleCode code or identifier of the openBIS sample
-////   * @return list with all datasets of the given sample
-////   */
-////  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfSample(
-////      String sampleCode);
-////
-////  /**
-////   * Function to list all datasets of a specific experiment (watch out there are different dataset
-////   * classes)
-////   *
-////   * @param experimentPermID permId of the openBIS experiment
-////   * @return list with all datasets of the given experiment
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfExperiment(
-////      String experimentPermID);
-////
-////  /**
-////   * Returns all datasets of a given experiment. The new version should run smoother
-////   *
-////   * @param experimentIdentifier identifier or code of the openbis experiment
-////   * @return list of all datasets of the given experiment
-////   */
-////  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfExperimentByIdentifier(
-////      String experimentIdentifier);
-////
-////  /**
-////   * Function to list all datasets of a specific openBIS space
-////   *
-////   * @param spaceIdentifier identifier of the openBIS space
-////   * @return list with all datasets of the given space
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfSpaceByIdentifier(
-////      String spaceIdentifier);
-////
-////  /**
-////   * Function to list all datasets of a specific openBIS project
-////   *
-////   * @param projectIdentifier identifier of the openBIS project
-////   * @return list with all datasets of the given project
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjectByIdentifier(
-////      String projectIdentifier);
-////
-////  /**
-////   * Function to list all datasets of a specific openBIS project
-////   *
-////   * @param projectIdentifier identifier of the openBIS project
-////   * @return list with all datasets of the given project
-////   */
-////  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier);
-////
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDatasetsOfProjectByIdentifierWithSearchCriteria(
-////      String projectIdentifier);
-////
-////  /**
-////   * Function to list all datasets of a specific openBIS experiment
-////   *
-////   * @param experimentCode code of the openBIS experiment
-////   * @return list with all datasets of the given experiment
-////   */
-////  public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(String experimentCode);
-////
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDataSetsOfExperimentByCodeWithSearchCriteria(
+//  /**
+//   * Function to list all datasets of a specific sample (watch out there are different dataset
+//   * classes)
+//   *
+//   * @param sampleIdentifier identifier of the openBIS sample
+//   * @return list with all datasets of the given sample
+//   */
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfSampleByIdentifier(
+//      String sampleIdentifier);
+//
+//  /**
+//   * Function to list all datasets of a specific sample (watch out there are different dataset
+//   * classes)
+//   *
+//   * @param sampleCode code or identifier of the openBIS sample
+//   * @return list with all datasets of the given sample
+//   */
+//  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfSample(
+//      String sampleCode);
+//
+//  /**
+//   * Function to list all datasets of a specific experiment (watch out there are different dataset
+//   * classes)
+//   *
+//   * @param experimentPermID permId of the openBIS experiment
+//   * @return list with all datasets of the given experiment
+//   */
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfExperiment(
+//      String experimentPermID);
+//
+//  /**
+//   * Returns all datasets of a given experiment. The new version should run smoother
+//   *
+//   * @param experimentIdentifier identifier or code of the openbis experiment
+//   * @return list of all datasets of the given experiment
+//   */
+//  public List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> getDataSetsOfExperimentByIdentifier(
+//      String experimentIdentifier);
+//
+//  /**
+//   * Function to list all datasets of a specific openBIS space
+//   *
+//   * @param spaceIdentifier identifier of the openBIS space
+//   * @return list with all datasets of the given space
+//   */
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfSpaceByIdentifier(
+//      String spaceIdentifier);
+//
+//  /**
+//   * Function to list all datasets of a specific openBIS project
+//   *
+//   * @param projectIdentifier identifier of the openBIS project
+//   * @return list with all datasets of the given project
+//   */
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjectByIdentifier(
+//      String projectIdentifier);
+//
+//  /**
+//   * Function to list all datasets of a specific openBIS project
+//   *
+//   * @param projectIdentifier identifier of the openBIS project
+//   * @return list with all datasets of the given project
+//   */
+//  public List<DataSet> getDataSetsOfProjectByIdentifierWithSearchCriteria(String projectIdentifier);
+//
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDatasetsOfProjectByIdentifierWithSearchCriteria(
+//      String projectIdentifier);
+//
+//  /**
+//   * Function to list all datasets of a specific openBIS experiment
+//   *
+//   * @param experimentCode code of the openBIS experiment
+//   * @return list with all datasets of the given experiment
+//   */
+//  public List<DataSet> getDataSetsOfExperimentByCodeWithSearchCriteria(String experimentCode);
+//
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getClientDataSetsOfExperimentByCodeWithSearchCriteria(
 ////      String experimentCode);
 //
 //  /**
@@ -424,39 +429,38 @@ public interface IOpenBisClient {
 //   */
 //  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier);
 //
-////  /**
-////   * Function to list all datasets of a specific openBIS project
-////   *
-////   * @param projectIdentifier identifier of the openBIS project
-////   * @return list with all datasets of the given project
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjects2(
-////      List<Project> projectIdentifier);
-//
-//  /**
-//   * Function to list all datasets of a specific type
-//   *
-//   * @param type identifier of the openBIS type
-//   * @return list with all datasets of the given type
-//   */
-//  public List<DataSet> getDataSetsByType(String type);
-//
-//  /**
-//   * Function to list all attachments of a sample
-//   *
-//   * @param sampleIdentifier identifier of the openBIS sample
-//   * @return list with all attachments connected to the given sample
-//   */
-//  public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier);
-//
-//  /**
-//   * Function to list all attachments of a project
-//   *
-//   * @param projectIdentifier identifier of the openBIS project
-//   * @return list with all attachments connected to the given project
-//   */
-//  public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier);
-//
+///**
+//* Function to list all datasets of a specific openBIS project
+//*
+//* @param projectIdentifier identifier of the openBIS project
+//* @return list with all datasets of the given project
+//*/
+//public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> getDataSetsOfProjects2(List<Project> projectIdentifier);
+
+  /**
+   * Function to list all datasets of a specific type
+   *
+   * @param type identifier of the openBIS type
+   * @return list with all datasets of the given type
+   */
+  public List<DataSet> getDataSetsByType(String type);
+
+  /**
+   * Function to list all attachments of a sample
+   *
+   * @param sampleIdentifier identifier of the openBIS sample
+   * @return list with all attachments connected to the given sample
+   */
+  public List<Attachment> listAttachmentsForSampleByIdentifier(String sampleIdentifier);
+
+  /**
+   * Function to list all attachments of a project
+   *
+   * @param projectIdentifier identifier of the openBIS project
+   * @return list with all attachments connected to the given project
+   */
+  public List<Attachment> listAttachmentsForProjectByIdentifier(String projectIdentifier);
+
 //  /**
 //   * Function to add an attachment to a existing project in openBIS by calling the corresponding
 //   * ingestion service of openBIS. TODO specify which parameters have to be there may not work yet!
@@ -465,16 +469,16 @@ public interface IOpenBisClient {
 //   */
 //  public void addAttachmentToProject(Map<String, Object> parameter);
 //
-////  /**
-////   * Queries an aggregation service for openBIS data
-////   *
-////   * @param name the name of the aggregation service, as specified in the config file of the openBIS
-////   *        instance
-////   * @param parameters a map of parameters
-////   * @return a QueryTableModel object containing the aggregated information
-////   */
-////  public QueryTableModel getAggregationService(String name, Map<String, Object> parameters);
-//
+//  /**
+//   * Queries an aggregation service for openBIS data
+//   *
+//   * @param name the name of the aggregation service, as specified in the config file of the openBIS
+//   *        instance
+//   * @param parameters a map of parameters
+//   * @return a QueryTableModel object containing the aggregated information
+//   */
+//  public QueryTableModel getAggregationService(String name, Map<String, Object> parameters);
+
 //  /**
 //   * Returns all users of a Space.
 //   *
@@ -482,14 +486,14 @@ public interface IOpenBisClient {
 //   * @return set of user names as string
 //   */
 //  public Set<String> getSpaceMembers(String spaceCode);
-//
-////  /**
-////   * Function to retrieve all properties which have been assigned to a specific entity type
-////   *
-////   * @param entity_type entitiy type
-////   * @return list of properties which are assigned to the entity type
-////   */
-////  public List<PropertyType> listPropertiesForType(EntityType entity_type);
+
+//  /**
+//   * Function to retrieve all properties which have been assigned to a specific entity type
+//   *
+//   * @param entity_type entitiy type
+//   * @return list of properties which are assigned to the entity type
+//   */
+//  public List<PropertyType> listPropertiesForType(EntityType entity_type);
 //
 //  /**
 //   * Function to list the vocabulary terms for a given property which has been added to openBIS. The
@@ -508,15 +512,15 @@ public interface IOpenBisClient {
 //   * @return Label of CV item
 //   */
 //  public String getCVLabelForProperty(PropertyType propertyType, String propertyValue);
-//
-//  /**
-//   * Function to get a SampleType object of a sample type
-//   *
-//   * @param sampleType the sample type as string
-//   * @return the SampleType object of the corresponding sample type
-//   */
-//  public SampleType getSampleTypeByString(String sampleType);
-//
+
+  /**
+   * Function to get a SampleType object of a sample type
+   *
+   * @param sampleType the sample type as string
+   * @return the SampleType object of the corresponding sample type
+   */
+  public SampleType getSampleTypeByString(String sampleType);
+
 //  /**
 //   * Function to retrieve all samples of a specific given type
 //   *
@@ -524,22 +528,22 @@ public interface IOpenBisClient {
 //   */
 //  public Map<String, SampleType> getSampleTypes();
 //
-////  /**
-////   * Function to get a ExperimentType object of a experiment type
-////   *
-////   * @param experimentType the experiment type as string
-////   * @return the ExperimentType object of the corresponding experiment type
-////   */
-////  public ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType getExperimentTypeByString(
-////      String experimentType);
-////
-////  /**
-////   * Function to get the labels of all property types of a specific instance type
-////   *
-////   * @param entityType the instance type
-////   * @return map with types as keys and labels as values
-////   */
-////  public Map<String, String> getLabelsofProperties(EntityType entityType);
+//  /**
+//   * Function to get a ExperimentType object of a experiment type
+//   *
+//   * @param experimentType the experiment type as string
+//   * @return the ExperimentType object of the corresponding experiment type
+//   */
+//  public ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.ExperimentType getExperimentTypeByString(
+//      String experimentType);
+//
+//  /**
+//   * Function to get the labels of all property types of a specific instance type
+//   *
+//   * @param entityType the instance type
+///   * @return map with types as keys and labels as values
+//   */
+//  public Map<String, String> getLabelsofProperties(EntityType entityType);
 //
 //  /**
 //   * Function to trigger ingestion services registered in openBIS
@@ -575,18 +579,18 @@ public interface IOpenBisClient {
 //   */
 //  public String addNewInstance(Map<String, Object> params, String service,
 //      int number_of_samples_offset);
-//
-//  /**
-//   * Function to create a QBiC barcode string for a sample based on the project ID. QBiC barcode
-//   * format: Q + project_ID + sample number + X + checksum
-//   *
-//   * TODO check if it works for all cases, check for null ?
-//   *
-//   * @param proj ID of the project
-//   * @return the QBiC barcode as string
-//   */
-//  public String generateBarcode(String proj, int number_of_samples_offset);
-//
+
+  /**
+   * Function to create a QBiC barcode string for a sample based on the project ID. QBiC barcode
+   * format: Q + project_ID + sample number + X + checksum
+   *
+   * TODO check if it works for all cases, check for null ?
+   *
+   * @param proj ID of the project
+   * @return the QBiC barcode as string
+   */
+  public String generateBarcode(String proj, int number_of_samples_offset);
+
 //  /**
 //   * Function to transform openBIS entity type to human readable text. Performs String replacement
 //   * and does not query openBIS!
@@ -615,15 +619,16 @@ public interface IOpenBisClient {
 //
 //  public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
 //      throws MalformedURLException;
-//
-//  /**
-//   * Returns a Map that maps samples to a list of samples of their parent samples
-//   *
-//   * @param samples A list of openBIS samples
-//   * @return Map<Sample ,   List < Sample>> containing a mapping between children and parents of samples
-//   */
-//  public Map<Sample, List<Sample>> getParentMap(List<Sample> samples);
-//
+
+  /**
+   * Returns a Map that maps samples to a list of samples of their parent samples
+   *
+   * @param samples A list of openBIS samples
+   * @return Map<Sample       ,               List       <       Sample>> containing a mapping between children and parents of
+   * samples
+   */
+  public Map<Sample, List<Sample>> getParentMap(List<Sample> samples);
+
 //  /**
 //   * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
 //   * Only one requested layer of the data model is returned. Experimental factors are returned in
@@ -651,49 +656,49 @@ public interface IOpenBisClient {
 //   * @return List of parent samples
 //   */
 //  public List<Sample> getParentsBySearchService(String sampleCode);
-//
-//  /**
-//   *
-//   * @param sample
-//   * @return
-//   */
-//  public List<Sample> getChildrenSamples(Sample sample);
-//
-//  /**
-//   * Checks if a space object of a certain code exists in openBIS
-//   *
-//   * @param spaceCode the code of an openBIS space
-//   * @return true, if the space exists, false otherwise
-//   */
-//  public boolean spaceExists(String spaceCode);
-//
-//  /**
-//   * Checks if a project object of a certain code exists under a given space in openBIS
-//   *
-//   * @param spaceCode the code of an openBIS space
-//   * @param projectCode the code of a project
-//   * @return true, if the project exists under this space, false otherwise
-//   */
-//  public boolean projectExists(String spaceCode, String projectCode);
-//
-//  /**
-//   * Checks if an experiment of a certain code exists under a given space and project in openBIS
-//   *
-//   * @param spaceCode the code of an openBIS space
-//   * @param projectCode the code of a project in openBIS
-//   * @param experimentCode the code of an experiment
-//   * @return true, if the experiment exists under this project and space, false otherwise
-//   */
-//  public boolean expExists(String spaceCode, String projectCode, String experimentCode);
-//
-//  /**
-//   * Checks if a sample of a given code exists in openBIS
-//   *
-//   * @param sampleCode the code of a sample
-//   * @return true, if the sample exists, false otherwise
-//   */
-//  public boolean sampleExists(String sampleCode);
-//
+
+  /**
+   *
+   * @param sample
+   * @return
+   */
+  public List<Sample> getChildrenSamples(Sample sample);
+
+  /**
+   * Checks if a space object of a certain code exists in openBIS
+   *
+   * @param spaceCode the code of an openBIS space
+   * @return true, if the space exists, false otherwise
+   */
+  public boolean spaceExists(String spaceCode);
+
+  /**
+   * Checks if a project object of a certain code exists under a given space in openBIS
+   *
+   * @param spaceCode the code of an openBIS space
+   * @param projectCode the code of a project
+   * @return true, if the project exists under this space, false otherwise
+   */
+  public boolean projectExists(String spaceCode, String projectCode);
+
+  /**
+   * Checks if an experiment of a certain code exists under a given space and project in openBIS
+   *
+   * @param spaceCode the code of an openBIS space
+   * @param projectCode the code of a project in openBIS
+   * @param experimentCode the code of an experiment
+   * @return true, if the experiment exists under this project and space, false otherwise
+   */
+  public boolean expExists(String spaceCode, String projectCode, String experimentCode);
+
+  /**
+   * Checks if a sample of a given code exists in openBIS
+   *
+   * @param sampleCode the code of a sample
+   * @return true, if the sample exists, false otherwise
+   */
+  public boolean sampleExists(String sampleCode);
+
 //  /**
 //   * Compute status of project by checking status of the contained experiments
 //   *
@@ -748,40 +753,40 @@ public interface IOpenBisClient {
 //   * @param params A Map of parameters to send to the ingestion service
 //   */
 //  public void ingest(String dss, String serviceName, Map<String, Object> params);
-//
+
+  /**
+   * List all experiments for given list of projects
+   *
+   * @param projectList list of project identifiers
+   * @return List of experiments
+   */
+  public List<Experiment> listExperimentsOfProjects(List<Project> projectList);
+
 //  /**
-//   * List all experiments for given list of projects
+//   * List all datasets for given experiment identifiers
 //   *
-//   * @param projectList list of project identifiers
-//   * @return List of experiments
+//   * @param experimentIdentifiers list of experiment identifiers
+//   * @return List of datasets
 //   */
-//  public List<Experiment> listExperimentsOfProjects(List<Project> projectList);
-//
-////  /**
-////   * List all datasets for given experiment identifiers
-////   *
-////   * @param experimentIdentifiers list of experiment identifiers
-////   * @return List of datasets
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> listDataSetsForExperiments(
-////      List<String> experimentIdentifiers);
-//
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> listDataSetsForExperiments(
+//      List<String> experimentIdentifiers);
+
+  /**
+   * List all samples for given project identifiers
+   *
+   * @param projectIdentifiers list of project identifiers
+   * @return List of samples
+   */
+  public List<Sample> listSamplesForProjects(List<String> projectIdentifiers);
+
 //  /**
-//   * List all samples for given project identifiers
+//   * List all datasets for given sample identifiers
 //   *
-//   * @param projectIdentifiers list of project identifiers
-//   * @return List of samples
+//   * @param sampleIdentifier list of sample identifiers
+//   * @return List of datasets
 //   */
-//  public List<Sample> listSamplesForProjects(List<String> projectIdentifiers);
-//
-////  /**
-////   * List all datasets for given sample identifiers
-////   *
-////   * @param sampleIdentifier list of sample identifiers
-////   * @return List of datasets
-////   */
-////  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> listDataSetsForSamples(
-////      List<String> sampleIdentifier);
+//  public List<ch.systemsx.cisd.openbis.dss.client.api.v1.DataSet> listDataSetsForSamples(
+//      List<String> sampleIdentifier);
 //
 //  /**
 //   * Retrieve datastore download url of dataset
