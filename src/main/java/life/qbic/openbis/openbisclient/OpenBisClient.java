@@ -29,8 +29,11 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriter
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleTypeSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.ISpaceId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import java.io.InputStream;
@@ -133,6 +136,8 @@ public class OpenBisClient implements IOpenBisClient {
     // login to obtain a session token
     sessionToken = v3.login(userId, password);
   }
+
+
 
   /**
    * Get session token of current openBIS session
@@ -363,7 +368,14 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<Experiment> getExperimentsForProject(Project project) {
-    return null;
+    ensureLoggedIn();
+    ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    sc.withProject().withCode().thatEquals(project.getCode());
+
+    SearchResult<Experiment> experiments = v3
+        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+
+    return experiments.getObjects();
   }
 
   /**
@@ -376,7 +388,9 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<Experiment> getExperimentsForProject(String projectIdentifier) {
-    return null;
+    //TODO equal to getExperimentsOfProjectByIdentifier
+    ensureLoggedIn();
+    return getExperimentsOfProjectByIdentifier(projectIdentifier);
   }
 
   @Override
@@ -451,28 +465,6 @@ public class OpenBisClient implements IOpenBisClient {
     return projects.getObjects();
   }
 
-//  @Override
-//  public List<String> getUserSpaces(String userID) {
-//    ensureLoggedIn();
-//    SpaceSearchCriteria sc = new SpaceSearchCriteria();
-//
-//    SearchResult<Space> spaces = v3
-//        .searchSpaces(sessionToken, sc, new SpaceFetchOptions());
-//
-//    List<String> spaceCodes = new ArrayList<>();
-//    for (Space space : spaces.getObjects()) {
-//      spaceCodes.add(space.getCode());
-//    }
-//    return spaceCodes;
-//  }
-
-//  @Override
-//  public boolean isUserAdmin(String userID) {
-//    ensureLoggedIn();
-//    SessionInformation sessionInformation = v3.getSessionInformation(sessionToken);
-//    return sessionInformation.getUserName().equals("admin");
-//  }
-
   /**
    * Returns Space names a given user should be able to see
    *
@@ -481,7 +473,15 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<String> getUserSpaces(String userID) {
-    return null;
+    logout();
+
+    // login to obtain a session token
+    sessionToken = v3.loginAs(userId, password, userID);
+    List<String> spacesOfUser = listSpaces();
+    logout();
+    login();
+
+    return spacesOfUser;
   }
 
   /**
@@ -491,6 +491,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public boolean isUserAdmin(String userID) {
+    //TODO cant find method
     return false;
   }
 
@@ -572,7 +573,12 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfSampleByIdentifier(String sampleIdentifier) {
-    return null;
+    DataSetSearchCriteria sc = new DataSetSearchCriteria();
+    sc.withOrOperator();
+    sc.withSample().withId().thatEquals(new SampleIdentifier(sampleIdentifier));
+    SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
+
+    return dataSets.getObjects();
   }
 
   /**
@@ -584,7 +590,11 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfSample(String sampleCode) {
-    return null;
+    DataSetSearchCriteria sc = new DataSetSearchCriteria();
+    sc.withSample().withCode().thatEquals(sampleCode);
+    SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
+
+    return dataSets.getObjects();
   }
 
   /**
@@ -596,8 +606,11 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfExperiment(String experimentPermID) {
-    return null;
-  }
+    DataSetSearchCriteria sc = new DataSetSearchCriteria();
+    sc.withExperiment().withPermId().thatEquals(experimentPermID);
+    SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
+
+    return dataSets.getObjects();  }
 
   /**
    * Returns all datasets of a given experiment. The new version should run smoother
@@ -607,7 +620,10 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfExperimentByIdentifier(String experimentIdentifier) {
-    return null;
+    DataSetSearchCriteria sc = new DataSetSearchCriteria();
+    sc.withExperiment().withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
+    SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
+  return dataSets.getObjects();
   }
 
   /**
@@ -618,13 +634,11 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfSpaceByIdentifier(String spaceIdentifier) {
-    return null;
+    DataSetSearchCriteria sc = new DataSetSearchCriteria();
+    sc.withSample().withSpace().withCode().thatEquals(spaceIdentifier);
+    SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
+    return dataSets.getObjects();
   }
-
-//  @Override
-//  public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
-//    return null;
-//  }
 
   /**
    * Function to list all datasets of a specific openBIS project
@@ -634,6 +648,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfProjectByIdentifier(String projectIdentifier) {
+    //TODO does not work yet
     return null;
   }
 
@@ -645,6 +660,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
+    //TODO does not work yet
     return null;
   }
 
@@ -681,6 +697,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public Set<String> getSpaceMembers(String spaceCode) {
+    //TODO cannot find an opportunity to do that
     return null;
   }
 
@@ -689,20 +706,6 @@ public class OpenBisClient implements IOpenBisClient {
 //    //TODO Wait for openbis test instance
 //  }
 
-//  @Override
-//  public Set<String> getSpaceMembers(String spaceCode) {
-//    return null;
-//  }
-
-//  @Override
-//  public List<String> listVocabularyTermsForProperty(PropertyType property) {
-//    return null;
-//  }
-//
-//  @Override
-//  public String getCVLabelForProperty(PropertyType propertyType, String propertyValue) {
-//    return null;
-//  }
 
   /**
    * Function to list the vocabulary terms for a given property which has been added to openBIS. The
@@ -714,6 +717,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public List<String> listVocabularyTermsForProperty(PropertyType property) {
     return null;
+
   }
 
   /**
@@ -746,6 +750,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public Map<String, SampleType> getSampleTypes() {
+    //TODO this method sounds strange...
     return null;
   }
 
@@ -919,7 +924,8 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withSpace().withCode().thatEquals(spaceCode);
     sc.withCode().thatEquals(projectCode);
     SearchResult<Project> projects = v3.searchProjects(sessionToken, sc, new ProjectFetchOptions());
-    return projects.getTotalCount() != 0;
+
+    return projectCode != null && projects.getTotalCount() != 0;
   }
 
   @Override
