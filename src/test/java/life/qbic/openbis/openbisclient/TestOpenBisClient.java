@@ -1090,7 +1090,7 @@ public class TestOpenBisClient {
     openbisClient.getSampleTypeByString("does/not/exist");
   }
 
-//  @Test
+  //  @Test
 //  public void testGetExperimentTypeByString() {
 //    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(
 //        ExperimentType.class);
