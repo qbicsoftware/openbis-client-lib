@@ -33,6 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.internal.matchers.Null;
 
 public class TestOpenBisClient {
 
@@ -263,6 +264,42 @@ public class TestOpenBisClient {
     exception.expect(RuntimeException.class);
     exception.expectMessage("has to start");
     openbisClient.getSampleByIdentifier("doesnotexist");
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildren() {
+    List<Sample> samples = openbisClient.getSamplesWithParentsAndChildren("MSQMUSP061A9");
+    assertThat(samples.size()).isAtLeast(1);
+    assertSampleCompletetlyFetched(samples.get(0));
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenWithIdentifier() {
+    List<Sample> samples = openbisClient.getSamplesWithParentsAndChildren(
+        "/MFT_PICHLER_MULTISCALE" +
+        "/MSQMUSP061A9");
+    assertThat(samples.size()).isAtLeast(1);
+    assertSampleCompletetlyFetched(samples.get(0));
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    openbisClient.getSamplesWithParentsAndChildren(null);
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenEmpty() {
+    exception.expect(UserFailureException.class);
+    exception.expectMessage("invalid");
+    openbisClient.getSamplesWithParentsAndChildren("");
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenNotExist() {
+    //TODO should raise an error instead returning empty list
+    openbisClient.getSamplesWithParentsAndChildren("/does/not/exist");
   }
 
   @Test
@@ -1182,47 +1219,77 @@ public class TestOpenBisClient {
 //    assertThat(parents.get(0).getCode()).isEqualTo("QTGPRENTITY-1");
 //  }
 //
-//  @Test
-//  public void testGetChildrenSamples() {
-//    List<Sample> children =
-//        openbisClient.getChildrenSamples(openbisClient
-//            .getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-1"));
-//    assertThat(children.size()).isAtLeast(1);
-//    List<String> codes = new ArrayList<String>();
-//    for (Sample s : children) {
-//      codes.add(s.getCode());
-//    }
-//    assertThat(codes.contains("QTGPR001A5"));
-//  }
-//
-//
-//  @Test
-//  public void testSpaceExists() {
-//    assertThat(openbisClient.spaceExists("ABI_SYSBIO"));
-//    assertThat(!openbisClient.spaceExists("DEEP_SPACE_NINE"));
-//  }
-//
-//  @Test
-//  public void testProjectExists() {
-//    assertThat(openbisClient.projectExists("ABI_SYSBIO", "QMARI"));
-//    assertThat(!openbisClient.projectExists("ABI_SYSBIO", "QQQQQ"));
-//    assertThat(!openbisClient.projectExists("DEEP_SPACE_NINE", "QMARI"));
-//  }
-//
-//  @Test
-//  public void testExpExists() {
-//    assertThat(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QMARIE3"));
-//    assertThat(!openbisClient.expExists("DEEP_SPACE_NINE", "QMARI", "QMARIE3"));
-//    assertThat(!openbisClient.expExists("ABI_SYSBIO", "QQQQQ", "QMARIE3"));
-//    assertThat(!openbisClient.expExists("ABI_SYSBIO", "QMARI", "QQQQQE3"));
-//  }
-//
-//  @Test
-//  public void testSampleExists() {
-//    assertThat(openbisClient.sampleExists("QMARI074A9"));
-//    assertThat(!openbisClient.sampleExists("QQQQQ999XX"));
-//  }
-//
+
+  @Test
+  public void testGetChildrenSamples() {
+    Sample sample = openbisClient.getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-1");
+    List<Sample> samples = openbisClient.getChildrenSamples(sample);
+
+    assertThat(samples.size()).isAtLeast(1);
+    assertSampleCompletetlyFetched(samples.get(0));
+    assertTrue(sample.getChildren().contains(samples.get(0)));
+  }
+
+  @Test
+  public void testGetChildrenSamplesNull() {
+    exception.expect(NullPointerException.class);
+    openbisClient.getChildrenSamples(null);
+  }
+
+
+  @Test
+  public void testSpaceExists() {
+    assertTrue(openbisClient.spaceExists("ABI_SYSBIO"));
+    assertFalse(openbisClient.spaceExists("DEEP_SPACE_NINE"));
+  }
+
+  @Test
+  public void testSpaceExistsNull() {
+    //TODO should maybe raise an error
+    assertFalse(openbisClient.spaceExists(null));
+  }
+
+  @Test
+  public void testProjectExists() {
+    assertTrue(openbisClient.projectExists("ABI_SYSBIO", "QMARI"));
+    assertFalse(openbisClient.projectExists("ABI_SYSBIO", "QQQQQ"));
+    assertFalse(openbisClient.projectExists("DEEP_SPACE_NINE", "QMARI"));
+  }
+
+  @Test
+  public void testProjectExistsNull() {
+    //TODO should maybe raise an error
+    assertFalse(openbisClient.projectExists(null, null));
+  }
+
+  @Test
+  public void testExpExists() {
+    assertTrue(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QMARIE3"));
+    assertFalse(openbisClient.expExists("DEEP_SPACE_NINE", "QMARI", "QMARIE3"));
+    assertFalse(openbisClient.expExists("ABI_SYSBIO", "QQQQQ", "QMARIE3"));
+    assertFalse(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QQQQQE3"));
+  }
+
+  @Test
+  public void testExpExistsNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    assertFalse(openbisClient.expExists(null, null, null));
+  }
+
+  @Test
+  public void testSampleExists() {
+    assertTrue(openbisClient.sampleExists("QMARI074A9"));
+    assertFalse(openbisClient.sampleExists("QQQQQ999XX"));
+  }
+
+  @Test
+  public void testSampleExistsNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    assertFalse(openbisClient.sampleExists(null));
+  }
+
 //  //@Test
 //  public void testComputeProjectStatus() {
 //    // TODO
@@ -1381,4 +1448,6 @@ public class TestOpenBisClient {
 //  public void testGetProjectTSV() {
 //    assertThat(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
 //  }
+
+
 }

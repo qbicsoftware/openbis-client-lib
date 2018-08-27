@@ -296,7 +296,18 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<Sample> getSamplesWithParentsAndChildren(String sampCode) {
-    return null;
+    //TODO unclear if parents and children should be fetched or directly included into the list
+    ensureLoggedIn();
+    SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
+    sampleSearchCriteria.withCode().thatEquals(sampCode);
+    SampleFetchOptions sampleFetchOptions = fetchSamplesCompletely();
+    sampleFetchOptions.withChildrenUsing(fetchSamplesCompletely());
+    sampleFetchOptions.withParentsUsing(fetchSamplesCompletely());
+
+    SearchResult<Sample> samples = v3
+        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+
+    return samples.getObjects();
   }
 
   @Override
@@ -898,10 +909,7 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public boolean spaceExists(String spaceCode) {
-    SpaceSearchCriteria sc = new SpaceSearchCriteria();
-    sc.withCode().thatEquals(spaceCode);
-    SearchResult<Space> spaces = v3.searchSpaces(sessionToken, sc, new SpaceFetchOptions());
-    return spaces.getTotalCount() != 0;
+    return listSpaces().contains(spaceCode);
   }
 
   @Override
