@@ -27,6 +27,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOpt
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -602,7 +603,13 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
-    return null;
+    //TODO samples must have fetched parents!
+    Map<Sample, List<Sample>> parentMap = new HashMap<>();
+    for (Sample sample : samples) {
+      parentMap.put(sample, sample.getParents());
+    }
+
+    return parentMap;
   }
 
 //  @Override
@@ -622,12 +629,20 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public List<Sample> getChildrenSamples(Sample sample) {
-    return null;
+    //TODO unnecessary method in v3 api
+    return sample.getChildren();
   }
 
   @Override
   public boolean spaceExists(String spaceCode) {
-    return false;
+    SpaceSearchCriteria sc = new SpaceSearchCriteria();
+    sc.withCode().thatEquals(spaceCode);
+    SearchResult<Space> spaces = v3.searchSpaces(sessionToken, sc, new SpaceFetchOptions());
+    if (spaces.getTotalCount() == 0) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   @Override

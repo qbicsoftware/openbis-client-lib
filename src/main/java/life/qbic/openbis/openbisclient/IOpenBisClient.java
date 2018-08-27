@@ -527,7 +527,7 @@ public interface IOpenBisClient {
 //   * @return list with all samples of this given type
 //   */
 //  public Map<String, SampleType> getSampleTypes();
-//
+
 //  /**
 //   * Function to get a ExperimentType object of a experiment type
 //   *
