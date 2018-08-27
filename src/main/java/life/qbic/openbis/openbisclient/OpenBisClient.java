@@ -12,13 +12,16 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleTypeSearchCriteria;
@@ -638,26 +641,37 @@ public class OpenBisClient implements IOpenBisClient {
     SpaceSearchCriteria sc = new SpaceSearchCriteria();
     sc.withCode().thatEquals(spaceCode);
     SearchResult<Space> spaces = v3.searchSpaces(sessionToken, sc, new SpaceFetchOptions());
-    if (spaces.getTotalCount() == 0) {
-      return false;
-    } else {
-      return true;
-    }
+    return spaces.getTotalCount() != 0;
   }
 
   @Override
   public boolean projectExists(String spaceCode, String projectCode) {
-    return false;
+    //TODO why do we need the space code here? Then the method should be named differently
+    ProjectSearchCriteria sc = new ProjectSearchCriteria();
+    sc.withSpace().withCode().thatEquals(spaceCode);
+    sc.withCode().thatEquals(projectCode);
+    SearchResult<Project> projects = v3.searchProjects(sessionToken, sc, new ProjectFetchOptions());
+    return projects.getTotalCount() != 0;
   }
 
   @Override
   public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
-    return false;
+    //TODO why do we need the space code here? Then the method should be named differently
+    ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    sc.withProject().withSpace().withCode().thatEquals(spaceCode);
+    sc.withCode().thatEquals(experimentCode);
+    sc.withProject().withCode().thatEquals(projectCode);
+    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, sc,
+        new ExperimentFetchOptions());
+    return experiments.getTotalCount() != 0;
   }
 
   @Override
   public boolean sampleExists(String sampleCode) {
-    return false;
+    SampleSearchCriteria sc = new SampleSearchCriteria();
+    sc.withCode().thatEquals(sampleCode);
+    SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, new SampleFetchOptions());
+    return samples.getTotalCount() != 0;
   }
 
 //  @Override
