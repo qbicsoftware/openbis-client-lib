@@ -1085,7 +1085,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public URL getUrlForDataset(String datasetCode, String datasetName) throws MalformedURLException {
-    return null;
+    return getDataStoreDownloadURL(datasetCode, datasetName);
   }
 
   /**

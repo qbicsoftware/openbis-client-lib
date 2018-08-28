@@ -1355,32 +1355,32 @@ public class TestOpenBisClient {
 //        openbisClient.listDataSetsForExperiments(Arrays.asList("/CONFERENCE_DEMO/QTGPR/QTGPRE6"));
 //    assertThat(dsets.size()).isEqualTo(1);
 //  }
-//
-//  @Test
-//  public void testListSamplesForProjects() {
-//    List<Sample> samps = openbisClient.listSamplesForProjects(Arrays.asList("/CONFERENCE_DEMO/QTGPR"));
-//    assertThat(samps.size()).isEqualTo(117);
-//
-//  }
-//
+
+  @Test
+  public void testListSamplesForProjects() {
+    List<Sample> samps = openbisClient.listSamplesForProjects(Arrays.asList("/CONFERENCE_DEMO/QTGPR"));
+    assertThat(samps.size()).isAtLeast(117);
+
+  }
+
 //  @Test
 //  public void testListDataSetsForSamples() {
 //    assertThat(
 //        openbisClient.listDataSetsForSamples(
 //            Arrays.asList("/CONFERENCE_DEMO/NGSQTGPR003AL")).size()).isEqualTo(1);
 //  }
-//
-//  @Test
-//  public void testGetUrlForDataset() throws MalformedURLException {
-//    String code = "20150317113748250-9094";
-//    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
-//    assertThat(openbisClient.getUrlForDataset(code, file).equals(
-//        "https://qbis.qbic.uni-tuebingen.d4/datastore_server/" + code + "/original/" + file
-//            + "?mode=simpleHtml&sessionID=" + openbisClient.getSessionToken()));
-//    openbisClient.getUrlForDataset(code, "WRONG");
-//    openbisClient.getUrlForDataset("notacode", file);
-//  }
-//
+
+  @Test
+  public void testGetUrlForDataset() throws MalformedURLException {
+    String code = "20150317113748250-9094";
+    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
+    assertEquals(openbisClient.getUrlForDataset(code, file).toString(),
+        "https://qbis.qbic.uni-tuebingen.de:444/datastore_server/" + code + "/original/" + file
+            + "?mode=simpleHtml&sessionID=" + openbisClient.getSessionToken());
+    openbisClient.getUrlForDataset(code, "WRONG");
+    openbisClient.getUrlForDataset("notacode", file);
+  }
+
 //  //@Test
 //  public void testGetDatasetStreamString() {
 //    // TODO
