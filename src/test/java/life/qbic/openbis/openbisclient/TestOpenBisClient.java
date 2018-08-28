@@ -16,6 +16,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
@@ -1129,13 +1130,12 @@ public class TestOpenBisClient {
     openbisClient.getSampleTypeByString("does/not/exist");
   }
 
-  //  @Test
-//  public void testGetExperimentTypeByString() {
-//    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(
-//        ExperimentType.class);
-//    assertThat(openbisClient.getExperimentTypeByString("xyz") == null);
-//  }
-//
+    @Test
+  public void testGetExperimentTypeByString() {
+    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(ExperimentType.class);
+    assertNull(openbisClient.getExperimentTypeByString("xyz"));
+  }
+
 //  @Test
 //  public void testGetLabelsofProperties() {
 //    SampleType type = openbisClient.getSampleTypeByString("Q_BIOLOGICAL_ENTITY");
@@ -1399,13 +1399,14 @@ public class TestOpenBisClient {
 //    // openbisClient.addNewInstance(params, service, number_of_samples_offset)
 //    fail("Not yet implemented");
 //  }
-//
-//  @Test
-//  public void getSampleTypes(){
-//    Map<String, SampleType> types = openbisClient.getSampleTypes();
-//    assertThat(types.size()).isGreaterThan(0);
-//  }
-//
+
+  @Test
+  public void getSampleTypes(){
+    //TODO maybe not the best test yet...
+    Map<String, SampleType> types = openbisClient.getSampleTypes();
+    assertThat(types.size()).isGreaterThan(0);
+  }
+
 //  @Test
 //  public void testGetPropertyOfSamples() {
 //    Set<Sample> input = new HashSet<Sample>(

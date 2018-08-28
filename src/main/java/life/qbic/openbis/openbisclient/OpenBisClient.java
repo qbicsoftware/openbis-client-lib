@@ -1,6 +1,7 @@
 package life.qbic.openbis.openbisclient;
 
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchDataSetsCompletely;
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentTypesCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentsCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchProjectsCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSampleTypesCompletely;
@@ -14,8 +15,10 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCrit
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentTypeSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
@@ -42,6 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The type Open bis client.
+ */
 public class OpenBisClient implements IOpenBisClient {
 
   private final int TIMEOUT = 100000;
@@ -49,6 +55,13 @@ public class OpenBisClient implements IOpenBisClient {
   private IApplicationServerApi v3;
   private IDataStoreServerApi dss3;
 
+  /**
+   * Instantiates a new Open bis client.
+   *
+   * @param userId the user id
+   * @param password the password
+   * @param serverURL the server url
+   */
   public OpenBisClient(String userId, String password, String serverURL) {
     this.userId = userId;
     this.password = password;
@@ -89,7 +102,12 @@ public class OpenBisClient implements IOpenBisClient {
     return mapToChar(sum % 34);
   }
 
-  //TODO Added for testing reasons...
+  /**
+   * Gets v 3.
+   *
+   * @return the v 3
+   */
+//TODO Added for testing reasons...
   public IApplicationServerApi getV3() {
     return v3;
   }
@@ -200,10 +218,6 @@ public class OpenBisClient implements IOpenBisClient {
     return experiments.getObjects();
   }
 
-//  @Override
-//  public void updateSampleMetadata(long sampleID, Map<String, String> properties) {
-//    //TODO Wait for openbis test instance
-//  }
 
   /**
    * Function to retrieve all samples of a given experiment Note: seems to throw a
@@ -258,22 +272,6 @@ public class OpenBisClient implements IOpenBisClient {
     return samples.getObjects().get(0);
   }
 
-//  @Override
-//  public List<Sample> getSamplesOfProjectBySearchService(String projIdentifier) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Sample> getSamplesWithParentsAndChildrenOfProjectBySearchService(
-//      String projIdentifier) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Sample> getSamplesWithParentsAndChildren(String sampCode) {
-//    return null;
-//  }
-
   @Override
   public List<Sample> getSamplesOfProject(String projIdentifier) {
     ensureLoggedIn();
@@ -324,36 +322,6 @@ public class OpenBisClient implements IOpenBisClient {
 
     return experiments.getObjects();
   }
-
-//  @Override
-//  public List<Experiment> getExperimentsForProject(Project project) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Experiment> getExperimentsForProject2(Project project) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Experiment> getExperimentsForProject2(String projectCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Experiment> getExperimentsForProject3(Project project) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Experiment> getExperimentsForProject3(String projectCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Experiment> getExperimentsForProject(String projectIdentifier) {
-//    return null;
-//  }
 
   /**
    * Function to list all Experiments for a specific project which are registered in the openBIS
@@ -471,7 +439,6 @@ public class OpenBisClient implements IOpenBisClient {
   public List<String> getUserSpaces(String userID) {
     logout();
 
-    // login to obtain a session token
     sessionToken = v3.loginAs(userId, password, userID);
     List<String> spacesOfUser = listSpaces();
     logout();
@@ -518,11 +485,6 @@ public class OpenBisClient implements IOpenBisClient {
 
     return projects.getObjects().get(0);
   }
-
-//  @Override
-//  public List<Experiment> getExperimentById2(String expIdentifer) {
-//    return null;
-//  }
 
   @Override
   public Experiment getExperimentByCode(String experimentCode) {
@@ -698,11 +660,6 @@ public class OpenBisClient implements IOpenBisClient {
     return null;
   }
 
-//  @Override
-//  public void addAttachmentToProject(Map<String, Object> parameter) {
-//    //TODO Wait for openbis test instance
-//  }
-
 
   /**
    * Function to list the vocabulary terms for a given property which has been added to openBIS. The
@@ -741,40 +698,24 @@ public class OpenBisClient implements IOpenBisClient {
   }
 
   /**
-   * Function to retrieve all samples of a specific given type
+   * Function to retrieve a map with sample type code as key and the sample type object as value
    *
-   * @return list with all samples of this given type
+   * @return map with sample types
    */
   @Override
   public Map<String, SampleType> getSampleTypes() {
-    //TODO this method sounds strange...
-    return null;
+    SearchResult<SampleType> sampleTypes = v3.searchSampleTypes(sessionToken,
+        new SampleTypeSearchCriteria(), fetchSampleTypesCompletely());
+
+    Map<String, SampleType> types = new HashMap<>();
+    for (SampleType t : sampleTypes.getObjects()){
+      types.put(t.getCode(), t);
+    }
+
+    return types;
+
   }
 
-//  @Override
-//  public Map<String, SampleType> getSampleTypes() {
-//    return null;
-//  }
-//
-//  @Override
-//  public String triggerIngestionService(String serviceName, Map<String, Object> parameters) {
-//    return null;
-//  }
-//
-//  @Override
-//  public String addParentChildConnection(Map<String, Object> parameters) {
-//    //TODO Wait for openbis test instance
-//
-//    return null;
-//  }
-//
-//  @Override
-//  public String addNewInstance(Map<String, Object> params, String service,
-//      int number_of_samples_offset) {
-//    //TODO Wait for openbis test instance
-//
-//    return null;
-//  }
 
   /**
    * Function to get a ExperimentType object of a experiment type
@@ -784,7 +725,18 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public ExperimentType getExperimentTypeByString(String experimentType) {
-    return null;
+
+    ExperimentTypeSearchCriteria sc = new ExperimentTypeSearchCriteria();
+    sc.withCode().thatContains(experimentType);
+
+    SearchResult<ExperimentType> experimentTypes = v3.searchExperimentTypes(sessionToken, sc,
+        fetchExperimentTypesCompletely());
+
+    if (experimentTypes.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return experimentTypes.getObjects().get(0);
+    }
   }
 
   /**
@@ -846,22 +798,6 @@ public class OpenBisClient implements IOpenBisClient {
     return null;
   }
 
-//  @Override
-//  public String openBIScodeToString(String entityCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
-//      throws MalformedURLException {
-//    return null;
-//  }
-//
-//  @Override
-//  public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
-//      throws MalformedURLException {
-//    return null;
-//  }
 
   @Override
   public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
@@ -888,20 +824,6 @@ public class OpenBisClient implements IOpenBisClient {
     return null;
   }
 
-//  @Override
-//  public List<String> getProjectTSV(String projectCode, String sampleType) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Sample> getChildrenBySearchService(String sampleCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Sample> getParentsBySearchService(String sampleCode) {
-//    return null;
-//  }
 
   @Override
   public List<Sample> getChildrenSamples(Sample sample) {
@@ -1009,40 +931,6 @@ public class OpenBisClient implements IOpenBisClient {
     return null;
   }
 
-//  @Override
-//  public float computeProjectStatus(Project project) {
-//    return 0;
-//  }
-//
-//  @Override
-//  public float computeProjectStatus(List<Experiment> experiments) {
-//    return 0;
-//  }
-//
-//  @Override
-//  public Map<String, String> getVocabCodesAndLabelsForVocab(String vocabularyCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public Vocabulary getVocabulary(String vocabularyCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<String> getVocabCodesForVocab(String vocabularyCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public List<Experiment> getExperimentsForUser(String userID) {
-//    return null;
-//  }
-//
-//  @Override
-//  public void ingest(String dss, String serviceName, Map<String, Object> params) {
-//
-//  }
 
   @Override
   public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
@@ -1111,18 +999,4 @@ public class OpenBisClient implements IOpenBisClient {
     return null;
   }
 
-//  @Override
-//  public URL getUrlForDataset(String datasetCode, String datasetName) throws MalformedURLException {
-//    return null;
-//  }
-//
-//  @Override
-//  public InputStream getDatasetStream(String datasetCode) {
-//    return null;
-//  }
-//
-//  @Override
-//  public InputStream getDatasetStream(String datasetCode, String folder) {
-//    return null;
-//  }
 }
