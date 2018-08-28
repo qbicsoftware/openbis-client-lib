@@ -29,11 +29,8 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriter
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleTypeSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOptions;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.ISpaceId;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import java.io.InputStream;
@@ -136,7 +133,6 @@ public class OpenBisClient implements IOpenBisClient {
     // login to obtain a session token
     sessionToken = v3.login(userId, password);
   }
-
 
 
   /**
@@ -610,7 +606,8 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withExperiment().withPermId().thatEquals(experimentPermID);
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
-    return dataSets.getObjects();  }
+    return dataSets.getObjects();
+  }
 
   /**
    * Returns all datasets of a given experiment. The new version should run smoother
@@ -623,7 +620,7 @@ public class OpenBisClient implements IOpenBisClient {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withExperiment().withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
-  return dataSets.getObjects();
+    return dataSets.getObjects();
   }
 
   /**

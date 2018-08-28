@@ -17,12 +17,10 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
-import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion.User;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
@@ -35,7 +33,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.internal.matchers.Null;
 
 public class TestOpenBisClient {
 
@@ -279,7 +276,7 @@ public class TestOpenBisClient {
   public void testGetSamplesWithParentsAndChildrenWithIdentifier() {
     List<Sample> samples = openbisClient.getSamplesWithParentsAndChildren(
         "/MFT_PICHLER_MULTISCALE" +
-        "/MSQMUSP061A9");
+            "/MSQMUSP061A9");
     assertThat(samples.size()).isAtLeast(1);
     assertSampleCompletetlyFetched(samples.get(0));
   }
@@ -388,7 +385,8 @@ public class TestOpenBisClient {
     assertThat(experimentsString.size()).isAtLeast(1);
     assertExperimentCompletetlyFetched(experimentsString.get(0));
     List<Experiment> experimentsObject =
-        openbisClient.getExperimentsForProject(openbisClient.getProjectByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR"));
+        openbisClient.getExperimentsForProject(
+            openbisClient.getProjectByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR"));
     assertThat(experimentsObject.size()).isAtLeast(1);
     assertExperimentCompletetlyFetched(experimentsObject.get(0));
     assertEquals(experimentsObject.size(), experimentsString.size());
@@ -753,7 +751,7 @@ public class TestOpenBisClient {
   public void testGetDataSetsOfSampleByIdentifier() {
     List<DataSet> dsets = openbisClient.getDataSetsOfSampleByIdentifier("/ABI_SYSBIO/QMARI117AV");
     assertThat(dsets.size()).isAtLeast(1);
-    assertEquals(dsets.get(0).getClass(), DataSet.class );
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
     assertDataSetCompletelyFetched(dsets.get(0));
     assertEquals(dsets.get(0).getSample().getCode(), "QMARI117AV");
   }
@@ -769,7 +767,7 @@ public class TestOpenBisClient {
   public void testGetDataSetsOfSampleByIdentifierNull() {
     exception.expect(IllegalArgumentException.class);
     openbisClient.getDataSetsOfSampleByIdentifier(null);
-    }
+  }
 
   @Test
   public void testGetDataSetsOfSampleByIdentifierEmpty() {
@@ -787,7 +785,7 @@ public class TestOpenBisClient {
   public void testGetDataSetsOfSample() {
     List<DataSet> dsets = openbisClient.getDataSetsOfSample("QMARI117AV");
     assertThat(dsets.size()).isAtLeast(1);
-    assertEquals(dsets.get(0).getClass(), DataSet.class );
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
     assertDataSetCompletelyFetched(dsets.get(0));
     assertEquals(dsets.get(0).getSample().getCode(), "QMARI117AV");
   }
@@ -796,7 +794,7 @@ public class TestOpenBisClient {
   public void testGetDataSetsOfSampleWithId() {
     List<DataSet> dsets = openbisClient.getDataSetsOfSample("/ABI_SYSBIO/QMARI117AV");
     assertThat(dsets.size()).isAtLeast(1);
-    assertEquals(dsets.get(0).getClass(), DataSet.class );
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
     assertDataSetCompletelyFetched(dsets.get(0));
     assertEquals(dsets.get(0).getSample().getCode(), "QMARI117AV");
   }
@@ -825,7 +823,7 @@ public class TestOpenBisClient {
     Experiment ex = openbisClient.getExperimentByCode("HPTI");
     List<DataSet> dsets = openbisClient.getDataSetsOfExperiment(ex.getPermId().getPermId());
     assertThat(dsets.size()).isAtLeast(1);
-    assertEquals(dsets.get(0).getClass(), DataSet.class );
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
     assertDataSetCompletelyFetched(dsets.get(0));
     assertEquals(dsets.get(0).getExperiment().getCode(), ex.getCode());
   }
@@ -854,7 +852,7 @@ public class TestOpenBisClient {
     List<DataSet> dsets =
         openbisClient.getDataSetsOfExperimentByIdentifier(ex.getIdentifier().getIdentifier());
     assertThat(dsets.size()).isAtLeast(1);
-    assertEquals(dsets.get(0).getClass(), DataSet.class );
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
     assertDataSetCompletelyFetched(dsets.get(0));
     assertEquals(dsets.get(0).getExperiment().getCode(), ex.getCode());
   }
@@ -882,7 +880,7 @@ public class TestOpenBisClient {
     List<DataSet> dsets =
         openbisClient.getDataSetsOfSpaceByIdentifier(openbisClient.listSpaces().get(0));
     assertThat(dsets.size()).isAtLeast(1);
-    assertEquals(dsets.get(0).getClass(), DataSet.class );
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
     assertDataSetCompletelyFetched(dsets.get(0));
   }
 
