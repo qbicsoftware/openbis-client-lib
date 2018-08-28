@@ -15,7 +15,6 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCrit
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentTypeSearchCriteria;
@@ -269,7 +268,11 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Sample> samples = v3
         .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
 
-    return samples.getObjects().get(0);
+    if (samples.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return samples.getObjects().get(0);
+    }
   }
 
   @Override
@@ -469,7 +472,11 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Project> projects = v3
         .searchProjects(sessionToken, sc, fetchProjectsCompletely());
 
-    return projects.getObjects().get(0);
+    if (projects.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return projects.getObjects().get(0);
+    }
   }
 
   @Override
@@ -483,7 +490,11 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Project> projects = v3
         .searchProjects(sessionToken, sc, fetchProjectsCompletely());
 
-    return projects.getObjects().get(0);
+    if (projects.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return projects.getObjects().get(0);
+    }
   }
 
   @Override
@@ -492,10 +503,14 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withCode().thatEquals(experimentCode);
 
-    SearchResult<Experiment> experiment = v3
+    SearchResult<Experiment> experiments = v3
         .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
-    return experiment.getObjects().get(0);
+    if (experiments.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return experiments.getObjects().get(0);
+    }
   }
 
   @Override
@@ -516,10 +531,14 @@ public class OpenBisClient implements IOpenBisClient {
     ensureLoggedIn();
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
-    SearchResult<Experiment> experiment = v3
+    SearchResult<Experiment> experiments = v3
         .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
-    return experiment.getObjects().get(0).getProject();
+    if (experiments.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return experiments.getObjects().get(0).getProject();
+    }
   }
 
   /**
@@ -694,7 +713,12 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<SampleType> sampleTypes = v3.searchSampleTypes(sessionToken, sc,
         fetchSampleTypesCompletely());
 
-    return sampleTypes.getObjects().get(0);
+    if (sampleTypes.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return sampleTypes.getObjects().get(0);
+    }
+
   }
 
   /**
@@ -708,7 +732,7 @@ public class OpenBisClient implements IOpenBisClient {
         new SampleTypeSearchCriteria(), fetchSampleTypesCompletely());
 
     Map<String, SampleType> types = new HashMap<>();
-    for (SampleType t : sampleTypes.getObjects()){
+    for (SampleType t : sampleTypes.getObjects()) {
       types.put(t.getCode(), t);
     }
 

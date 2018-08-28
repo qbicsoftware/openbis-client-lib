@@ -253,9 +253,8 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetSampleByIdentifierNotExist() {
-    // Identifier does not exist
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getSampleByIdentifier("/does/not/exist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getSampleByIdentifier("/does/not/exist"));
   }
 
   @Test
@@ -596,16 +595,14 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetProjectByIdentifierEmpty() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByIdentifier("");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByIdentifier(""));
   }
 
   @Test
   public void testGetProjectByIdentifierNotExist() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByIdentifier("/does/notexist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByIdentifier("/does/notexist"));
   }
 
   @Test
@@ -633,16 +630,14 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetProjectByCodeEmpty() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByCode("");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByCode(""));
   }
 
   @Test
   public void testGetProjectByCodeNotExist() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByCode("/does/notexist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByCode("/does/notexist"));
   }
 
   @Test
@@ -677,8 +672,8 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetExperimentByCodeNotExist() {
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getExperimentByCode("/does/notexist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getExperimentByCode("/does/notexist"));
   }
 
   @Test
@@ -1001,8 +996,7 @@ public class TestOpenBisClient {
 
   @Test
   public void testListAttachmentsForSampleByIdentifierNotExist() {
-    //TODO should throw other exception than IndexOutOfBounds
-    exception.expect(IndexOutOfBoundsException.class);
+    exception.expect(NullPointerException.class);
     openbisClient.listAttachmentsForSampleByIdentifier("/does/notexist");
   }
 
@@ -1031,15 +1025,13 @@ public class TestOpenBisClient {
 
   @Test
   public void testListAttachmentsForProjectByIdentifierEmpty() {
-    //TODO other exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
+    exception.expect(NullPointerException.class);
     openbisClient.listAttachmentsForProjectByIdentifier("");
   }
 
   @Test
   public void testListAttachmentsForProjectByIdentifierNotExist() {
-    //TODO should throw other exception than IndexOutOfBounds
-    exception.expect(IndexOutOfBoundsException.class);
+    exception.expect(NullPointerException.class);
     openbisClient.listAttachmentsForProjectByIdentifier("/does/notexist");
   }
 
@@ -1118,25 +1110,24 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetSampleTypeByStringEmpty() {
-    //TODO Should throw another exception than IndexOutOfBoundsException
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getSampleTypeByString("");
+    //TODO Should throw an exception
+    assertNull(openbisClient.getSampleTypeByString(""));
   }
 
   @Test
   public void testGetSampleTypeByStringNotExist() {
-    //TODO Should throw another exception than IndexOutOfBoundsException
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getSampleTypeByString("does/not/exist");
+    //TODO Should throw an exception
+    assertNull(openbisClient.getSampleTypeByString("does/not/exist"));
   }
 
-    @Test
+  @Test
   public void testGetExperimentTypeByString() {
-    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(ExperimentType.class);
+    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN"))
+        .isInstanceOf(ExperimentType.class);
     assertNull(openbisClient.getExperimentTypeByString("xyz"));
   }
 
-//  @Test
+  //  @Test
 //  public void testGetLabelsofProperties() {
 //    SampleType type = openbisClient.getSampleTypeByString("Q_BIOLOGICAL_ENTITY");
 //    Map<String, String> prop = openbisClient.getLabelsofProperties(type);
@@ -1401,7 +1392,7 @@ public class TestOpenBisClient {
 //  }
 
   @Test
-  public void getSampleTypes(){
+  public void getSampleTypes() {
     //TODO maybe not the best test yet...
     Map<String, SampleType> types = openbisClient.getSampleTypes();
     assertThat(types.size()).isGreaterThan(0);
