@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang.WordUtils;
 
 /**
  * The type Open bis client.
@@ -50,7 +51,7 @@ import java.util.Set;
 public class OpenBisClient implements IOpenBisClient {
 
   private final int TIMEOUT = 100000;
-  private String userId, password, sessionToken;
+  private String userId, password, sessionToken, serverURL;
   private IApplicationServerApi v3;
   private IDataStoreServerApi dss3;
 
@@ -64,6 +65,7 @@ public class OpenBisClient implements IOpenBisClient {
   public OpenBisClient(String userId, String password, String serverURL) {
     this.userId = userId;
     this.password = password;
+    this.serverURL = serverURL;
     // get a reference to AS API
     v3 = HttpInvokerUtils
         .createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
@@ -149,6 +151,15 @@ public class OpenBisClient implements IOpenBisClient {
 
     // login to obtain a session token
     sessionToken = v3.login(userId, password);
+  }
+
+  public void loginAsUser(String user) {
+    if (loggedin()) {
+      logout();
+    }
+
+    // login to obtain a session token
+    sessionToken = v3.loginAs(userId, password, user);
   }
 
 
@@ -442,7 +453,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<String> getUserSpaces(String userID) {
     logout();
 
-    sessionToken = v3.loginAs(userId, password, userID);
+    loginAsUser(userID);
     List<String> spacesOfUser = listSpaces();
     logout();
     login();
@@ -794,7 +805,13 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public String openBIScodeToString(String entityCode) {
-    return null;
+    entityCode = WordUtils.capitalizeFully(entityCode.replace("_", " ").toLowerCase());
+    String edit_string = entityCode.replace("Ngs", "NGS").replace("Hla", "HLA")
+        .replace("Rna", "RNA").replace("Dna", "DNA").replace("Ms", "MS");
+    if (edit_string.startsWith("Q ")) {
+      edit_string = edit_string.replace("Q ", "");
+    }
+    return edit_string;
   }
 
   /**
@@ -813,13 +830,31 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    return null;
+    String base = this.serverURL.split(".de")[0] + ".de";
+    String downloadURL = base + ":444";
+    downloadURL += "/datastore_server/";
+
+    downloadURL += dataSetCode;
+    downloadURL += "/original/";
+    downloadURL += openbisFilename;
+    downloadURL += "?mode=simpleHtml&sessionID=";
+    downloadURL += this.getSessionToken();
+    return new URL(downloadURL);
   }
 
   @Override
   public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    return null;
+    String base = this.serverURL.split(".de")[0] + ".de";
+    String downloadURL = base + ":444";
+    downloadURL += "/datastore_server/";
+
+    downloadURL += dataSetCode;
+    downloadURL += "/";
+    downloadURL += openbisFilename;
+    downloadURL += "?mode=simpleHtml&sessionID=";
+    downloadURL += this.getSessionToken();
+    return new URL(downloadURL);
   }
 
 
@@ -900,7 +935,23 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public float computeProjectStatus(Project project) {
-    return 0;
+    float finishedExperiments = 0f;
+
+    List<Experiment> experiments = this.getExperimentsOfProjectByCode(project.getCode());
+    float numberExperiments = experiments.size();
+
+    for (Experiment e : experiments) {
+      if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
+        if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
+          finishedExperiments += 1.0;
+        } ;
+      }
+    }
+    if (numberExperiments > 0) {
+      return finishedExperiments / experiments.size();
+    } else {
+      return 0f;
+    }
   }
 
   /**
@@ -913,7 +964,22 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public float computeProjectStatus(List<Experiment> experiments) {
-    return 0;
+    float finishedExperiments = 0f;
+
+    float numberExperiments = experiments.size();
+
+    for (Experiment e : experiments) {
+      if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
+        if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
+          finishedExperiments += 1.0;
+        } ;
+      }
+    }
+    if (numberExperiments > 0) {
+      return finishedExperiments / experiments.size();
+    } else {
+      return 0f;
+    }
   }
 
   /**
@@ -948,17 +1014,39 @@ public class OpenBisClient implements IOpenBisClient {
    * Returns a list of all Experiments of a certain user.
    *
    * @param userID ID of user
-   * @return A list containing the codes of the vocabulary type
+   * @return A list containing the experiments
    */
   @Override
   public List<Experiment> getExperimentsForUser(String userID) {
-    return null;
+    ensureLoggedIn();
+    loginAsUser(userID);
+    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken,
+        new ExperimentSearchCriteria(), fetchExperimentsCompletely());
+
+    logout();
+    login();
+    if (experiments.getObjects().isEmpty()) {
+      return null;
+    } else {
+      return experiments.getObjects();
+    }
   }
 
 
   @Override
   public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
-    return null;
+    ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    for (Project project : projectList) {
+      sc.withProject().withCode().thatEquals(project.getCode());
+    }
+    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, sc,
+        fetchExperimentsCompletely());
+
+    if (experiments.getObjects().isEmpty()){
+      return null;
+    } else {
+      return experiments.getObjects();
+    }
   }
 
   /**

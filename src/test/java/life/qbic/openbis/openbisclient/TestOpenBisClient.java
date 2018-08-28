@@ -24,9 +24,13 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.jws.soap.SOAPBinding.Use;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -1152,34 +1156,26 @@ public class TestOpenBisClient {
     assertEquals('M', output);
   }
 
-//  @Test
-//  public void testOpenBIScodeToString() {
-//    assertThat(openbisClient.openBIScodeToString("Q_BIOLOGICAL_ENTITY")).isEqualTo(
-//        "Biological Entity");
-//  }
-//
-//  @Test
-//  public void testGetDataStoreDownloadURL() throws MalformedURLException {//TODO deprecated
-//    String code = "20150317113748250-9094";
-//    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
-//    String url = openbisClient.getDataStoreDownloadURL(code, file).toString();
-//    String controlUrl = String.format("https://qbis.qbic.uni-tuebingen.de:444/datastore_server/%s/original/%s?mode=simpleHtml&sessionID=%s",code,file, openbisClient.getSessionToken());
-//    assertThat(url).isEqualTo(controlUrl);
-//    //This method is deprecated so we will not further work on it. However, it is not checking correctness of code and filename.
-//    /*try {
-//      System.out.println(openbisClient.getDataStoreDownloadURL(code, "WRONG"));
-//      fail("should not work with nonexisting file name");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//    try {
-//      openbisClient.getDataStoreDownloadURL("notacode", file);
-//      fail("should not work with nonexisting dataset code");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }*/
-//  }
-//
+  @Test
+  public void testOpenBIScodeToString() {
+    assertThat(openbisClient.openBIScodeToString("Q_BIOLOGICAL_ENTITY")).isEqualTo(
+        "Biological Entity");
+  }
+
+  @Test
+  public void testGetDataStoreDownloadURL() throws MalformedURLException {//TODO deprecated
+    String code = "20150317113748250-9094";
+    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
+    String url = openbisClient.getDataStoreDownloadURL(code, file).toString();
+    String controlUrl = String.format("https://qbis.qbic.uni-tuebingen.de:444/datastore_server/%s/original/%s?mode=simpleHtml&sessionID=%s",code,file, openbisClient.getSessionToken());
+    assertThat(url).isEqualTo(controlUrl);
+  }
+
+  @Test
+  public void testGetDataStoreDownloadURLLessGeneric() throws MalformedURLException {
+    //TODO
+  }
+
 //  /*@Test
 //  public void testGetParentMap() {
 //    Map<Sample, List<Sample>> map =
@@ -1283,11 +1279,11 @@ public class TestOpenBisClient {
     assertFalse(openbisClient.sampleExists(null));
   }
 
-//  //@Test
-//  public void testComputeProjectStatus() {
-//    // TODO
-//  }
-//
+  @Test
+  public void testComputeProjectStatus() {
+    //TODO
+  }
+
 //  @Test
 //  public void testGetVocabCodesAndLabelsForVocab() {
 //    Map<String, String> map = openbisClient.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
@@ -1305,23 +1301,54 @@ public class TestOpenBisClient {
 //    assertThat(!lis.contains("Homo_sapiens"));
 //    assertThat(!lis.contains("Yeti sapiens"));
 //  }
-//
-//  @Test
-//  public void testGetExperimentsForUser() {
-//    String user = "iisko01";
-//    List<Experiment> exps = openbisClient.getExperimentsForUser(user);
-//    for (Experiment e : exps) {
-//      assertThat(openbisClient.getSpaceMembers(e.getIdentifier().split("/")[1]).contains(user));
-//    }
-//  }
-//
-//  @Test
-//  public void testListExperimentsOfProjects() {
-//    Project qshow = openbisClient.getProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
-//    List<Experiment> exps = openbisClient.listExperimentsOfProjects(Arrays.asList(qshow));
-//    assertThat(exps.size()).isEqualTo(61);
-//  }
-//
+
+  @Test
+  public void testGetExperimentsForUser() {
+    String user = "zxmqw74";
+    List<Experiment> exps = openbisClient.getExperimentsForUser(user);
+    assertThat(exps.size()).isAtLeast(1);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(exps.get(0));
+  }
+
+  @Test
+  public void testGetExperimentsForUserNull() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getExperimentsForUser(null);
+  }
+
+  @Test
+  public void testGetExperimentsForUserEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getExperimentsForUser("");
+  }
+
+  @Test
+  public void testGetExperimentsForUserNotExist() {
+    //TODO should raise another exception
+    exception.expect(AssertionError.class);
+    openbisClient.getExperimentsForUser("zxxxxx12");
+  }
+
+  @Test
+  public void testListExperimentsOfProjects() {
+    Project qshow = openbisClient.getProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
+    List<Experiment> exps = openbisClient.listExperimentsOfProjects(Arrays.asList(qshow));
+    assertThat(exps.size()).isEqualTo(73);
+  }
+
+  @Test
+  public void testListExperimentsOfProjectsNull() {
+    exception.expect(NullPointerException.class);
+    openbisClient.listExperimentsOfProjects(null);
+  }
+
+  @Test
+  public void testListExperimentsOfProjectsNullInsideList() {
+    exception.expect(NullPointerException.class);
+    openbisClient.listExperimentsOfProjects(Arrays.asList(null));
+  }
+
 //  @Test
 //  public void testListDataSetsForExperiments() {
 //    List<DataSet> dsets =
