@@ -2,6 +2,7 @@ package life.qbic.openbis.openbisclient.helper;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
@@ -89,6 +90,13 @@ public class OpenBisClientHelper {
     sampleTypeFetchOption.withPropertyAssignments();
 
     return sampleTypeFetchOption;
+  }
+
+  public static ExperimentTypeFetchOptions fetchExperimentTypesCompletely() {
+    ExperimentTypeFetchOptions experimentTypeFetchOptions = new ExperimentTypeFetchOptions();
+    experimentTypeFetchOptions.withPropertyAssignments();
+
+    return experimentTypeFetchOptions;
   }
 
 }

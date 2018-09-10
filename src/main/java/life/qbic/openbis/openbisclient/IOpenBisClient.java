@@ -631,8 +631,11 @@ public interface IOpenBisClient {
    * Returns a Map that maps samples to a list of samples of their parent samples
    *
    * @param samples A list of openBIS samples
-   * @return Map<Sample                               ,                                                               List                               <                               Sample>> containing a mapping
-   * between children and parents of samples
+   * @return Map<Sample
+               *       ,       List
+               *                                                                                                                                                           <
+               *                                                                                                                                                                                                                                                                                           Sample>> containing a
+   * mapping between children and parents of samples
    */
   public Map<Sample, List<Sample>> getParentMap(List<Sample> samples);
 

@@ -16,6 +16,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
@@ -23,9 +24,13 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.jws.soap.SOAPBinding.Use;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -252,9 +257,8 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetSampleByIdentifierNotExist() {
-    // Identifier does not exist
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getSampleByIdentifier("/does/not/exist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getSampleByIdentifier("/does/not/exist"));
   }
 
   @Test
@@ -263,6 +267,42 @@ public class TestOpenBisClient {
     exception.expect(RuntimeException.class);
     exception.expectMessage("has to start");
     openbisClient.getSampleByIdentifier("doesnotexist");
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildren() {
+    List<Sample> samples = openbisClient.getSamplesWithParentsAndChildren("MSQMUSP061A9");
+    assertThat(samples.size()).isAtLeast(1);
+    assertSampleCompletetlyFetched(samples.get(0));
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenWithIdentifier() {
+    List<Sample> samples = openbisClient.getSamplesWithParentsAndChildren(
+        "/MFT_PICHLER_MULTISCALE" +
+            "/MSQMUSP061A9");
+    assertThat(samples.size()).isAtLeast(1);
+    assertSampleCompletetlyFetched(samples.get(0));
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    openbisClient.getSamplesWithParentsAndChildren(null);
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenEmpty() {
+    exception.expect(UserFailureException.class);
+    exception.expectMessage("invalid");
+    openbisClient.getSamplesWithParentsAndChildren("");
+  }
+
+  @Test
+  public void testGetSamplesWithParentsAndChildrenNotExist() {
+    //TODO should raise an error instead returning empty list
+    openbisClient.getSamplesWithParentsAndChildren("/does/not/exist");
   }
 
   @Test
@@ -342,39 +382,19 @@ public class TestOpenBisClient {
     openbisClient.getExperimentsOfProjectByIdentifier("/does/notexist");
   }
 
-//  @Test (expected = UserFailureException.class)
-//  public void testGetExperimentsForProjectString() {
-//
-//    openbisClient.getExperimentsForProject("");// ->
-//    // ch.systemsx.cisd.common.exceptions.UserFailureException:
-//    // Illegal empty identifier
-//
-//    String test = null;
-//    openbisClient.getExperimentsForProject(test);// ch.systemsx.cisd.common.exceptions.UserFailureException:
-//    // Illegal empty identifier
-//  }
-//
-//  @Test
-//  public void testGetExperimentsForProjectStringSuccessfully() {
-//    assertThat(openbisClient.getExperimentsForProject("/TEST28/QTEST").size()).isAtLeast(22);
-//    // this one really cares about proper identifier
-//    openbisClient.getExperimentsForProject("/CONFERENCE_DEMO/QTGPR");
-//
-//  }
-//
-//  @Test (expected = IllegalArgumentException.class)
-//  public void testGetExperimentsForProjectStringWrongSpace(){
-//    openbisClient.getExperimentsForProject("QTEST");// java.lang.IllegalArgumentException:
-//    // Unspecified space code.
-//  }
-//
-//  @Test
-//  public void testGetExperimentsForProjectProject() {
-//    Project p = openbisClient.getProjectByIdentifier("/TEST28/QTEST");
-//    List<Experiment> exps = openbisClient.getExperimentsForProject(p);
-//    assertThat(exps.size()).isAtLeast(22);
-//    assertThat(openbisClient.getExperimentsForProject("/TEST28/QTEST").equals(exps));
-//  }
+  @Test
+  public void testGetExperimentsForProject() {
+    List<Experiment> experimentsString = openbisClient.getExperimentsForProject(
+        "/MFT_PICHLER_MULTISCALE/QSDPR");
+    assertThat(experimentsString.size()).isAtLeast(1);
+    assertExperimentCompletetlyFetched(experimentsString.get(0));
+    List<Experiment> experimentsObject =
+        openbisClient.getExperimentsForProject(
+            openbisClient.getProjectByIdentifier("/MFT_PICHLER_MULTISCALE/QSDPR"));
+    assertThat(experimentsObject.size()).isAtLeast(1);
+    assertExperimentCompletetlyFetched(experimentsObject.get(0));
+    assertEquals(experimentsObject.size(), experimentsString.size());
+  }
 
   @Test
   public void testGetExperimentsOfProjectByCode() {
@@ -483,7 +503,7 @@ public class TestOpenBisClient {
   @Test
   public void testGetExperimentsOfTypeNull() {
     //TODO should throw an exception
-    openbisClient.getExperimentsOfType(null);
+    //openbisClient.getExperimentsOfType(null);
   }
 
   @Test
@@ -513,7 +533,7 @@ public class TestOpenBisClient {
   @Test
   public void testGetSamplesOfTypeNull() {
     //TODO should throw an exception
-    openbisClient.getSamplesOfType(null);
+    //openbisClient.getSamplesOfType(null);
   }
 
   @Test
@@ -579,16 +599,14 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetProjectByIdentifierEmpty() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByIdentifier("");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByIdentifier(""));
   }
 
   @Test
   public void testGetProjectByIdentifierNotExist() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByIdentifier("/does/notexist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByIdentifier("/does/notexist"));
   }
 
   @Test
@@ -616,16 +634,14 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetProjectByCodeEmpty() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByCode("");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByCode(""));
   }
 
   @Test
   public void testGetProjectByCodeNotExist() {
-    //TODO should throw different Exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getProjectByCode("/does/notexist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getProjectByCode("/does/notexist"));
   }
 
   @Test
@@ -660,8 +676,8 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetExperimentByCodeNotExist() {
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getExperimentByCode("/does/notexist");
+    //TODO should throw an exception
+    assertNull(openbisClient.getExperimentByCode("/does/notexist"));
   }
 
   @Test
@@ -731,172 +747,195 @@ public class TestOpenBisClient {
     openbisClient.getProjectOfExperimentByIdentifier("/does/notexist");
   }
 
-//  @Test
-//  public void testGetDataSetsOfSampleByIdentifier() {
-//    List<DataSet> dsets = openbisClient.getDataSetsOfSampleByIdentifier("/ABI_SYSBIO/QMARI117AV");
-//    assertThat(dsets.size()).isEqualTo(6);
-//    try {
-//      System.out.println("testGetDataSetsOfSampleByIdentifier"
-//          + openbisClient.getDataSetsOfSampleByIdentifier("QMARI117AV"));
-//      fail("not an identifier");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfSample() {
-//    // it does not really matter as long as you have the last part correctly
-//    assertThat(openbisClient.getDataSetsOfSample("/CONFERENCE_DEMO/NGS1QTGPR004AT").size()).isEqualTo(1);
-//
-//    // does not throw any exception, just return 0
-//    assertThat(openbisClient.getDataSetsOfSample("MS_INJECT").size()).isEqualTo(0);
-//    assertThat(openbisClient.getDataSetsOfSample("20140617164748908-3036").size()).isEqualTo(0);
-//
-//    try {
-//      openbisClient.getDataSetsOfSample("").size();
-//      fail("should not work with empty string");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);// ->
-//      // ch.systemsx.cisd.common.exceptions.UserFailureException:
-//      // Search pattern '' is invalid.
-//    }
-//    try {
-//      openbisClient.getDataSetsOfSample(null).size();
-//      fail("should not work with null");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(NullPointerException.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfExperiment() {
-//    Experiment ex = openbisClient.getExperimentByCode("HPTI");
-//    List<DataSet> dsets = openbisClient.getDataSetsOfExperiment(ex.getPermId());
-//    assertThat(dsets.size()).isEqualTo(43);
-//    try {
-//      System.out.println("testGetDataSetsOfExperiment"
-//          + openbisClient.getDataSetsOfExperiment("HPTI"));
-//      fail("not perm id but code");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//    try {
-//      System.out.println("testGetDataSetsOfExperiment"
-//          + openbisClient.getExperimentByCode("/QBIC/QHPTI/HPTI"));
-//      fail("not perm id but id");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfExperimentByIdentifier() {
-//    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets =
-//        openbisClient.getDataSetsOfExperimentByIdentifier("/CONFERENCE_DEMO/QTGPRE/QTGPRE1");
-//    assertThat(dsets.size()).isEqualTo(0);
-//
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfExperimentByIdentifierWrongExperiment(){
-//    assertThat(openbisClient.getDataSetsOfExperimentByIdentifier("lulu")).isEmpty();
-//    //TODO seems to return the right datasets even if a code is used. either change function name or do something about it
-//  }
-//
-//  // testGetDataSetsOfExperimentByIdentifier[DataSet[20140226191333949-1374,/QBIC/QHPTI/HPTI,/QBIC/QHPTI016CA,CEL,{}],
-//  // DataSet[20140226191340992-1375,/QBIC/QHPTI/HPTI,/QBIC/QHPTI005CT,CEL,{}],
-//  // DataSet[20140226191357420-1377,/QBIC/QHPTI/HPTI,/QBIC/QHPTI011C4,CEL,{}],
-//  // DataSet[20140226191404414-1378,/QBIC/QHPTI/HPTI,/QBIC/QHPTI017CI,CEL,{}],
-//  // DataSet[20140226191411466-1379,/QBIC/QHPTI/HPTI,/QBIC/QHPTI018CQ,CEL,{}],
-//  // DataSet[20140226191418161-1380,/QBIC/QHPTI/HPTI,/QBIC/QHPTI014CS,CEL,{}],
-//  // DataSet[20140226191426681-1381,/QBIC/QHPTI/HPTI,/QBIC/QHPTI019C0,CEL,{}],
-//  // DataSet[20140226191434066-1382,/QBIC/QHPTI/HPTI,/QBIC/QHPTI007CB,CEL,{}],
-//  // DataSet[20140226191441617-1383,/QBIC/QHPTI/HPTI,/QBIC/QHPTI034TP,CEL,{}],
-//  // DataSet[20140226191450535-1384,/QBIC/QHPTI/HPTI,/QBIC/QHPTI036T7,CEL,{}],
-//  // DataSet[20140226191459114-1385,/QBIC/QHPTI/HPTI,/QBIC/QHPTI030PP,CEL,{}],
-//  // DataSet[20140226191507803-1386,/QBIC/QHPTI/HPTI,/QBIC/QHPTI024PG,CEL,{}],
-//  // DataSet[20140226191515532-1387,/QBIC/QHPTI/HPTI,/QBIC/QHPTI027P6,CEL,{}],
-//  // DataSet[20140226191525844-1388,/QBIC/QHPTI/HPTI,/QBIC/QHPTI022CJ,CEL,{}],
-//  // DataSet[20140226191934851-1389,/QBIC/QHPTI/HPTI,/QBIC/QHPTI039TV,CEL,{}],
-//  // DataSet[20140226192020080-1390,/QBIC/QHPTI/HPTI,/QBIC/QHPTI042TG,CEL,{}],
-//  // DataSet[20140226192028926-1391,/QBIC/QHPTI/HPTI,/QBIC/QHPTI043TO,CEL,{}],
-//  // DataSet[20140226192037373-1392,/QBIC/QHPTI/HPTI,/QBIC/QHPTI040T0,CEL,{}],
-//  // DataSet[20140226192044952-1393,/QBIC/QHPTI/HPTI,/QBIC/QHPTI041T8,CEL,{}],
-//  // DataSet[20140226192157487-1394,/QBIC/QHPTI/HPTI,/QBIC/QHPTI031PX,CEL,{}],
-//  // DataSet[20140226192204809-1395,/QBIC/QHPTI/HPTI,/QBIC/QHPTI032P7,CEL,{}],
-//  // DataSet[20140226192216725-1396,/QBIC/QHPTI/HPTI,/QBIC/QHPTI033TH,CEL,{}],
-//  // DataSet[20131202021322407-907,/QBIC/QHPTI/HPTI,/QBIC/QHPTI004CL,PDF,{}],
-//  // DataSet[20140226192230877-1398,/QBIC/QHPTI/HPTI,/QBIC/QHPTI037TF,CEL,{}],
-//  // DataSet[20140226192238831-1399,/QBIC/QHPTI/HPTI,/QBIC/QHPTI038TN,CEL,{}],
-//  // DataSet[20140226192246158-1400,/QBIC/QHPTI/HPTI,/QBIC/QHPTI021CB,CEL,{}],
-//  // DataSet[20140226192253581-1401,/QBIC/QHPTI/HPTI,/QBIC/QHPTI023CR,CEL,{}],
-//  // DataSet[20140226192301114-1402,/QBIC/QHPTI/HPTI,/QBIC/QHPTI025PO,CEL,{}],
-//  // DataSet[20140226192309806-1403,/QBIC/QHPTI/HPTI,/QBIC/QHPTI026PW,CEL,{}],
-//  // DataSet[20140226192317480-1404,/QBIC/QHPTI/HPTI,/QBIC/QHPTI028PE,CEL,{}],
-//  // DataSet[20140226192324474-1405,/QBIC/QHPTI/HPTI,/QBIC/QHPTI029PM,CEL,{}],
-//  // DataSet[20130904105623877-566,/QBIC/QHPTI/HPTI,/QBIC/QHPTI002TU,PDF,{}],
-//  // DataSet[20130904105639119-568,/QBIC/QHPTI/HPTI,/QBIC/QHPTI001TM,PDF,{}],
-//  // DataSet[20140226192223870-1397,/QBIC/QHPTI/HPTI,/QBIC/QHPTI035TX,CEL,{}],
-//  // DataSet[20140226191227525-1365,/QBIC/QHPTI/HPTI,/QBIC/QHPTI013CK,CEL,{}],
-//  // DataSet[20140226191235791-1366,/QBIC/QHPTI/HPTI,/QBIC/QHPTI004CL,CEL,{}],
-//  // DataSet[20140226191243383-1367,/QBIC/QHPTI/HPTI,/QBIC/QHPTI015C2,CEL,{}],
-//  // DataSet[20140226191250200-1368,/QBIC/QHPTI/HPTI,/QBIC/QHPTI012CC,CEL,{}],
-//  // DataSet[20140226191257669-1369,/QBIC/QHPTI/HPTI,/QBIC/QHPTI020C3,CEL,{}],
-//  // DataSet[20140226191304706-1370,/QBIC/QHPTI/HPTI,/QBIC/QHPTI010CU,CEL,{}],
-//  // DataSet[20140226191311589-1371,/QBIC/QHPTI/HPTI,/QBIC/QHPTI009CR,CEL,{}],
-//  // DataSet[20140226191318642-1372,/QBIC/QHPTI/HPTI,/QBIC/QHPTI008CJ,CEL,{}],
-//  // DataSet[20140226191326878-1373,/QBIC/QHPTI/HPTI,/QBIC/QHPTI006C3,CEL,{}]]
-//
-//  @Test
-//  public void testGetDataSetsOfSpaceByIdentifier() {
-//    List<DataSet> dsets = openbisClient.getDataSetsOfSpaceByIdentifier("CONFERENCE_DEMO");
-//    assertThat(dsets.size()).isEqualTo(93);
-//    assertThat(dsets.get(0)).isInstanceOf(DataSet.class);
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfProjectByIdentifier_project_with_datasets() {
-//    List<DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
-//    assertThat(dsets.size()).isEqualTo(93);
-//    try {
-//      openbisClient.getDataSetsOfProjectByIdentifier("QHPTI");
-//      fail("not an identifier");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//  @Test
-//  public void testGetDataSetsOfProjectByIdentifier_project_with_no_experiments() {
-//    List<DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifier("/DEFAULT/DEFAULT");
-//    assertThat(dsets.size()).isEqualTo(17);
-//    try {
-//      openbisClient.getDataSetsOfProjectByIdentifier("ECKH1");
-//      fail("not an identifier");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfProjectByIdentifierWithSearchCriteria_project_with_datasets() {
-//    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/CONFERENCE_DEMO/QTGPR");
-//    assertThat(dsets.size()).isEqualTo(93);
-//
-//    assertThat(openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("idonotexist")).isEmpty();
-//  }
-//
-//  @Test
-//  public void testGetDataSetsOfProjectByIdentifierWithSearchCriteria_project_with_no_experiments() {
-//    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.DataSet> dsets = openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("/ECKH/ECKH1");
-//    assertThat(dsets.size()).isEqualTo(0);
-//    try {
-//      openbisClient.getDataSetsOfProjectByIdentifierWithSearchCriteria("idonotexist");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//  }
+  @Test
+  public void testGetDataSetsOfSampleByIdentifier() {
+    List<DataSet> dsets = openbisClient.getDataSetsOfSampleByIdentifier("/ABI_SYSBIO/QMARI117AV");
+    assertThat(dsets.size()).isAtLeast(1);
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
+    assertDataSetCompletelyFetched(dsets.get(0));
+    assertEquals(dsets.get(0).getSample().getCode(), "QMARI117AV");
+  }
 
+  @Test
+  public void testGetDataSetsOfSampleByIdentifierWithCode() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("has to start");
+    openbisClient.getDataSetsOfSampleByIdentifier("QMARI117AV");
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleByIdentifierNull() {
+    exception.expect(IllegalArgumentException.class);
+    openbisClient.getDataSetsOfSampleByIdentifier(null);
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleByIdentifierEmpty() {
+    exception.expectMessage("Unspecified");
+    openbisClient.getDataSetsOfSampleByIdentifier("");
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleByIdentifierNotExist() {
+    //TODO should raise an exception instead returning empty list
+    openbisClient.getDataSetsOfSampleByIdentifier("/doesnot/exist");
+  }
+
+  @Test
+  public void testGetDataSetsOfSample() {
+    List<DataSet> dsets = openbisClient.getDataSetsOfSample("QMARI117AV");
+    assertThat(dsets.size()).isAtLeast(1);
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
+    assertDataSetCompletelyFetched(dsets.get(0));
+    assertEquals(dsets.get(0).getSample().getCode(), "QMARI117AV");
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleWithId() {
+    List<DataSet> dsets = openbisClient.getDataSetsOfSample("/ABI_SYSBIO/QMARI117AV");
+    assertThat(dsets.size()).isAtLeast(1);
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
+    assertDataSetCompletelyFetched(dsets.get(0));
+    assertEquals(dsets.get(0).getSample().getCode(), "QMARI117AV");
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    openbisClient.getDataSetsOfSample(null);
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getDataSetsOfSample("");
+  }
+
+  @Test
+  public void testGetDataSetsOfSampleNotExist() {
+    //TODO should raise an exception instead returning empty list
+    openbisClient.getDataSetsOfSample("doesnotexist");
+  }
+
+  @Test
+  public void testGetDataSetsOfExperiment() {
+    Experiment ex = openbisClient.getExperimentByCode("HPTI");
+    List<DataSet> dsets = openbisClient.getDataSetsOfExperiment(ex.getPermId().getPermId());
+    assertThat(dsets.size()).isAtLeast(1);
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
+    assertDataSetCompletelyFetched(dsets.get(0));
+    assertEquals(dsets.get(0).getExperiment().getCode(), ex.getCode());
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentNull() {
+    exception.expectMessage("NullPointer");
+    openbisClient.getDataSetsOfExperiment(null);
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getDataSetsOfExperiment("");
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentNotExist() {
+    //TODO should raise an exception instead returning empty list
+    openbisClient.getDataSetsOfExperiment("doesnotexist");
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentByIdentifier() {
+    Experiment ex = openbisClient.getExperimentByCode("HPTI");
+    List<DataSet> dsets =
+        openbisClient.getDataSetsOfExperimentByIdentifier(ex.getIdentifier().getIdentifier());
+    assertThat(dsets.size()).isAtLeast(1);
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
+    assertDataSetCompletelyFetched(dsets.get(0));
+    assertEquals(dsets.get(0).getExperiment().getCode(), ex.getCode());
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentByIdentifierNull() {
+    exception.expect(IllegalArgumentException.class);
+    openbisClient.getDataSetsOfExperimentByIdentifier(null);
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentByIdentifierEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getDataSetsOfExperimentByIdentifier("");
+  }
+
+  @Test
+  public void testGetDataSetsOfExperimentByIdentifierNotExist() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getDataSetsOfExperimentByIdentifier("/doesnot/exist");
+  }
+
+  @Test
+  public void testGetDataSetsOfSpaceByIdentifier() {
+    List<DataSet> dsets =
+        openbisClient.getDataSetsOfSpaceByIdentifier(openbisClient.listSpaces().get(0));
+    assertThat(dsets.size()).isAtLeast(1);
+    assertEquals(dsets.get(0).getClass(), DataSet.class);
+    assertDataSetCompletelyFetched(dsets.get(0));
+  }
+
+  @Test
+  public void testGetDataSetsOfSpaceByIdentifierNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("Null");
+    openbisClient.getDataSetsOfSpaceByIdentifier(null);
+  }
+
+  @Test
+  public void testGetDataSetsOfSpaceByIdentifierEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getDataSetsOfSpaceByIdentifier("");
+  }
+
+  @Test
+  public void testGetDataSetsOfSpaceByIdentifierNotExist() {
+    //TODO should raise an exception instead returning empty list
+    openbisClient.getDataSetsOfSpaceByIdentifier("/doesnot/exist");
+  }
+
+  //TODO does not work yet
+//  @Test
+//  public void testGetDataSetsOfProjectByIdentifier() {
+//    List<DataSet> dsets =
+//        openbisClient.getDataSetsOfProjectByIdentifier("/QBIC_RESEARCH/QHPTI");
+//    assertThat(dsets.size()).isAtLeast(1);
+//    assertEquals(dsets.get(0).getClass(), DataSet.class );
+//    assertDataSetCompletelyFetched(dsets.get(0));
+//  }
+//
+//  @Test
+//  public void testGetDataSetsOfProjectByIdentifierWithCode() {
+//    openbisClient.getDataSetsOfProjectByIdentifier("QHPTI");
+//  }
+//
+//  @Test
+//  public void testGetDataSetsOfProjectByIdentifierNull() {
+//    exception.expect(RuntimeException.class);
+//    exception.expectMessage("Null");
+//    openbisClient.getDataSetsOfProjectByIdentifier(null);
+//  }
+//
+//  @Test
+//  public void testGetDataSetsOfProjectByIdentifierEmpty() {
+//    exception.expect(UserFailureException.class);
+//    openbisClient.getDataSetsOfProjectByIdentifier("");
+//  }
+//
+//  @Test
+//  public void testGetDataSetsOfProjectByIdentifierNotExist() {
+//    //TODO should raise an exception instead returning empty list
+//    openbisClient.getDataSetsOfProjectByIdentifier("/doesnot/exist");
+//  }
 
   @Test
   public void testGetDataSetsByType() {
@@ -912,7 +951,7 @@ public class TestOpenBisClient {
   @Test
   public void testGetDataSetsByTypeNull() {
     //TODO should throw an exception
-    openbisClient.getDataSetsByType(null);
+    //openbisClient.getDataSetsByType(null);
   }
 
   @Test
@@ -961,8 +1000,7 @@ public class TestOpenBisClient {
 
   @Test
   public void testListAttachmentsForSampleByIdentifierNotExist() {
-    //TODO should throw other exception than IndexOutOfBounds
-    exception.expect(IndexOutOfBoundsException.class);
+    exception.expect(NullPointerException.class);
     openbisClient.listAttachmentsForSampleByIdentifier("/does/notexist");
   }
 
@@ -991,15 +1029,13 @@ public class TestOpenBisClient {
 
   @Test
   public void testListAttachmentsForProjectByIdentifierEmpty() {
-    //TODO other exception than index out of bounds
-    exception.expect(IndexOutOfBoundsException.class);
+    exception.expect(NullPointerException.class);
     openbisClient.listAttachmentsForProjectByIdentifier("");
   }
 
   @Test
   public void testListAttachmentsForProjectByIdentifierNotExist() {
-    //TODO should throw other exception than IndexOutOfBounds
-    exception.expect(IndexOutOfBoundsException.class);
+    exception.expect(NullPointerException.class);
     openbisClient.listAttachmentsForProjectByIdentifier("/does/notexist");
   }
 
@@ -1036,9 +1072,9 @@ public class TestOpenBisClient {
 //            .getSampleTypeByString("Q_BIOLOGICAL_ENTITY"));
 //    for (PropertyType type : types) {
 //      if (type.getCode().equals("Q_NCBI_ORGANISM")) {
-//        assertThat(openbisClient.listVocabularyTermsForProperty(type).contains("Homo sapiens"));
-//        assertThat(!openbisClient.listVocabularyTermsForProperty(type).contains("Liver"));
-//        assertThat(!openbisClient.listVocabularyTermsForProperty(type).contains("Pan sapiens"));
+//        assertTrue(openbisClient.listVocabularyTermsForProperty(type).contains("Homo sapiens"));
+//        assertFalse(openbisClient.listVocabularyTermsForProperty(type).contains("Liver"));
+//        assertFalse(openbisClient.listVocabularyTermsForProperty(type).contains("Pan sapiens"));
 //      }
 //    }
 //  }
@@ -1078,26 +1114,24 @@ public class TestOpenBisClient {
 
   @Test
   public void testGetSampleTypeByStringEmpty() {
-    //TODO Should throw another exception than IndexOutOfBoundsException
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getSampleTypeByString("");
+    //TODO Should throw an exception
+    assertNull(openbisClient.getSampleTypeByString(""));
   }
 
   @Test
   public void testGetSampleTypeByStringNotExist() {
-    //TODO Should throw another exception than IndexOutOfBoundsException
-    exception.expect(IndexOutOfBoundsException.class);
-    openbisClient.getSampleTypeByString("does/not/exist");
+    //TODO Should throw an exception
+    assertNull(openbisClient.getSampleTypeByString("does/not/exist"));
+  }
+
+  @Test
+  public void testGetExperimentTypeByString() {
+    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN"))
+        .isInstanceOf(ExperimentType.class);
+    assertNull(openbisClient.getExperimentTypeByString("xyz"));
   }
 
   //  @Test
-//  public void testGetExperimentTypeByString() {
-//    assertThat(openbisClient.getExperimentTypeByString("Q_EXPERIMENTAL_DESIGN")).isInstanceOf(
-//        ExperimentType.class);
-//    assertThat(openbisClient.getExperimentTypeByString("xyz") == null);
-//  }
-//
-//  @Test
 //  public void testGetLabelsofProperties() {
 //    SampleType type = openbisClient.getSampleTypeByString("Q_BIOLOGICAL_ENTITY");
 //    Map<String, String> prop = openbisClient.getLabelsofProperties(type);
@@ -1122,34 +1156,26 @@ public class TestOpenBisClient {
     assertEquals('M', output);
   }
 
-//  @Test
-//  public void testOpenBIScodeToString() {
-//    assertThat(openbisClient.openBIScodeToString("Q_BIOLOGICAL_ENTITY")).isEqualTo(
-//        "Biological Entity");
-//  }
-//
-//  @Test
-//  public void testGetDataStoreDownloadURL() throws MalformedURLException {//TODO deprecated
-//    String code = "20150317113748250-9094";
-//    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
-//    String url = openbisClient.getDataStoreDownloadURL(code, file).toString();
-//    String controlUrl = String.format("https://qbis.qbic.uni-tuebingen.de:444/datastore_server/%s/original/%s?mode=simpleHtml&sessionID=%s",code,file, openbisClient.getSessionToken());
-//    assertThat(url).isEqualTo(controlUrl);
-//    //This method is deprecated so we will not further work on it. However, it is not checking correctness of code and filename.
-//    /*try {
-//      System.out.println(openbisClient.getDataStoreDownloadURL(code, "WRONG"));
-//      fail("should not work with nonexisting file name");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }
-//    try {
-//      openbisClient.getDataStoreDownloadURL("notacode", file);
-//      fail("should not work with nonexisting dataset code");
-//    } catch (Exception e) {
-//      assertThat(e).isInstanceOf(Exception.class);
-//    }*/
-//  }
-//
+  @Test
+  public void testOpenBIScodeToString() {
+    assertThat(openbisClient.openBIScodeToString("Q_BIOLOGICAL_ENTITY")).isEqualTo(
+        "Biological Entity");
+  }
+
+  @Test
+  public void testGetDataStoreDownloadURL() throws MalformedURLException {//TODO deprecated
+    String code = "20150317113748250-9094";
+    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
+    String url = openbisClient.getDataStoreDownloadURL(code, file).toString();
+    String controlUrl = String.format("https://qbis.qbic.uni-tuebingen.de:444/datastore_server/%s/original/%s?mode=simpleHtml&sessionID=%s",code,file, openbisClient.getSessionToken());
+    assertThat(url).isEqualTo(controlUrl);
+  }
+
+  @Test
+  public void testGetDataStoreDownloadURLLessGeneric() throws MalformedURLException {
+    //TODO
+  }
+
 //  /*@Test
 //  public void testGetParentMap() {
 //    Map<Sample, List<Sample>> map =
@@ -1182,52 +1208,82 @@ public class TestOpenBisClient {
 //    assertThat(parents.get(0).getCode()).isEqualTo("QTGPRENTITY-1");
 //  }
 //
-//  @Test
-//  public void testGetChildrenSamples() {
-//    List<Sample> children =
-//        openbisClient.getChildrenSamples(openbisClient
-//            .getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-1"));
-//    assertThat(children.size()).isAtLeast(1);
-//    List<String> codes = new ArrayList<String>();
-//    for (Sample s : children) {
-//      codes.add(s.getCode());
-//    }
-//    assertThat(codes.contains("QTGPR001A5"));
-//  }
-//
-//
-//  @Test
-//  public void testSpaceExists() {
-//    assertThat(openbisClient.spaceExists("ABI_SYSBIO"));
-//    assertThat(!openbisClient.spaceExists("DEEP_SPACE_NINE"));
-//  }
-//
-//  @Test
-//  public void testProjectExists() {
-//    assertThat(openbisClient.projectExists("ABI_SYSBIO", "QMARI"));
-//    assertThat(!openbisClient.projectExists("ABI_SYSBIO", "QQQQQ"));
-//    assertThat(!openbisClient.projectExists("DEEP_SPACE_NINE", "QMARI"));
-//  }
-//
-//  @Test
-//  public void testExpExists() {
-//    assertThat(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QMARIE3"));
-//    assertThat(!openbisClient.expExists("DEEP_SPACE_NINE", "QMARI", "QMARIE3"));
-//    assertThat(!openbisClient.expExists("ABI_SYSBIO", "QQQQQ", "QMARIE3"));
-//    assertThat(!openbisClient.expExists("ABI_SYSBIO", "QMARI", "QQQQQE3"));
-//  }
-//
-//  @Test
-//  public void testSampleExists() {
-//    assertThat(openbisClient.sampleExists("QMARI074A9"));
-//    assertThat(!openbisClient.sampleExists("QQQQQ999XX"));
-//  }
-//
-//  //@Test
-//  public void testComputeProjectStatus() {
-//    // TODO
-//  }
-//
+
+  @Test
+  public void testGetChildrenSamples() {
+    Sample sample = openbisClient.getSampleByIdentifier("/CONFERENCE_DEMO/QTGPRENTITY-1");
+    List<Sample> samples = openbisClient.getChildrenSamples(sample);
+
+    assertThat(samples.size()).isAtLeast(1);
+    assertSampleCompletetlyFetched(samples.get(0));
+    assertTrue(sample.getChildren().contains(samples.get(0)));
+  }
+
+  @Test
+  public void testGetChildrenSamplesNull() {
+    exception.expect(NullPointerException.class);
+    openbisClient.getChildrenSamples(null);
+  }
+
+
+  @Test
+  public void testSpaceExists() {
+    assertTrue(openbisClient.spaceExists("ABI_SYSBIO"));
+    assertFalse(openbisClient.spaceExists("DEEP_SPACE_NINE"));
+  }
+
+  @Test
+  public void testSpaceExistsNull() {
+    //TODO should maybe raise an error
+    assertFalse(openbisClient.spaceExists(null));
+  }
+
+  @Test
+  public void testProjectExists() {
+    assertTrue(openbisClient.projectExists("ABI_SYSBIO", "QMARI"));
+    assertFalse(openbisClient.projectExists("ABI_SYSBIO", "QQQQQ"));
+    assertFalse(openbisClient.projectExists("DEEP_SPACE_NINE", "QMARI"));
+  }
+
+  @Test
+  public void testProjectExistsNull() {
+    //TODO should maybe raise an error
+    assertFalse(openbisClient.projectExists(null, null));
+  }
+
+  @Test
+  public void testExpExists() {
+    assertTrue(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QMARIE3"));
+    assertFalse(openbisClient.expExists("DEEP_SPACE_NINE", "QMARI", "QMARIE3"));
+    assertFalse(openbisClient.expExists("ABI_SYSBIO", "QQQQQ", "QMARIE3"));
+    assertFalse(openbisClient.expExists("ABI_SYSBIO", "QMARI", "QQQQQE3"));
+  }
+
+  @Test
+  public void testExpExistsNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    assertFalse(openbisClient.expExists(null, null, null));
+  }
+
+  @Test
+  public void testSampleExists() {
+    assertTrue(openbisClient.sampleExists("QMARI074A9"));
+    assertFalse(openbisClient.sampleExists("QQQQQ999XX"));
+  }
+
+  @Test
+  public void testSampleExistsNull() {
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("NullPointer");
+    assertFalse(openbisClient.sampleExists(null));
+  }
+
+  @Test
+  public void testComputeProjectStatus() {
+    //TODO
+  }
+
 //  @Test
 //  public void testGetVocabCodesAndLabelsForVocab() {
 //    Map<String, String> map = openbisClient.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
@@ -1245,55 +1301,86 @@ public class TestOpenBisClient {
 //    assertThat(!lis.contains("Homo_sapiens"));
 //    assertThat(!lis.contains("Yeti sapiens"));
 //  }
-//
-//  @Test
-//  public void testGetExperimentsForUser() {
-//    String user = "iisko01";
-//    List<Experiment> exps = openbisClient.getExperimentsForUser(user);
-//    for (Experiment e : exps) {
-//      assertThat(openbisClient.getSpaceMembers(e.getIdentifier().split("/")[1]).contains(user));
-//    }
-//  }
-//
-//  @Test
-//  public void testListExperimentsOfProjects() {
-//    Project qshow = openbisClient.getProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
-//    List<Experiment> exps = openbisClient.listExperimentsOfProjects(Arrays.asList(qshow));
-//    assertThat(exps.size()).isEqualTo(61);
-//  }
-//
+
+  @Test
+  public void testGetExperimentsForUser() {
+    String user = "zxmqw74";
+    List<Experiment> exps = openbisClient.getExperimentsForUser(user);
+    assertThat(exps.size()).isAtLeast(1);
+    assertThat(exps.get(0)).isInstanceOf(Experiment.class);
+    assertExperimentCompletetlyFetched(exps.get(0));
+  }
+
+  @Test
+  public void testGetExperimentsForUserNull() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getExperimentsForUser(null);
+  }
+
+  @Test
+  public void testGetExperimentsForUserEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getExperimentsForUser("");
+  }
+
+  @Test
+  public void testGetExperimentsForUserNotExist() {
+    //TODO should raise another exception
+    exception.expect(AssertionError.class);
+    openbisClient.getExperimentsForUser("zxxxxx12");
+  }
+
+  @Test
+  public void testListExperimentsOfProjects() {
+    Project qshow = openbisClient.getProjectByIdentifier("/CONFERENCE_DEMO/QTGPR");
+    List<Experiment> exps = openbisClient.listExperimentsOfProjects(Arrays.asList(qshow));
+    assertThat(exps.size()).isEqualTo(73);
+  }
+
+  @Test
+  public void testListExperimentsOfProjectsNull() {
+    exception.expect(NullPointerException.class);
+    openbisClient.listExperimentsOfProjects(null);
+  }
+
+  @Test
+  public void testListExperimentsOfProjectsNullInsideList() {
+    exception.expect(NullPointerException.class);
+    openbisClient.listExperimentsOfProjects(Arrays.asList(null));
+  }
+
 //  @Test
 //  public void testListDataSetsForExperiments() {
 //    List<DataSet> dsets =
 //        openbisClient.listDataSetsForExperiments(Arrays.asList("/CONFERENCE_DEMO/QTGPR/QTGPRE6"));
 //    assertThat(dsets.size()).isEqualTo(1);
 //  }
-//
-//  @Test
-//  public void testListSamplesForProjects() {
-//    List<Sample> samps = openbisClient.listSamplesForProjects(Arrays.asList("/CONFERENCE_DEMO/QTGPR"));
-//    assertThat(samps.size()).isEqualTo(117);
-//
-//  }
-//
+
+  @Test
+  public void testListSamplesForProjects() {
+    List<Sample> samps = openbisClient.listSamplesForProjects(Arrays.asList("/CONFERENCE_DEMO/QTGPR"));
+    assertThat(samps.size()).isAtLeast(117);
+
+  }
+
 //  @Test
 //  public void testListDataSetsForSamples() {
 //    assertThat(
 //        openbisClient.listDataSetsForSamples(
 //            Arrays.asList("/CONFERENCE_DEMO/NGSQTGPR003AL")).size()).isEqualTo(1);
 //  }
-//
-//  @Test
-//  public void testGetUrlForDataset() throws MalformedURLException {
-//    String code = "20150317113748250-9094";
-//    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
-//    assertThat(openbisClient.getUrlForDataset(code, file).equals(
-//        "https://qbis.qbic.uni-tuebingen.d4/datastore_server/" + code + "/original/" + file
-//            + "?mode=simpleHtml&sessionID=" + openbisClient.getSessionToken()));
-//    openbisClient.getUrlForDataset(code, "WRONG");
-//    openbisClient.getUrlForDataset("notacode", file);
-//  }
-//
+
+  @Test
+  public void testGetUrlForDataset() throws MalformedURLException {
+    String code = "20150317113748250-9094";
+    String file = "032_CRa_H9M5_THP1_NM104_0h_2_pos_RP_high_mr_QMARI074A9.mzML";
+    assertEquals(openbisClient.getUrlForDataset(code, file).toString(),
+        "https://qbis.qbic.uni-tuebingen.de:444/datastore_server/" + code + "/original/" + file
+            + "?mode=simpleHtml&sessionID=" + openbisClient.getSessionToken());
+    openbisClient.getUrlForDataset(code, "WRONG");
+    openbisClient.getUrlForDataset("notacode", file);
+  }
+
 //  //@Test
 //  public void testGetDatasetStreamString() {
 //    // TODO
@@ -1330,13 +1417,14 @@ public class TestOpenBisClient {
 //    // openbisClient.addNewInstance(params, service, number_of_samples_offset)
 //    fail("Not yet implemented");
 //  }
-//
-//  @Test
-//  public void getSampleTypes(){
-//    Map<String, SampleType> types = openbisClient.getSampleTypes();
-//    assertThat(types.size()).isGreaterThan(0);
-//  }
-//
+
+  @Test
+  public void getSampleTypes() {
+    //TODO maybe not the best test yet...
+    Map<String, SampleType> types = openbisClient.getSampleTypes();
+    assertThat(types.size()).isGreaterThan(0);
+  }
+
 //  @Test
 //  public void testGetPropertyOfSamples() {
 //    Set<Sample> input = new HashSet<Sample>(
@@ -1381,4 +1469,36 @@ public class TestOpenBisClient {
 //  public void testGetProjectTSV() {
 //    assertThat(openbisClient.getProjectTSV("QTGPR", "Q_BIOLOGICAL_ENTITY").size()==21);//20 samples + header
 //  }
+
+  @Test
+  public void testGetUserSpaces() {
+    List<String> userSpaces = openbisClient.getUserSpaces("zxmqw74");
+    assertThat(userSpaces.size()).isAtLeast(8);
+  }
+
+  @Test
+  public void testGetUserSpacesNull() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getUserSpaces(null);
+  }
+
+
+  @Test
+  public void testGetUserSpacesEmpty() {
+    exception.expect(UserFailureException.class);
+    openbisClient.getUserSpaces("");
+  }
+
+  @Test
+  public void testGetUserSpacesNotExist() {
+    //TODO should raise an exception
+    openbisClient.getUserSpaces("doesnotexist");
+  }
+
+//  @Test
+//  public void testIsUserAdmin() {
+//    openbisClient.isUserAdmin("zxmqw74");
+//  }
+
+
 }
