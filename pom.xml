@@ -11,6 +11,7 @@
 	<groupId>life.qbic</groupId>
 	<artifactId>openbis-client-lib</artifactId>
 	<packaging>jar</packaging>
+        <!-- releases more recent than 1.1.4 use openBIS API 3 -->
 	<version>1.1.4</version>
 	<name>openBIS client library</name>
 	<!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
