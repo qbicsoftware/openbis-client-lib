@@ -23,6 +23,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -44,13 +45,13 @@ public class TestOpenBisClient {
   private static OpenBisClient openbisClient;
   private static String DATASOURCE_URL;
   private static Properties config;
-  private static String PROPERTIES_PATH = "/Users/spaethju/qbic-ext.properties";
+  private static final String PROPERTIES_PATH = System.getProperty("qbicPropertiesFile");
 
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
   @BeforeClass
-  public static void setUpBeforeClass() {
+  public static void setUpBeforeClass() throws Exception {
     config = new Properties();
 
     InputStream input = new FileInputStream(PROPERTIES_PATH);
