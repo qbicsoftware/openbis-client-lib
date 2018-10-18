@@ -52,18 +52,13 @@ public class TestOpenBisClient {
   @BeforeClass
   public static void setUpBeforeClass() {
     config = new Properties();
-    try {
 
-      InputStream input = new FileInputStream(PROPERTIES_PATH);
+    InputStream input = new FileInputStream(PROPERTIES_PATH);
 
-      // load a properties file
-      config = new Properties();
-      config.load(input);
+    // load a properties file
+    config = new Properties();
+    config.load(input);
 
-    } catch (Exception e) {
-      System.out.println("Could not load the property file.");
-      e.printStackTrace();
-    }
     DATASOURCE_URL =
         config.getProperty("datasource.url") + IApplicationServerApi.SERVICE_URL;
   }
