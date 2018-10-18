@@ -38,11 +38,11 @@ import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.IGeneralInformationChangingService;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import org.apache.commons.lang.WordUtils;
 
 /**
@@ -54,6 +54,7 @@ public class OpenBisClient implements IOpenBisClient {
   private String userId, password, sessionToken, serverURL;
   private IApplicationServerApi v3;
   private IDataStoreServerApi dss3;
+  private IQueryApiServer openbisDssService;
 
   /**
    * Instantiates a new Open bis client.
@@ -204,6 +205,17 @@ public class OpenBisClient implements IOpenBisClient {
     return spaceIdentifiers;
   }
 
+  @Override
+  public void setExternalIDs(Map<String, String> idMap) {
+    Map<String, Object> params = new HashMap<>();
+    List<String> ids = new ArrayList<>(idMap.keySet());
+    List<String> types = new ArrayList<>(Arrays.asList("Q_EXTERNALDB_ID"));
+    params.put("identifiers", ids);
+    params.put("types", types);
+    params.put("Q_EXTERNALDB_ID", idMap);
+    ingest("DSS1", "update-sample-metadata", params);
+  }
+
   /**
    * Function to get all projects which are registered in this openBIS instance
    *
@@ -273,7 +285,16 @@ public class OpenBisClient implements IOpenBisClient {
 
   }
 
-  @Override
+    @Override
+    public void updateSampleMetadata(long sampleID, Map<String, String> properties) {
+        ServiceFinder serviceFinder =
+                new ServiceFinder("openbis", IGeneralInformationChangingService.SERVICE_URL);
+        IGeneralInformationChangingService service =
+                serviceFinder.createService(IGeneralInformationChangingService.class, serverURL);
+        service.updateSampleProperties(sessionToken, sampleID, properties);
+    }
+
+    @Override
   public Sample getSampleByIdentifier(String sampleIdentifier) {
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
@@ -1035,6 +1056,17 @@ public class OpenBisClient implements IOpenBisClient {
     }
   }
 
+  @Override
+  public void ingest(String dss, String serviceName, Map<String, Object> params) {
+    if (openbisDssService == null) {
+      ServiceFinder serviceFinder2 =
+              new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
+      openbisDssService = serviceFinder2.createService(IQueryApiServer.class, this.serverURL);
+    }
+    this.openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
+            params);
+  }
+
 
   @Override
   public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
@@ -1113,5 +1145,4 @@ public class OpenBisClient implements IOpenBisClient {
   public InputStream getDatasetStream(String datasetCode, String folder) {
     return null;
   }
-
 }

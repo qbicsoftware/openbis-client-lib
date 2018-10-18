@@ -49,5 +49,10 @@
       <artifactId>openbis_api</artifactId>
       <version>3-S253.0</version>
     </dependency>
+    <dependency>
+      <groupId>life.qbic.openbis</groupId>
+      <artifactId>dss_client</artifactId>
+      <version>13.04.8</version>
+    </dependency>
   </dependencies>
 </project>

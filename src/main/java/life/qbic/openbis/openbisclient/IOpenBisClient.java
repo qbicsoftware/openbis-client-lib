@@ -72,12 +72,12 @@ public interface IOpenBisClient {
    */
   public List<String> listSpaces();
 
-//  /**
-//   * ingests external ids given a mapping between QBiC sample IDs and the external ids
-//   *
-//   * @param idMap
-//   */
-//  public void setExternalIDs(Map<String, String> idMap);
+  /**
+   * ingests external ids given a mapping between QBiC sample IDs and the external ids
+   *
+   * @param idMap
+   */
+  public void setExternalIDs(Map<String, String> idMap);
 
   /**
    * Function to get all projects which are registered in this openBIS instance
@@ -114,14 +114,14 @@ public interface IOpenBisClient {
    */
   public List<Sample> getSamplesofSpace(String spaceIdentifier);
 
-//  /**
-//   * Updates or adds properties for one sample
-//   *
-//   * @param sampleID ID of long type, can be fetched from openBIS samples
-//   * @param properties A map of all sample properties to be updated
-//   */
-//  public void updateSampleMetadata(long sampleID, Map<String, String> properties);
-//
+  /**
+   * Updates or adds properties for one sample
+   *
+   * @param sampleID ID of long type, can be fetched from openBIS samples
+   * @param properties A map of all sample properties to be updated
+   */
+  public void updateSampleMetadata(long sampleID, Map<String, String> properties);
+
 
   /**
    * Function to retrieve a sample by it's identifier or code Note: seems to throw a
@@ -754,15 +754,15 @@ public interface IOpenBisClient {
    */
   public List<Experiment> getExperimentsForUser(String userID);
 
-//  /**
-//   * Function to talk to ingestions services (python scripts) of this openBIS instance
-//   *
-//   * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
-//   * @param serviceName label of the ingestion service to call (this is defined in the ingestion
-//   * service properties)
-//   * @param params A Map of parameters to send to the ingestion service
-//   */
-//  public void ingest(String dss, String serviceName, Map<String, Object> params);
+  /**
+   * Function to talk to ingestions services (python scripts) of this openBIS instance
+   *
+   * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
+   * @param serviceName label of the ingestion service to call (this is defined in the ingestion
+   * service properties)
+   * @param params A Map of parameters to send to the ingestion service
+   */
+  public void ingest(String dss, String serviceName, Map<String, Object> params);
 
   /**
    * List all experiments for given list of projects
