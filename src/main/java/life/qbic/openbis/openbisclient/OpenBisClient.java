@@ -79,7 +79,7 @@ public class OpenBisClient implements IOpenBisClient {
    * @param i the integer value which should be mapped
    * @return the resulting char value
    */
-  public static char mapToChar(int i) {
+  private static char mapToChar(int i) {
     i += 48;
     if (i > 57) {
       i += 7;
@@ -93,7 +93,7 @@ public class OpenBisClient implements IOpenBisClient {
    * @param s the barcode string
    * @return the checksum for the given barcode
    */
-  public static char checksum(String s) {
+  private static char checksum(String s) {
     int i = 1;
     int sum = 0;
     for (int idx = 0; idx <= s.length() - 1; idx++) {
@@ -132,11 +132,8 @@ public class OpenBisClient implements IOpenBisClient {
   public void logout() {
     if (loggedin()) {
       v3.logout(sessionToken);
-      //TODO Set sessionToken to null
       sessionToken = null;
-    } else {
     }
-
   }
 
   /**
@@ -153,13 +150,19 @@ public class OpenBisClient implements IOpenBisClient {
     sessionToken = v3.login(userId, password);
   }
 
-  public void loginAsUser(String user) {
+  /**
+   * Logs into openBIS as a given user.
+   * @param user The user ID
+   * @return A session token if login was successful
+   */
+  private String loginAsUser(String user) {
     if (loggedin()) {
       logout();
     }
 
     // login to obtain a session token
     sessionToken = v3.loginAs(userId, password, user);
+    return sessionToken;
   }
 
 
