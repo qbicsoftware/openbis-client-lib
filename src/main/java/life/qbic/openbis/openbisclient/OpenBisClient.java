@@ -6,7 +6,6 @@ import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchEx
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchProjectsCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSampleTypesCompletely;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
-
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
@@ -67,8 +66,7 @@ public class OpenBisClient implements IOpenBisClient {
     this.password = password;
     this.serverURL = serverURL;
     // get a reference to AS API
-    v3 = HttpInvokerUtils
-        .createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
+    v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
     dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serverURL, TIMEOUT);
     sessionToken = null;
   }
@@ -108,7 +106,7 @@ public class OpenBisClient implements IOpenBisClient {
    *
    * @return the v 3
    */
-//TODO Added for testing reasons...
+  // TODO Added for testing reasons...
   public IApplicationServerApi getV3() {
     return v3;
   }
@@ -132,7 +130,7 @@ public class OpenBisClient implements IOpenBisClient {
   public void logout() {
     if (loggedin()) {
       v3.logout(sessionToken);
-      //TODO Set sessionToken to null
+      // TODO Set sessionToken to null
       sessionToken = null;
     } else {
     }
@@ -191,8 +189,8 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public List<String> listSpaces() {
     ensureLoggedIn();
-    SearchResult<Space> spaces = v3
-        .searchSpaces(sessionToken, new SpaceSearchCriteria(), new SpaceFetchOptions());
+    SearchResult<Space> spaces =
+        v3.searchSpaces(sessionToken, new SpaceSearchCriteria(), new SpaceFetchOptions());
     List<String> spaceIdentifiers = new ArrayList<>();
     for (Space space : spaces.getObjects()) {
       spaceIdentifiers.add(space.getCode());
@@ -209,8 +207,8 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public List<Project> listProjects() {
     ensureLoggedIn();
-    SearchResult<Project> projects = v3
-        .searchProjects(sessionToken, new ProjectSearchCriteria(), fetchProjectsCompletely());
+    SearchResult<Project> projects =
+        v3.searchProjects(sessionToken, new ProjectSearchCriteria(), fetchProjectsCompletely());
     return projects.getObjects();
   }
 
@@ -222,9 +220,8 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public List<Experiment> listExperiments() {
     ensureLoggedIn();
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, new ExperimentSearchCriteria(),
-            fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken,
+        new ExperimentSearchCriteria(), fetchExperimentsCompletely());
     return experiments.getObjects();
   }
 
@@ -232,8 +229,7 @@ public class OpenBisClient implements IOpenBisClient {
   /**
    * Function to retrieve all samples of a given experiment Note: seems to throw a
    * ch.systemsx.cisd.common.exceptions.UserFailureException if wrong identifier given TODO Should
-   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my
-   * opinion
+   * we catch it and throw an illegalargumentexception instead? would be a lot clearer in my opinion
    *
    * @param experimentIdentifier identifier/code (both should work) of the openBIS experiment
    * @return list with all samples of the given experiment
@@ -245,9 +241,8 @@ public class OpenBisClient implements IOpenBisClient {
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withExperiment().withCode().thatEquals(experimentIdentifier);
 
-    SearchResult<Sample> samplesOfExperiment = v3
-        .searchSamples(sessionToken, sampleSearchCriteria,
-            fetchSamplesCompletely());
+    SearchResult<Sample> samplesOfExperiment =
+        v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
 
   }
@@ -264,8 +259,8 @@ public class OpenBisClient implements IOpenBisClient {
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withSpace().withCode().thatEquals(spaceIdentifier);
 
-    SearchResult<Sample> samplesOfExperiment = v3
-        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+    SearchResult<Sample> samplesOfExperiment =
+        v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samplesOfExperiment.getObjects();
 
   }
@@ -276,8 +271,8 @@ public class OpenBisClient implements IOpenBisClient {
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withId().thatEquals(new SampleIdentifier(sampleIdentifier));
 
-    SearchResult<Sample> samples = v3
-        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+    SearchResult<Sample> samples =
+        v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
 
     if (samples.getObjects().isEmpty()) {
       return null;
@@ -295,8 +290,8 @@ public class OpenBisClient implements IOpenBisClient {
     sampleSearchCriteria.withExperiment().withProject().withId()
         .thatEquals(new ProjectIdentifier(projIdentifier));
 
-    SearchResult<Sample> samples = v3
-        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+    SearchResult<Sample> samples =
+        v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
 
     return samples.getObjects();
   }
@@ -309,7 +304,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<Sample> getSamplesWithParentsAndChildren(String sampCode) {
-    //TODO unclear if parents and children should be fetched or directly included into the list
+    // TODO unclear if parents and children should be fetched or directly included into the list
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withCode().thatEquals(sampCode);
@@ -317,8 +312,8 @@ public class OpenBisClient implements IOpenBisClient {
     sampleFetchOptions.withChildrenUsing(fetchSamplesCompletely());
     sampleFetchOptions.withParentsUsing(fetchSamplesCompletely());
 
-    SearchResult<Sample> samples = v3
-        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+    SearchResult<Sample> samples =
+        v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
 
     return samples.getObjects();
   }
@@ -331,8 +326,8 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withProject().withId().thatEquals(new ProjectIdentifier(projectIdentifier));
     sc.withProject().withCode().thatEquals(projectIdentifier);
 
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     return experiments.getObjects();
   }
@@ -350,8 +345,8 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withProject().withCode().thatEquals(project.getCode());
 
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     return experiments.getObjects();
   }
@@ -361,25 +356,25 @@ public class OpenBisClient implements IOpenBisClient {
    * instance.
    *
    * @param projectIdentifier project identifer as defined by openbis, for which the experiments
-   * should be listed
+   *        should be listed
    * @return list with all experiments registered in this openBIS instance
    */
   @Override
   public List<Experiment> getExperimentsForProject(String projectIdentifier) {
-    //TODO equal to getExperimentsOfProjectByIdentifier
+    // TODO equal to getExperimentsOfProjectByIdentifier
     ensureLoggedIn();
     return getExperimentsOfProjectByIdentifier(projectIdentifier);
   }
 
   @Override
   public List<Experiment> getExperimentsOfProjectByCode(String projectCode) {
-    //TODO Could be combined with getExperimentsOfProjectByIdentifier
+    // TODO Could be combined with getExperimentsOfProjectByIdentifier
     ensureLoggedIn();
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withProject().withCode().thatEquals(projectCode);
 
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     return experiments.getObjects();
   }
@@ -402,8 +397,8 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withProject().withSpace().withCode().thatEquals(spaceIdentifier);
 
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     return experiments.getObjects();
   }
@@ -414,8 +409,8 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withType().withCode().thatEquals(type);
 
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     return experiments.getObjects();
   }
@@ -426,8 +421,8 @@ public class OpenBisClient implements IOpenBisClient {
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withType().withCode().thatEquals(type);
 
-    SearchResult<Sample> samples = v3
-        .searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
+    SearchResult<Sample> samples =
+        v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samples.getObjects();
   }
 
@@ -437,8 +432,7 @@ public class OpenBisClient implements IOpenBisClient {
     ProjectSearchCriteria sc = new ProjectSearchCriteria();
     sc.withSpace().withCode().thatEquals(space);
 
-    SearchResult<Project> projects = v3
-        .searchProjects(sessionToken, sc, fetchProjectsCompletely());
+    SearchResult<Project> projects = v3.searchProjects(sessionToken, sc, fetchProjectsCompletely());
 
     return projects.getObjects();
   }
@@ -468,7 +462,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public boolean isUserAdmin(String userID) {
-    //TODO cant find method
+    // TODO cant find method
     return false;
   }
 
@@ -480,8 +474,7 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withId().thatEquals(new ProjectIdentifier(projectIdentifier));
     sc.withCode().thatEquals(projectIdentifier);
 
-    SearchResult<Project> projects = v3
-        .searchProjects(sessionToken, sc, fetchProjectsCompletely());
+    SearchResult<Project> projects = v3.searchProjects(sessionToken, sc, fetchProjectsCompletely());
 
     if (projects.getObjects().isEmpty()) {
       return null;
@@ -498,8 +491,7 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withId().thatEquals(new ProjectIdentifier(projectCode));
     sc.withCode().thatEquals(projectCode);
 
-    SearchResult<Project> projects = v3
-        .searchProjects(sessionToken, sc, fetchProjectsCompletely());
+    SearchResult<Project> projects = v3.searchProjects(sessionToken, sc, fetchProjectsCompletely());
 
     if (projects.getObjects().isEmpty()) {
       return null;
@@ -514,8 +506,8 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withCode().thatEquals(experimentCode);
 
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     if (experiments.getObjects().isEmpty()) {
       return null;
@@ -531,8 +523,8 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withOrOperator();
     sc.withId().thatEquals(new ExperimentIdentifier(experimentId));
 
-    SearchResult<Experiment> experiment = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiment =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     return experiment.getObjects().get(0);
   }
@@ -542,8 +534,8 @@ public class OpenBisClient implements IOpenBisClient {
     ensureLoggedIn();
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
-    SearchResult<Experiment> experiments = v3
-        .searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
     if (experiments.getObjects().isEmpty()) {
       return null;
@@ -637,7 +629,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfProjectByIdentifier(String projectIdentifier) {
-    //TODO does not work yet
+    // TODO does not work yet
     return null;
   }
 
@@ -649,7 +641,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
-    //TODO does not work yet
+    // TODO does not work yet
     return null;
   }
 
@@ -686,7 +678,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public Set<String> getSpaceMembers(String spaceCode) {
-    //TODO cannot find an opportunity to do that
+    // TODO cannot find an opportunity to do that
     return null;
   }
 
@@ -721,8 +713,8 @@ public class OpenBisClient implements IOpenBisClient {
     SampleTypeSearchCriteria sc = new SampleTypeSearchCriteria();
     sc.withCode().thatEquals(sampleType);
 
-    SearchResult<SampleType> sampleTypes = v3.searchSampleTypes(sessionToken, sc,
-        fetchSampleTypesCompletely());
+    SearchResult<SampleType> sampleTypes =
+        v3.searchSampleTypes(sessionToken, sc, fetchSampleTypesCompletely());
 
     if (sampleTypes.getObjects().isEmpty()) {
       return null;
@@ -764,8 +756,8 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentTypeSearchCriteria sc = new ExperimentTypeSearchCriteria();
     sc.withCode().thatContains(experimentType);
 
-    SearchResult<ExperimentType> experimentTypes = v3.searchExperimentTypes(sessionToken, sc,
-        fetchExperimentTypesCompletely());
+    SearchResult<ExperimentType> experimentTypes =
+        v3.searchExperimentTypes(sessionToken, sc, fetchExperimentTypesCompletely());
 
     if (experimentTypes.getObjects().isEmpty()) {
       return null;
@@ -823,9 +815,9 @@ public class OpenBisClient implements IOpenBisClient {
    * @param openbisFilename name of the file stored in the given dataset
    * @return URL object of the download url for the given file
    * @throws MalformedURLException Returns an download url for the openbis dataset with the given
-   * code and dataset_type. Throughs MalformedURLException if a url can not be created from the
-   * given parameters. NOTE: datastoreURL differs from serverURL only by the port -> quick hack
-   * used
+   *         code and dataset_type. Throughs MalformedURLException if a url can not be created from
+   *         the given parameters. NOTE: datastoreURL differs from serverURL only by the port ->
+   *         quick hack used
    */
   @Override
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
@@ -860,7 +852,7 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
-    //TODO samples must have fetched parents!
+    // TODO samples must have fetched parents!
     Map<Sample, List<Sample>> parentMap = new HashMap<>();
     for (Sample sample : samples) {
       parentMap.put(sample, sample.getParents());
@@ -872,8 +864,7 @@ public class OpenBisClient implements IOpenBisClient {
   /**
    * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
    * Only one requested layer of the data model is returned. Experimental factors are returned in
-   * the properties xml format and should be parsed before the spreadsheet is presented to the
-   * user.
+   * the properties xml format and should be parsed before the spreadsheet is presented to the user.
    *
    * @param projectCode The 5 letter QBiC code of the project
    * @param sampleType The openBIS sampleType that should be included in the result
@@ -886,7 +877,7 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public List<Sample> getChildrenSamples(Sample sample) {
-    //TODO unnecessary method in v3 api
+    // TODO unnecessary method in v3 api
     return sample.getChildren();
   }
 
@@ -897,7 +888,7 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public boolean projectExists(String spaceCode, String projectCode) {
-    //TODO why do we need the space code here? Then the method should be named differently
+    // TODO why do we need the space code here? Then the method should be named differently
     ProjectSearchCriteria sc = new ProjectSearchCriteria();
     sc.withSpace().withCode().thatEquals(spaceCode);
     sc.withCode().thatEquals(projectCode);
@@ -908,23 +899,27 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
-    //TODO why do we need the space code here? Then the method should be named differently
+    // TODO why do we need the space code here? Then the method should be named differently
     ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
     sc.withProject().withSpace().withCode().thatEquals(spaceCode);
     sc.withCode().thatEquals(experimentCode);
     sc.withProject().withCode().thatEquals(projectCode);
-    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, sc,
-        new ExperimentFetchOptions());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, new ExperimentFetchOptions());
     return experiments.getTotalCount() != 0;
   }
 
   @Override
   public boolean sampleExists(String sampleCode) {
+    return searchSampleByCode(sampleCode).size() > 0;
+  }
+
+  @Override
+  public List<Sample> searchSampleByCode(String sampleCode) {
     SampleSearchCriteria sc = new SampleSearchCriteria();
     sc.withCode().thatEquals(sampleCode);
     SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, new SampleFetchOptions());
-    return samples
-        .getTotalCount() != 0;
+    return samples.getObjects();
   }
 
   /**
@@ -1039,10 +1034,10 @@ public class OpenBisClient implements IOpenBisClient {
     for (Project project : projectList) {
       sc.withProject().withCode().thatEquals(project.getCode());
     }
-    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken, sc,
-        fetchExperimentsCompletely());
+    SearchResult<Experiment> experiments =
+        v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
-    if (experiments.getObjects().isEmpty()){
+    if (experiments.getObjects().isEmpty()) {
       return null;
     } else {
       return experiments.getObjects();

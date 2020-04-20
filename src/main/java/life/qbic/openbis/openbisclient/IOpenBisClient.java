@@ -824,6 +824,13 @@ public interface IOpenBisClient {
    */
   public InputStream getDatasetStream(String datasetCode, String folder);
 
+  /**
+   * Retrieve a sample by its code
+   * @param sampleCode the code of the sample
+   * @return List of samples matching sample code
+   */
+  public List<Sample> searchSampleByCode(String sampleCode);
+
 //  /**
 //   * returns file information for a given number of datasets. params should look something like
 //   * this: {'codes': [datasetcode1,datasetcode2...]} returns a QueryTableModel with the following
