@@ -37,7 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class TestOpenBisClient {
+public class OldTstsOpenBisClient {
 
   private static OpenBisClient openbisClient;
   private static String DATASOURCE_URL;
