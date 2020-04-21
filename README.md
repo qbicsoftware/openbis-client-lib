@@ -2,4 +2,4 @@
  
  
 
-Helper methods for accessing openbis (http://www.cisd.ethz.ch/software/openBIS)
+Helper methods for accessing [openBIS](https://wiki-bsse.ethz.ch/display/bis/Home)

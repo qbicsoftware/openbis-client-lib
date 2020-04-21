@@ -6,13 +6,12 @@
 	<parent>
 		<groupId>life.qbic</groupId>
 		<artifactId>parent-pom</artifactId>
-		<version>1.1.2</version>
+		<version>2.1.0</version>
 	</parent>
-	<groupId>life.qbic</groupId>
 	<artifactId>openbis-client-lib</artifactId>
 	<packaging>jar</packaging>
         <!-- releases more recent than 1.1.4 use openBIS API 3 -->
-	<version>1.1.4</version>
+	<version>1.2.0</version>
 	<name>openBIS client library</name>
 	<!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
 	<repositories>
@@ -97,5 +96,10 @@
 			<artifactId>contiperf</artifactId>
 			<version>2.3.4</version>
 		</dependency>
-	</dependencies>
+    <!-- openBIS API (version defined in parent POM) -->
+    <dependency>
+      <groupId>life.qbic.openbis</groupId>
+      <artifactId>openbis_api</artifactId>
+    </dependency>
+  </dependencies>
 </project>
