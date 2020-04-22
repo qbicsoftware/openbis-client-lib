@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project 
-	xmlns="http://maven.apache.org/POM/4.0.0" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>life.qbic</groupId>
@@ -10,10 +10,11 @@
 	</parent>
 	<artifactId>openbis-client-lib</artifactId>
 	<packaging>jar</packaging>
-        <!-- releases more recent than 1.1.4 use openBIS API 3 -->
+	<!-- releases more recent than 1.1.4 use openBIS API 3 -->
 	<version>1.2.0</version>
 	<name>openBIS client library</name>
-	<!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
+	<!-- we only need to tell maven where to find our parent pom and other QBiC 
+		dependencies -->
 	<repositories>
 		<repository>
 			<releases>
@@ -59,8 +60,8 @@
 			<version>3.1</version>
 		</dependency>
 		<!-- openBIS dependencies -->
-		<!-- Override version coming from the parent POM!
-		     openBIS libs depend on commons-lang 2.6 -->
+		<!-- Override version coming from the parent POM! openBIS libs depend on 
+			commons-lang 2.6 -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -96,10 +97,10 @@
 			<artifactId>contiperf</artifactId>
 			<version>2.3.4</version>
 		</dependency>
-    <!-- openBIS API (version defined in parent POM) -->
-    <dependency>
-      <groupId>life.qbic.openbis</groupId>
-      <artifactId>openbis_api</artifactId>
-    </dependency>
-  </dependencies>
+		<!-- openBIS API (version defined in parent POM) -->
+		<dependency>
+			<groupId>life.qbic.openbis</groupId>
+			<artifactId>openbis_api</artifactId>
+		</dependency>
+	</dependencies>
 </project>
