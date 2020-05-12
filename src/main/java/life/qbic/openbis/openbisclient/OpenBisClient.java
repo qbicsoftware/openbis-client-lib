@@ -50,7 +50,7 @@ import org.apache.commons.lang.WordUtils;
 public class OpenBisClient implements IOpenBisClient {
 
   private final int TIMEOUT = 100000;
-  private String userId, password, sessionToken, serverURL;
+  private String userId, password, sessionToken, serviceURL;
   private IApplicationServerApi v3;
   private IDataStoreServerApi dss3;
 
@@ -59,15 +59,15 @@ public class OpenBisClient implements IOpenBisClient {
    *
    * @param userId the user id
    * @param password the password
-   * @param serverURL the server url
+   * @param apiURL the api url
    */
-  public OpenBisClient(String userId, String password, String serverURL) {
+  public OpenBisClient(String userId, String password, String apiURL) {
     this.userId = userId;
     this.password = password;
-    this.serverURL = serverURL;
+    this.serviceURL = apiURL + IApplicationServerApi.SERVICE_URL;
     // get a reference to AS API
-    v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
-    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serverURL, TIMEOUT);
+    v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
+    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serviceURL, TIMEOUT);
     sessionToken = null;
   }
 
@@ -822,7 +822,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(".de")[0] + ".de";
+    String base = this.serviceURL.split(".de")[0] + ".de";
     String downloadURL = base + ":444";
     downloadURL += "/datastore_server/";
 
@@ -837,7 +837,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(".de")[0] + ".de";
+    String base = this.serviceURL.split(".de")[0] + ".de";
     String downloadURL = base + ":444";
     downloadURL += "/datastore_server/";
 
@@ -918,7 +918,9 @@ public class OpenBisClient implements IOpenBisClient {
   public List<Sample> searchSampleByCode(String sampleCode) {
     SampleSearchCriteria sc = new SampleSearchCriteria();
     sc.withCode().thatEquals(sampleCode);
-    SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, new SampleFetchOptions());
+    SampleFetchOptions fetchOptions = new SampleFetchOptions();
+    fetchOptions.withSpace();
+    SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, fetchOptions);
     return samples.getObjects();
   }
 
