@@ -148,7 +148,7 @@ public class OpenBisClient implements IOpenBisClient {
     }
 
     // login to obtain a session token
-    System.out.println("logging in as "+userId);
+    System.out.println("logging in as " + userId);
     sessionToken = v3.login(userId, password);
   }
 
@@ -159,6 +159,7 @@ public class OpenBisClient implements IOpenBisClient {
 
     // login to obtain a session token
     sessionToken = v3.loginAs(userId, password, user);
+    System.out.println("loginasuser sessiontoken for " + user + ": " + sessionToken);
   }
 
 
@@ -191,7 +192,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<String> listSpaces() {
-    ensureLoggedIn();
+    // ensureLoggedIn();
     System.out.println("list spaces session token:");
     System.out.println(sessionToken);
     SearchResult<Space> spaces =
