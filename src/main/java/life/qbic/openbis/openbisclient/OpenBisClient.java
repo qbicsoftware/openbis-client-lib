@@ -150,6 +150,7 @@ public class OpenBisClient implements IOpenBisClient {
     // login to obtain a session token
     System.out.println("logging in as " + userId);
     sessionToken = v3.login(userId, password);
+    System.out.println("session token after login: " + sessionToken);
   }
 
   public void loginAsUser(String user) {
