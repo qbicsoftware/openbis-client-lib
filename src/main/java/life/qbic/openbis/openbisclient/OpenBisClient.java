@@ -33,6 +33,8 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOpt
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
+import ch.systemsx.cisd.common.exceptions.NotImplementedException;
+import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -43,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.WordUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The type Open bis client.
@@ -50,24 +54,25 @@ import org.apache.commons.lang.WordUtils;
 public class OpenBisClient implements IOpenBisClient {
 
   private final int TIMEOUT = 100000;
-  private String userId, password, sessionToken, serverURL;
+  private String userId, password, sessionToken, serviceURL;
   private IApplicationServerApi v3;
   private IDataStoreServerApi dss3;
+  private static final Logger logger = LogManager.getLogger(OpenBisClient.class);
 
   /**
    * Instantiates a new Open bis client.
    *
    * @param userId the user id
    * @param password the password
-   * @param serverURL the server url
+   * @param apiURL the api url
    */
-  public OpenBisClient(String userId, String password, String serverURL) {
+  public OpenBisClient(String userId, String password, String apiURL) {
     this.userId = userId;
     this.password = password;
-    this.serverURL = serverURL;
+    this.serviceURL = apiURL + IApplicationServerApi.SERVICE_URL;
     // get a reference to AS API
-    v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serverURL, TIMEOUT);
-    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serverURL, TIMEOUT);
+    v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
+    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serviceURL, TIMEOUT);
     sessionToken = null;
   }
 
@@ -146,7 +151,6 @@ public class OpenBisClient implements IOpenBisClient {
     if (loggedin()) {
       logout();
     }
-
     // login to obtain a session token
     sessionToken = v3.login(userId, password);
   }
@@ -445,14 +449,27 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<String> getUserSpaces(String userID) {
-    logout();
-
+    // this sets the user sessionToken
     loginAsUser(userID);
-    List<String> spacesOfUser = listSpaces();
+    List<String> spaceIdentifiers = new ArrayList<>();
+    // we are not using external functions to make sure this user is actually used
+    try {
+      SearchResult<Space> spaces =
+          v3.searchSpaces(sessionToken, new SpaceSearchCriteria(), new SpaceFetchOptions());
+      if (spaces != null) {
+        for (Space space : spaces.getObjects()) {
+          spaceIdentifiers.add(space.getCode());
+        }
+      }
+    } catch (UserFailureException u) {
+      logger.error("Could not fetch spaces for user " + userID
+          + ", because they could not be logged in. Is user " + this.userId + " an admin user?");
+      logger.warn("No spaces were returned.");
+    }
     logout();
     login();
 
-    return spacesOfUser;
+    return spaceIdentifiers;
   }
 
   /**
@@ -462,8 +479,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public boolean isUserAdmin(String userID) {
-    // TODO cant find method
-    return false;
+    throw new NotImplementedException();// TODO
   }
 
   @Override
@@ -822,7 +838,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public URL getDataStoreDownloadURL(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(".de")[0] + ".de";
+    String base = this.serviceURL.split(".de")[0] + ".de";
     String downloadURL = base + ":444";
     downloadURL += "/datastore_server/";
 
@@ -837,7 +853,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public URL getDataStoreDownloadURLLessGeneric(String dataSetCode, String openbisFilename)
       throws MalformedURLException {
-    String base = this.serverURL.split(".de")[0] + ".de";
+    String base = this.serviceURL.split(".de")[0] + ".de";
     String downloadURL = base + ":444";
     downloadURL += "/datastore_server/";
 
@@ -918,7 +934,9 @@ public class OpenBisClient implements IOpenBisClient {
   public List<Sample> searchSampleByCode(String sampleCode) {
     SampleSearchCriteria sc = new SampleSearchCriteria();
     sc.withCode().thatEquals(sampleCode);
-    SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, new SampleFetchOptions());
+    SampleFetchOptions fetchOptions = new SampleFetchOptions();
+    fetchOptions.withSpace();
+    SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, fetchOptions);
     return samples.getObjects();
   }
 
@@ -1013,14 +1031,20 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<Experiment> getExperimentsForUser(String userID) {
-    ensureLoggedIn();
     loginAsUser(userID);
-    SearchResult<Experiment> experiments = v3.searchExperiments(sessionToken,
-        new ExperimentSearchCriteria(), fetchExperimentsCompletely());
-
+    // we are not reusing other functions to be sure the user in question is actually used
+    SearchResult<Experiment> experiments = null;
+    try {
+      experiments = v3.searchExperiments(sessionToken, new ExperimentSearchCriteria(),
+          fetchExperimentsCompletely());
+    } catch (UserFailureException u) {
+      logger.error("Could not fetch experiments for user " + userID
+          + ", because they could not be logged in. Is user " + this.userId + " an admin user?");
+      logger.warn("No experiments were returned.");
+    }
     logout();
     login();
-    if (experiments.getObjects().isEmpty()) {
+    if (experiments == null || experiments.getObjects().isEmpty()) {
       return null;
     } else {
       return experiments.getObjects();
