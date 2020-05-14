@@ -18,19 +18,20 @@ branches:
   only:
   - master
   - development
+  - /^[vV]?\d+\.\d+\.\d+$/ # matches e.g., v1.2.3, 1.2.3, V1.2.3
 
 # added to make logs look cleaner, crisper, certified fresh
 before_install: unset _JAVA_OPTIONS
 
 # speed up builds by telling Travis that we don't need any special "installation"
-install: true
+install:
+  - $HOME/miniconda3/bin/conda --version || ./.install-reports-dependencies.sh
 
 # as agreed in our SOP, build everything (don't deploy, just try to 'mvn install' locally, which covers all phases)
 script: mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml clean cobertura:cobertura install
 # upload code coverage report, generate maven site (javadocs, documentation, static code analysis, etc.)
 after_success:
 - bash <(curl -s https://codecov.io/bash)
-- mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml site
 
 # upload to maven
 deploy:
@@ -48,10 +49,16 @@ deploy:
   # artifact will be installed in our testing instance if it is a .war file
 - skip_cleanup: true
   provider: script
-  script: mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml deploy
+  script: mvn build-helper:parse-version versions:set -DnewVersion=$TRAVIS_TAG -DprocessAllModules && mvn versions:commit &&
+    mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml deploy
   on:
-    branch: master
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
+    tags: true
+# activate our conda environment, generate maven site and upload reports to gh-pages branch
+after_deploy:
+  - echo ". $HOME/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && source ~/.bashrc && conda activate qbic-docs-build
+  - mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml site
+  - ./.generate-reports.py $TRAVIS_BRANCH $TRAVIS_REPO_SLUG "[skip travis] Updated gh-pages" "This commit was performed from travis-ci.com using a personal access key" "Build ID $TRAVIS_BUILD_ID" "Job ID TRAVIS_JOB_ID" "Branch $TRAVIS_BRANCH" "Log of this build found at $TRAVIS_JOB_WEB_URL"
 
 # change according to your needs, but we recommend to deactivate email notifications
 # for now, we configured Travis to send a notification to the #travis-ci channel 
@@ -65,7 +72,3 @@ notifications:
     # edit the following section if you want to get slack notifications
     rooms:
     - secure: "***"
-env:
-  global:
-  - secure: 00Nnx5VPkDhCBRvzag9lHNqwy+nE7TZAlCAqDbpNChmeUkrXu2LnkAbYyGRn4tAy5tmBYdYpDuH5wRT6mArF+5A7LrUkBh2pWnawMTDpvz4/rMe7kj+PK/e8OCCZQ4l+y2HxTGwQJc8B35heQj8n5N8wF48p4UheNuW0xpn58/2qgex9PWmLKGlz31ysGj8CzuDykJxX9XyiR3/eAUrePoyBosvMFJ2gbDFLIXmu7SHFrFLWL9sv10NpoC1vjtwzASyL+Q+ioLwvMiiSwnCGkpM+lSlHxIl86NJLme5bRUewb2QHekqMF/rLTK9JFAKC5j79iwv+f0bEPe3gr+VvSc6WW/fh7BO+hS+hNvIafueYsJJnlE0CSewbP9+VBD/XeKU3w0P9LjlVbYGN7G4fc/PlMcH79/i4jlcdqomFz4vgAGKXHxU/a/SSA40TXzCsAayeVPEdEfZUMNHAPceUdmcmfJKtcx5eQuS/jc6S3qbtjvIG+lXHQ/l6BlDcRU+LZ3BsgUAFhqtBcTkhKfJT4UdC9JmaSpGKFcfTJfi8Pv/ha8U+D/a78HQ0iU7kfic4zcpCWyxA1bLu0f+62qVQo/ZOFZh3C8uZrx/XObqm18W+68FIpPhdEZvdttjPb3WdV6hp9n9AQxve5NqjJHWy6hvwjG7XpqYtgPSzlwibuLo=
-  - secure: IplF/eLMOXkDReSGP8/dOc9Oyz6B6rsaJERR/DOW+r2/BBEu1O91zhDDe4ujuUZa3StE+uX7IqybEzjTbjWyJujMqpczHTG43hAFm7A1kGnUkWvBN5K3/fHWnTyfu1cGgy/2/mVMXS3xw8cDXGuyyy9Jv5Pu8PpcDlGAy3cfR8ol6iw4GWVdvJOgLosHrCOKVQ87jdnX43SzJ9ac0+c+C5d9bpor2QT8d0fHGFRMqam7e69I3EE8dtx7TgALFo234ibvCkJd8QO/5xryHHWdfGIT32iNbEsoczxMsSKmFynFgfyCjUYohfh9rretRJZmI7t5lYB9RO9g91lEcNlDK1bXh+YBxOil7HG7zU5schnocMpayF+L0ceuYCYgUsd+nBaTzSbhUMzJvqBpTGoq43VRn4pYNsOyefDLShsLCMxuyp2pHEq23m9gGWQfCVdyyRKEvnR2gEvmdj7rLKQ8pFebUEBi9TAjH5krjNvELsDtAoINArEY4gfayJXRcrGP5FzW2T1mWQrap3nP44JaPNns2rue65U9OZPOnN8PiZugj4cHuf8rV/5bXijqvVdUy8h5/Pvc/WZ89v8GG+KgBF31R+rpguXga0M39uTw748tEQRzJdg7vYfmKxgilKRvAi5EW/MY86xDfHJ7u5aWm2jtW/v7drTnOJla/FSxk3M=
