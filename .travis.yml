@@ -54,7 +54,6 @@ deploy:
   on:
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
     tags: true
-
 # activate our conda environment, generate maven site and upload reports to gh-pages branch
 after_deploy:
   - echo ". $HOME/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && source ~/.bashrc && conda activate qbic-docs-build
