@@ -45,8 +45,9 @@
   <dependencies>
     <!-- openBIS API (version defined in parent POM) -->
     <dependency>
-      <groupId>life.qbic.openbis</groupId>
-      <artifactId>openbis_api</artifactId>
+      <groupId>life.qbic</groupId>
+      <artifactId>openbis-api</artifactId>
+      <version>18.06.2</version>
     </dependency>
   </dependencies>
 </project>
