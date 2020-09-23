@@ -36,6 +36,9 @@ import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
+import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
+
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -1051,6 +1054,15 @@ public class OpenBisClient implements IOpenBisClient {
     }
   }
 
+  @Override
+  public void ingest(String dss, String serviceName, Map<String, Object> params) {
+    ServiceFinder serviceFinder2 =
+        new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
+    IQueryApiServer openbisDssService = serviceFinder2.createService(IQueryApiServer.class,
+        this.serviceURL);
+    openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
+        params);
+  }
 
   @Override
   public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {

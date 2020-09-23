@@ -754,15 +754,15 @@ public interface IOpenBisClient {
    */
   public List<Experiment> getExperimentsForUser(String userID);
 
-//  /**
-//   * Function to talk to ingestions services (python scripts) of this openBIS instance
-//   *
-//   * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
-//   * @param serviceName label of the ingestion service to call (this is defined in the ingestion
-//   * service properties)
-//   * @param params A Map of parameters to send to the ingestion service
-//   */
-//  public void ingest(String dss, String serviceName, Map<String, Object> params);
+  /**
+   * Function to talk to ingestions services (python scripts) of this openBIS instance
+   *
+   * @param dss the name of the dss-instance (e.g. DSS1 for most cases)
+   * @param serviceName label of the ingestion service to call (this is defined in the ingestion
+   * service properties)
+   * @param params A Map of parameters to send to the ingestion service
+   */
+  public void ingest(String dss, String serviceName, Map<String, Object> params);
 
   /**
    * List all experiments for given list of projects
