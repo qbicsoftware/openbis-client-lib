@@ -48,14 +48,11 @@
       <artifactId>openbis-api</artifactId>
       <version>18.06.2</version>
     </dependency>
-<<<<<<< HEAD
     <dependency>
       <groupId>life.qbic</groupId>
       <artifactId>openbis-core</artifactId>
       <version>18.06.2</version>
     </dependency>
-=======
->>>>>>> master
     <!-- https://mvnrepository.com/artifact/com.google.truth/truth -->
     <dependency>
       <groupId>com.google.truth</groupId>
