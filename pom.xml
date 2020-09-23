@@ -43,11 +43,17 @@
     </repository>
   </repositories>
   <dependencies>
-    <!-- openBIS API (version defined in parent POM) -->
     <dependency>
       <groupId>life.qbic</groupId>
       <artifactId>openbis-api</artifactId>
       <version>18.06.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.truth/truth -->
+    <dependency>
+      <groupId>com.google.truth</groupId>
+      <artifactId>truth</artifactId>
+      <version>1.0.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
