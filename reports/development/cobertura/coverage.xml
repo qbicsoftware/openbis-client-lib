@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
 
-<coverage line-rate="0.0" branch-rate="0.0" lines-covered="0" lines-valid="438" branches-covered="0" branches-valid="72" complexity="1.3161290322580645" version="2.1.1" timestamp="1600874534122">
+<coverage line-rate="0.0" branch-rate="0.0" lines-covered="0" lines-valid="438" branches-covered="0" branches-valid="72" complexity="1.3161290322580645" version="2.1.1" timestamp="1600931183477">
 	<sources>
 		<source>--source</source>
 		<source>/home/travis/build/qbicsoftware/openbis-client-lib/src/main/java</source>
