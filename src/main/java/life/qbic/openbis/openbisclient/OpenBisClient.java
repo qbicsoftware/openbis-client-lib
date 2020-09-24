@@ -36,6 +36,9 @@ import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
+import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
+
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,7 +57,7 @@ import org.apache.logging.log4j.Logger;
 public class OpenBisClient implements IOpenBisClient {
 
   private final int TIMEOUT = 100000;
-  private String userId, password, sessionToken, serviceURL;
+  private String userId, password, sessionToken, serviceURL, url;
   private IApplicationServerApi v3;
   private IDataStoreServerApi dss3;
   private static final Logger logger = LogManager.getLogger(OpenBisClient.class);
@@ -70,6 +73,7 @@ public class OpenBisClient implements IOpenBisClient {
     this.userId = userId;
     this.password = password;
     this.serviceURL = apiURL + IApplicationServerApi.SERVICE_URL;
+    this.url = apiURL;
     // get a reference to AS API
     v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
     dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serviceURL, TIMEOUT);
@@ -1051,6 +1055,15 @@ public class OpenBisClient implements IOpenBisClient {
     }
   }
 
+  @Override
+  public void ingest(String dss, String serviceName, Map<String, Object> params) {
+    ServiceFinder serviceFinder2 =
+        new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
+    IQueryApiServer openbisDssService = serviceFinder2.createService(IQueryApiServer.class,
+        this.url);
+    openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
+        params);
+  }
 
   @Override
   public List<Experiment> listExperimentsOfProjects(List<Project> projectList) {
