@@ -898,7 +898,7 @@ public class OpenBisClient implements IOpenBisClient {
       try {
         parents = sample.getParents();
       } catch (Exception e) {
-        logger.warn("Parents of sample were not available, contancting openBIS to fetch them.");
+        logger.warn("Parents of sample were not available, contacting openBIS to fetch them.");
         List<Sample> samplesWithParents = getSamplesWithParentsAndChildren(sample.getCode());
         for (Sample s : samplesWithParents) {
           parents.addAll(s.getParents());
