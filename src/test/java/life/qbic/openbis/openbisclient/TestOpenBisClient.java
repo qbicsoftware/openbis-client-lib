@@ -32,8 +32,6 @@ public class TestOpenBisClient {
     openbis = new OpenBisClientMock();
   }
 
-  @After
-  public void tearDown() {}
 
   @Test
   public void testRelativesOfSamplesFetched() {
