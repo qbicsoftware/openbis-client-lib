@@ -25,11 +25,7 @@ public class TestOpenBisClient {
   IOpenBisClient openbis;
   OpenBisClientHelper helper;
 
-  @BeforeClass
-  public static void setUpBeforeClass() {}
-
-  @AfterClass
-  public static void tearDownAfterClass() {}
+  
 
   @Before
   public void setUp() {
