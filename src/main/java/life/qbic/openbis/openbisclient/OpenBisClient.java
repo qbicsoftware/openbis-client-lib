@@ -21,6 +21,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
@@ -37,7 +38,6 @@ import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
-
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -290,6 +290,26 @@ public class OpenBisClient implements IOpenBisClient {
   }
 
   @Override
+  public List<PropertyType> getPropertiesOfSampleType(SampleType type) {
+    List<PropertyType> res = new ArrayList<>();
+    List<PropertyAssignment> assignments = type.getPropertyAssignments();
+    for (PropertyAssignment as : assignments) {
+      res.add(as.getPropertyType());
+    }
+    return res;
+  }
+
+  @Override
+  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type) {
+    List<PropertyType> res = new ArrayList<>();
+    List<PropertyAssignment> assignments = type.getPropertyAssignments();
+    for (PropertyAssignment as : assignments) {
+      res.add(as.getPropertyType());
+    }
+    return res;
+  }
+
+  @Override
   public List<Sample> getSamplesOfProject(String projIdentifier) {
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
@@ -316,9 +336,6 @@ public class OpenBisClient implements IOpenBisClient {
     ensureLoggedIn();
     SampleSearchCriteria sampleSearchCriteria = new SampleSearchCriteria();
     sampleSearchCriteria.withCode().thatEquals(sampCode);
-    SampleFetchOptions sampleFetchOptions = fetchSamplesCompletely();
-    sampleFetchOptions.withChildrenUsing(fetchSamplesCompletely());
-    sampleFetchOptions.withParentsUsing(fetchSamplesCompletely());
 
     SearchResult<Sample> samples =
         v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
@@ -546,6 +563,9 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Experiment> experiment =
         v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
+    if (experiment.getObjects().isEmpty()) {
+      return null;
+    }
     return experiment.getObjects().get(0);
   }
 
@@ -872,10 +892,19 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public Map<Sample, List<Sample>> getParentMap(List<Sample> samples) {
-    // TODO samples must have fetched parents!
     Map<Sample, List<Sample>> parentMap = new HashMap<>();
     for (Sample sample : samples) {
-      parentMap.put(sample, sample.getParents());
+      List<Sample> parents = new ArrayList<>();
+      try {
+        parents = sample.getParents();
+      } catch (Exception e) {
+        logger.warn("Parents of sample were not available, contancting openBIS to fetch them.");
+        List<Sample> samplesWithParents = getSamplesWithParentsAndChildren(sample.getCode());
+        for (Sample s : samplesWithParents) {
+          parents.addAll(s.getParents());
+        }
+      }
+      parentMap.put(sample, parents);
     }
 
     return parentMap;
@@ -1059,8 +1088,8 @@ public class OpenBisClient implements IOpenBisClient {
   public void ingest(String dss, String serviceName, Map<String, Object> params) {
     ServiceFinder serviceFinder2 =
         new ServiceFinder("openbis", IQueryApiServer.QUERY_PLUGIN_SERVER_URL);
-    IQueryApiServer openbisDssService = serviceFinder2.createService(IQueryApiServer.class,
-        this.url);
+    IQueryApiServer openbisDssService =
+        serviceFinder2.createService(IQueryApiServer.class, this.url);
     openbisDssService.createReportFromAggregationService(this.sessionToken, dss, serviceName,
         params);
   }

@@ -7,11 +7,11 @@
   <parent>
     <groupId>life.qbic</groupId>
     <artifactId>parent-pom</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.1</version>
   </parent>
   <artifactId>openbis-client-lib</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <name>openBIS client library</name>
   <!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
   <repositories>

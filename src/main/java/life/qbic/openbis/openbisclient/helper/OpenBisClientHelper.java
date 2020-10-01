@@ -11,7 +11,6 @@ public class OpenBisClientHelper {
 
   public static SampleFetchOptions fetchSamplesCompletely() {
     SampleFetchOptions sampleFetchOptions = new SampleFetchOptions();
-    sampleFetchOptions.withChildrenUsing(sampleFetchOptions);
     sampleFetchOptions.withExperiment();
     sampleFetchOptions.withAttachments();
     sampleFetchOptions.withComponents();
@@ -20,13 +19,14 @@ public class OpenBisClientHelper {
     sampleFetchOptions.withHistory();
     sampleFetchOptions.withMaterialProperties();
     sampleFetchOptions.withModifier();
-    //TODO Project could not be fetched
+    // TODO Project could not be fetched
     sampleFetchOptions.withProperties();
     sampleFetchOptions.withRegistrator();
     sampleFetchOptions.withSpace();
     sampleFetchOptions.withTags();
     sampleFetchOptions.withType();
-    sampleFetchOptions.withParents();
+    sampleFetchOptions.withParentsUsing(sampleFetchOptions);
+    sampleFetchOptions.withChildrenUsing(sampleFetchOptions);
 
     return sampleFetchOptions;
   }
@@ -40,7 +40,7 @@ public class OpenBisClientHelper {
     projectFetchOptions.withSpace();
     projectFetchOptions.withExperiments();
     projectFetchOptions.withLeader();
-    //TODO Samples could not be fetched
+    // TODO Samples could not be fetched
     projectFetchOptions.withSpace();
 
     return projectFetchOptions;

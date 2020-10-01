@@ -319,7 +319,7 @@ public interface IOpenBisClient {
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    *
    * @param experimentCode code of the openBIS experiment
-   * @return experiment with the given code
+   * @return experiment with the given code or null if no experiment was found
    */
   public Experiment getExperimentByCode(String experimentCode);
 
@@ -327,7 +327,7 @@ public interface IOpenBisClient {
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    *
    * @param experimentId id of the openBIS experiment
-   * @return experiment with the given code
+   * @return experiment with the given code or null if no experiment was found
    */
   public Experiment getExperimentById(String experimentId);
 
@@ -830,6 +830,20 @@ public interface IOpenBisClient {
    * @return List of samples matching sample code
    */
   public List<Sample> searchSampleByCode(String sampleCode);
+
+  /**
+   * Retrieve a list of property types associated with a given experiment type
+   * @param type ExperimentType
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type);
+  
+  /**
+   * Retrieve a list of property types associated with a given sample type
+   * @param type SampleType
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfSampleType(SampleType type);
 
 //  /**
 //   * returns file information for a given number of datasets. params should look something like
