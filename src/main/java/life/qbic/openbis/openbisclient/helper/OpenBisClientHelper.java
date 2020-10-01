@@ -107,8 +107,8 @@ public class OpenBisClientHelper {
   public static List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
   List<PropertyType> res = new ArrayList<>();
   List<PropertyAssignment> assignments = type.getPropertyAssignments();
-  for (PropertyAssignment as : assignments) {
-    res.add(as.getPropertyType());
+  for (PropertyAssignment propertyAssignment : assignments) {
+    res.add(propertyAssignment.getPropertyType());
   }
   return res;
 }
