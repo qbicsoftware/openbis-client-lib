@@ -7,11 +7,11 @@
   <parent>
     <groupId>life.qbic</groupId>
     <artifactId>parent-pom</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
   </parent>
   <artifactId>openbis-client-lib</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <name>openBIS client library</name>
   <!-- we only need to tell maven where to find our parent pom and other QBiC dependencies -->
   <repositories>
@@ -26,7 +26,7 @@
       </snapshots>
       <id>nexus-snapshots</id>
       <name>QBiC Snapshots</name>
-      <url>http://qbic-repo.qbic.uni-tuebingen.de:8081/repository/maven-snapshots</url>
+      <url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-snapshots</url>
     </repository>
     <repository>
       <releases>
@@ -39,7 +39,7 @@
       </snapshots>
       <id>nexus-releases</id>
       <name>QBiC Releases</name>
-      <url>http://qbic-repo.qbic.uni-tuebingen.de:8081/repository/maven-releases</url>
+      <url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-releases</url>
     </repository>
   </repositories>
   <dependencies>
