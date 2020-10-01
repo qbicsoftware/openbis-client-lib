@@ -1,9 +1,14 @@
 package life.qbic.openbis.openbisclient.helper;
 
+import java.util.ArrayList;
+import java.util.List;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
 
@@ -99,4 +104,12 @@ public class OpenBisClientHelper {
     return experimentTypeFetchOptions;
   }
 
+  public static List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
+  List<PropertyType> res = new ArrayList<>();
+  List<PropertyAssignment> assignments = type.getPropertyAssignments();
+  for (PropertyAssignment as : assignments) {
+    res.add(as.getPropertyType());
+  }
+  return res;
+}
 }

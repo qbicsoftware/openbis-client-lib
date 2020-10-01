@@ -1,6 +1,7 @@
 package life.qbic.openbis.openbisclient;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
@@ -832,18 +833,11 @@ public interface IOpenBisClient {
   public List<Sample> searchSampleByCode(String sampleCode);
 
   /**
-   * Retrieve a list of property types associated with a given experiment type
-   * @param type ExperimentType
+   * Retrieve a list of property types associated with a given entity type, e.g. a sample or experiment type
+   * @param type entity type of sample, experiment or other openBIS entity
    * @return List of PropertyTypes
    */
-  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type);
-  
-  /**
-   * Retrieve a list of property types associated with a given sample type
-   * @param type SampleType
-   * @return List of PropertyTypes
-   */
-  public List<PropertyType> getPropertiesOfSampleType(SampleType type);
+  public List<PropertyType> getPropertiesOfEntityType(IEntityType type);
 
 //  /**
 //   * returns file information for a given number of datasets. params should look something like

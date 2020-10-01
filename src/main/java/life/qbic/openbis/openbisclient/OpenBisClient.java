@@ -8,6 +8,7 @@ import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSa
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
@@ -39,6 +40,7 @@ import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
+import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -290,23 +292,8 @@ public class OpenBisClient implements IOpenBisClient {
   }
 
   @Override
-  public List<PropertyType> getPropertiesOfSampleType(SampleType type) {
-    List<PropertyType> res = new ArrayList<>();
-    List<PropertyAssignment> assignments = type.getPropertyAssignments();
-    for (PropertyAssignment as : assignments) {
-      res.add(as.getPropertyType());
-    }
-    return res;
-  }
-
-  @Override
-  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type) {
-    List<PropertyType> res = new ArrayList<>();
-    List<PropertyAssignment> assignments = type.getPropertyAssignments();
-    for (PropertyAssignment as : assignments) {
-      res.add(as.getPropertyType());
-    }
-    return res;
+  public List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
+    return OpenBisClientHelper.getPropertiesOfEntityType(type);
   }
 
   @Override
