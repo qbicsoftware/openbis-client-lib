@@ -1,9 +1,14 @@
 package life.qbic.openbis.openbisclient.helper;
 
+import java.util.ArrayList;
+import java.util.List;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
 
@@ -11,7 +16,6 @@ public class OpenBisClientHelper {
 
   public static SampleFetchOptions fetchSamplesCompletely() {
     SampleFetchOptions sampleFetchOptions = new SampleFetchOptions();
-    sampleFetchOptions.withChildrenUsing(sampleFetchOptions);
     sampleFetchOptions.withExperiment();
     sampleFetchOptions.withAttachments();
     sampleFetchOptions.withComponents();
@@ -20,13 +24,14 @@ public class OpenBisClientHelper {
     sampleFetchOptions.withHistory();
     sampleFetchOptions.withMaterialProperties();
     sampleFetchOptions.withModifier();
-    //TODO Project could not be fetched
+    // TODO Project could not be fetched
     sampleFetchOptions.withProperties();
     sampleFetchOptions.withRegistrator();
     sampleFetchOptions.withSpace();
     sampleFetchOptions.withTags();
     sampleFetchOptions.withType();
-    sampleFetchOptions.withParents();
+    sampleFetchOptions.withParentsUsing(sampleFetchOptions);
+    sampleFetchOptions.withChildrenUsing(sampleFetchOptions);
 
     return sampleFetchOptions;
   }
@@ -40,7 +45,7 @@ public class OpenBisClientHelper {
     projectFetchOptions.withSpace();
     projectFetchOptions.withExperiments();
     projectFetchOptions.withLeader();
-    //TODO Samples could not be fetched
+    // TODO Samples could not be fetched
     projectFetchOptions.withSpace();
 
     return projectFetchOptions;
@@ -99,4 +104,12 @@ public class OpenBisClientHelper {
     return experimentTypeFetchOptions;
   }
 
+  public static List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
+  List<PropertyType> res = new ArrayList<>();
+  List<PropertyAssignment> assignments = type.getPropertyAssignments();
+  for (PropertyAssignment propertyAssignment : assignments) {
+    res.add(propertyAssignment.getPropertyType());
+  }
+  return res;
+}
 }

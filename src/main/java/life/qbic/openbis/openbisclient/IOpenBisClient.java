@@ -1,6 +1,7 @@
 package life.qbic.openbis.openbisclient;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
@@ -319,7 +320,7 @@ public interface IOpenBisClient {
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    *
    * @param experimentCode code of the openBIS experiment
-   * @return experiment with the given code
+   * @return experiment with the given code or null if no experiment was found
    */
   public Experiment getExperimentByCode(String experimentCode);
 
@@ -327,7 +328,7 @@ public interface IOpenBisClient {
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    *
    * @param experimentId id of the openBIS experiment
-   * @return experiment with the given code
+   * @return experiment with the given code or null if no experiment was found
    */
   public Experiment getExperimentById(String experimentId);
 
@@ -830,6 +831,13 @@ public interface IOpenBisClient {
    * @return List of samples matching sample code
    */
   public List<Sample> searchSampleByCode(String sampleCode);
+
+  /**
+   * Retrieve a list of property types associated with a given entity type, e.g. a sample or experiment type
+   * @param type entity type of sample, experiment or other openBIS entity
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfEntityType(IEntityType type);
 
 //  /**
 //   * returns file information for a given number of datasets. params should look something like
