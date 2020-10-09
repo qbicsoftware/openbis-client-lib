@@ -326,7 +326,16 @@ public class OpenBisClient implements IOpenBisClient {
 
     res.addAll(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
 
-    return OpenBisClientHelper.getPropertiesOfEntityType(res);
+    if (res.isEmpty()) {
+      throw new NotFetchedException("Experiment type could not be found: "+type.getCode());
+    }
+    if (res.size() > 1) {
+      throw new NotFetchedException("More than one entity type found for: "+type.getCode());
+    }
+
+    IEntityType typeWithProperties = res.get(0);
+    
+    return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
   @Override
@@ -338,9 +347,16 @@ public class OpenBisClient implements IOpenBisClient {
 
     List<IEntityType> res = new ArrayList<>();
 
-    res.addAll(v3.searchSampleTypes(sessionToken, criteria, options).getObjects());
+    if (res.isEmpty()) {
+      throw new NotFetchedException("Sample type could not be found: "+type.getCode());
+    }
+    if (res.size() > 1) {
+      throw new NotFetchedException("More than one entity type found for: "+type.getCode());
+    }
 
-    return OpenBisClientHelper.getPropertiesOfEntityType(res);
+    IEntityType typeWithProperties = res.get(0);
+    
+    return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
   @Override
@@ -352,9 +368,16 @@ public class OpenBisClient implements IOpenBisClient {
 
     List<IEntityType> res = new ArrayList<>();
 
-    res.addAll(v3.searchDataSetTypes(sessionToken, criteria, options).getObjects());
+    if (res.isEmpty()) {
+      throw new NotFetchedException("DataSet type could not be found: "+type.getCode());
+    }
+    if (res.size() > 1) {
+      throw new NotFetchedException("More than one entity type found for: "+type.getCode());
+    }
 
-    return OpenBisClientHelper.getPropertiesOfEntityType(res);
+    IEntityType typeWithProperties = res.get(0);
+    
+    return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
   @Override

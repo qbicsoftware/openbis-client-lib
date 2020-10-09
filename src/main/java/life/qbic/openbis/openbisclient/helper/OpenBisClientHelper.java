@@ -105,19 +105,14 @@ public class OpenBisClientHelper {
     return experimentTypeFetchOptions;
   }
 
-  public static List<PropertyType> getPropertiesOfEntityType(List<IEntityType> foundTypes) {
-
-    if (foundTypes.isEmpty()) {
-      throw new NotFetchedException("Entity type could not be found");
-    }
-    if (foundTypes.size() > 1) {
-      throw new NotFetchedException("More than one entity type found");
-    }
-
-    IEntityType typeWithProperties = foundTypes.get(0);
-
+  /**
+   * Returns a list of property types given an entity type. The entity type needs to contain property assignments (enables via fetch options)
+   * @param type the entity type object
+   * @return
+   */
+  public static List<PropertyType> getPropertiesOfEntityType(IEntityType typeWithAssignments) {
     List<PropertyType> res = new ArrayList<>();
-    List<PropertyAssignment> assignments = typeWithProperties.getPropertyAssignments();
+    List<PropertyAssignment> assignments = typeWithAssignments.getPropertyAssignments();
     for (PropertyAssignment propertyAssignment : assignments) {
       res.add(propertyAssignment.getPropertyType());
     }
