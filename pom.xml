@@ -10,7 +10,7 @@
 	</parent>
 	<artifactId>openbis-client-lib</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.1</version>
+	<version>1.4.2</version>
 	<name>openBIS client library</name>
 	<!-- we only need to tell maven where to find our parent pom and other QBiC 
 		dependencies -->
