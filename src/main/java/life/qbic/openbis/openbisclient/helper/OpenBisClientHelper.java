@@ -11,6 +11,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 
 public class OpenBisClientHelper {
 
@@ -104,12 +105,22 @@ public class OpenBisClientHelper {
     return experimentTypeFetchOptions;
   }
 
-  public static List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
-  List<PropertyType> res = new ArrayList<>();
-  List<PropertyAssignment> assignments = type.getPropertyAssignments();
-  for (PropertyAssignment as : assignments) {
-    res.add(as.getPropertyType());
+  public static List<PropertyType> getPropertiesOfEntityType(List<IEntityType> foundTypes) {
+
+    if (foundTypes.isEmpty()) {
+      throw new NotFetchedException("Entity type could not be found");
+    }
+    if (foundTypes.size() > 1) {
+      throw new NotFetchedException("More than one entity type found");
+    }
+
+    IEntityType typeWithProperties = foundTypes.get(0);
+
+    List<PropertyType> res = new ArrayList<>();
+    List<PropertyAssignment> assignments = typeWithProperties.getPropertyAssignments();
+    for (PropertyAssignment as : assignments) {
+      res.add(as.getPropertyType());
+    }
+    return res;
   }
-  return res;
-}
 }

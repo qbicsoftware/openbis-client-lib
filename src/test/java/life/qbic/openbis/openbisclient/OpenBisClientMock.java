@@ -3,12 +3,15 @@ package life.qbic.openbis.openbisclient;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
@@ -455,8 +458,18 @@ public class OpenBisClientMock implements IOpenBisClient {
   }
 
   @Override
-  public List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
-    return OpenBisClientHelper.getPropertiesOfEntityType(type);
+  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type) {
+    return OpenBisClientHelper.getPropertiesOfEntityType(new ArrayList<>(Arrays.asList(type)));
+  }
+
+  @Override
+  public List<PropertyType> getPropertiesOfSampleType(SampleType type) {
+    return OpenBisClientHelper.getPropertiesOfEntityType(new ArrayList<>(Arrays.asList(type)));
+  }
+
+  @Override
+  public List<PropertyType> getPropertiesOfDataSetType(DataSetType type) {
+    return OpenBisClientHelper.getPropertiesOfEntityType(new ArrayList<>(Arrays.asList(type)));
   }
 
 }
