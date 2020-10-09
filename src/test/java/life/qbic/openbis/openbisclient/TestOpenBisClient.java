@@ -25,19 +25,13 @@ public class TestOpenBisClient {
   IOpenBisClient openbis;
   OpenBisClientHelper helper;
 
-  @BeforeClass
-  public static void setUpBeforeClass() {}
-
-  @AfterClass
-  public static void tearDownAfterClass() {}
+  
 
   @Before
   public void setUp() {
     openbis = new OpenBisClientMock();
   }
 
-  @After
-  public void tearDown() {}
 
   @Test
   public void testRelativesOfSamplesFetched() {

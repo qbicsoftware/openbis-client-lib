@@ -118,8 +118,8 @@ public class OpenBisClientHelper {
 
     List<PropertyType> res = new ArrayList<>();
     List<PropertyAssignment> assignments = typeWithProperties.getPropertyAssignments();
-    for (PropertyAssignment as : assignments) {
-      res.add(as.getPropertyType());
+    for (PropertyAssignment propertyAssignment : assignments) {
+      res.add(propertyAssignment.getPropertyType());
     }
     return res;
   }
