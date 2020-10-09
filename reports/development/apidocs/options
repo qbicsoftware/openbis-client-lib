@@ -16,10 +16,10 @@
 'UTF-8'
 -Xdoclint:all
 -doctitle
-'openBIS client library 1.4.0-SNAPSHOT API'
+'openBIS client library 1.5.0-SNAPSHOT API'
 -linkoffline
 'https://docs.oracle.com/javase/8/docs/api' '/home/travis/build/qbicsoftware/openbis-client-lib/target/javadoc-bundle-options'
 -use
 -version
 -windowtitle
-'openBIS client library 1.4.0-SNAPSHOT API'
+'openBIS client library 1.5.0-SNAPSHOT API'
