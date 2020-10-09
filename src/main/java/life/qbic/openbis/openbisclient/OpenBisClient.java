@@ -309,16 +309,15 @@ public class OpenBisClient implements IOpenBisClient {
     }
   }
 
-
   @Override
   public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type) {
+    ensureLoggedIn();
     ExperimentTypeSearchCriteria criteria = new ExperimentTypeSearchCriteria();
     criteria.withCode().thatEquals(type.getCode());
     ExperimentTypeFetchOptions options = new ExperimentTypeFetchOptions();
     options.withPropertyAssignments();
 
     List<IEntityType> res = new ArrayList<>();
-
     res.addAll(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
@@ -335,12 +334,14 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public List<PropertyType> getPropertiesOfSampleType(SampleType type) {
+    ensureLoggedIn();
     SampleTypeSearchCriteria criteria = new SampleTypeSearchCriteria();
     criteria.withCode().thatEquals(type.getCode());
     SampleTypeFetchOptions options = new SampleTypeFetchOptions();
     options.withPropertyAssignments();
 
     List<IEntityType> res = new ArrayList<>();
+    res.addAll(v3.searchSampleTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
       throw new NotFetchedException("Sample type could not be found: " + type.getCode());
@@ -356,12 +357,14 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public List<PropertyType> getPropertiesOfDataSetType(DataSetType type) {
+    ensureLoggedIn();
     DataSetTypeSearchCriteria criteria = new DataSetTypeSearchCriteria();
     criteria.withCode().thatEquals(type.getCode());
     DataSetTypeFetchOptions options = new DataSetTypeFetchOptions();
     options.withPropertyAssignments();
 
     List<IEntityType> res = new ArrayList<>();
+    res.addAll(v3.searchDataSetTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
       throw new NotFetchedException("DataSet type could not be found: " + type.getCode());
