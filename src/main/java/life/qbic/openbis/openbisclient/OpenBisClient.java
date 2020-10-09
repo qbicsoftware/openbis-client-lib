@@ -327,14 +327,14 @@ public class OpenBisClient implements IOpenBisClient {
     res.addAll(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
-      throw new NotFetchedException("Experiment type could not be found: "+type.getCode());
+      throw new NotFetchedException("Experiment type could not be found: " + type.getCode());
     }
     if (res.size() > 1) {
-      throw new NotFetchedException("More than one entity type found for: "+type.getCode());
+      throw new NotFetchedException("More than one entity type found for: " + type.getCode());
     }
 
     IEntityType typeWithProperties = res.get(0);
-    
+
     return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
@@ -348,14 +348,14 @@ public class OpenBisClient implements IOpenBisClient {
     List<IEntityType> res = new ArrayList<>();
 
     if (res.isEmpty()) {
-      throw new NotFetchedException("Sample type could not be found: "+type.getCode());
+      throw new NotFetchedException("Sample type could not be found: " + type.getCode());
     }
     if (res.size() > 1) {
-      throw new NotFetchedException("More than one entity type found for: "+type.getCode());
+      throw new NotFetchedException("More than one entity type found for: " + type.getCode());
     }
 
     IEntityType typeWithProperties = res.get(0);
-    
+
     return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
@@ -369,14 +369,14 @@ public class OpenBisClient implements IOpenBisClient {
     List<IEntityType> res = new ArrayList<>();
 
     if (res.isEmpty()) {
-      throw new NotFetchedException("DataSet type could not be found: "+type.getCode());
+      throw new NotFetchedException("DataSet type could not be found: " + type.getCode());
     }
     if (res.size() > 1) {
-      throw new NotFetchedException("More than one entity type found for: "+type.getCode());
+      throw new NotFetchedException("More than one entity type found for: " + type.getCode());
     }
 
     IEntityType typeWithProperties = res.get(0);
-    
+
     return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
@@ -994,6 +994,12 @@ public class OpenBisClient implements IOpenBisClient {
     return parentMap;
   }
 
+  private String getSamplePropertyOrEmptyString(Sample sample, String propertyType) {
+    String property = sample.getProperties().get(propertyType);
+    String result = (property == null) ? "" : property;
+    return result;
+  }
+
   /**
    * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
    * Only one requested layer of the data model is returned. Experimental factors are returned in
@@ -1028,21 +1034,17 @@ public class OpenBisClient implements IOpenBisClient {
       String code = sample.getCode();
       List<String> row = new ArrayList<String>();
       row.add(code);
-      String secName = sample.getProperties().get("Q_SECONDARY_NAME");
-      if (secName == null)
-        secName = "";
+      String secName = getSamplePropertyOrEmptyString(sample, "Q_SECONDARY_NAME");
       row.add(secName);
-      String extID = sample.getProperties().get("Q_EXTERNALDB_ID");
-      if (extID == null)
-        extID = "";
+      String extID = getSamplePropertyOrEmptyString(sample, "Q_EXTERNALDB_ID");
       row.add(extID);
-      String extrType = sample.getProperties().get("Q_PRIMARY_TISSUE");
-      if (extrType == null)
-        extrType = sample.getProperties().get("Q_SAMPLE_TYPE");
-      if (extrType == null)
-        extrType = "";
-      if (extrType.equals("CELL_LINE"))
+      String extrType = getSamplePropertyOrEmptyString(sample, "Q_PRIMARY_TISSUE");
+      if (extrType.isEmpty()) {
+        extrType = getSamplePropertyOrEmptyString(sample, "Q_SAMPLE_TYPE");
+      }
+      if (extrType.equals("CELL_LINE")) {
         extrType = sample.getProperties().get("Q_TISSUE_DETAILED");
+      }
       row.add(extrType);
       String props = sample.getProperties().get("Q_PROPERTIES");
       if (props == null)
