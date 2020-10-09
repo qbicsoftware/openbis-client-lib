@@ -459,17 +459,17 @@ public class OpenBisClientMock implements IOpenBisClient {
 
   @Override
   public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type) {
-    return OpenBisClientHelper.getPropertiesOfEntityType(new ArrayList<>(Arrays.asList(type)));
+    return OpenBisClientHelper.getPropertiesOfEntityType(type);
   }
 
   @Override
   public List<PropertyType> getPropertiesOfSampleType(SampleType type) {
-    return OpenBisClientHelper.getPropertiesOfEntityType(new ArrayList<>(Arrays.asList(type)));
+    return OpenBisClientHelper.getPropertiesOfEntityType(type);
   }
 
   @Override
   public List<PropertyType> getPropertiesOfDataSetType(DataSetType type) {
-    return OpenBisClientHelper.getPropertiesOfEntityType(new ArrayList<>(Arrays.asList(type)));
+    return OpenBisClientHelper.getPropertiesOfEntityType(type);
   }
 
 }
