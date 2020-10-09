@@ -1,16 +1,17 @@
 package life.qbic.openbis.openbisclient;
 
 import static com.google.common.truth.Truth.assertThat;
-import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertDataSetCompletelyFetched;
-import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertExperimentCompletetlyFetched;
-import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertProjectCompletelyFetched;
-import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertSampleCompletetlyFetched;
-import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertSampleTypeCompletelyFetched;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertDataSetCompletelyFetched;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertExperimentCompletetlyFetched;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertProjectCompletelyFetched;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertSampleCompletetlyFetched;
+import static life.qbic.openbis.openbisclient.TestOpenBisClientHelper.assertSampleTypeCompletelyFetched;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;

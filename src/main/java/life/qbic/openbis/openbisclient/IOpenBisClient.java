@@ -1,7 +1,9 @@
 package life.qbic.openbis.openbisclient;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
@@ -319,7 +321,7 @@ public interface IOpenBisClient {
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    *
    * @param experimentCode code of the openBIS experiment
-   * @return experiment with the given code
+   * @return experiment with the given code or null if no experiment was found
    */
   public Experiment getExperimentByCode(String experimentCode);
 
@@ -327,7 +329,7 @@ public interface IOpenBisClient {
    * Function to retrieve a experiment from openBIS by the code of the experiment.
    *
    * @param experimentId id of the openBIS experiment
-   * @return experiment with the given code
+   * @return experiment with the given code or null if no experiment was found
    */
   public Experiment getExperimentById(String experimentId);
 
@@ -830,6 +832,27 @@ public interface IOpenBisClient {
    * @return List of samples matching sample code
    */
   public List<Sample> searchSampleByCode(String sampleCode);
+
+  /**
+   * Retrieve a list of property types associated with a given experiment type
+   * @param type entity type of experiment
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type);
+
+  /**
+   * Retrieve a list of property types associated with a given sample type
+   * @param type entity type of sample
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfSampleType(SampleType type);
+  
+  /**
+   * Retrieve a list of property types associated with a given dataset type
+   * @param type entity type of dataset
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfDataSetType(DataSetType type);
 
 //  /**
 //   * returns file information for a given number of datasets. params should look something like
