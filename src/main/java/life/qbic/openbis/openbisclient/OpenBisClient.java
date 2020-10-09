@@ -990,9 +990,6 @@ public class OpenBisClient implements IOpenBisClient {
       if (sampleType.equals(s.getType().getCode()))
         samples.add(s);
     }
-    // sort remaining samples-
-    // Arrays.sort(samples);
-
     Map<String, String> ncbi = new HashMap<>();
     Map<String, String> taxonomyMap = getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
     for (String key : taxonomyMap.keySet()) {
