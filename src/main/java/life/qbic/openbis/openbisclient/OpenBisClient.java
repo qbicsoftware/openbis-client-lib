@@ -32,6 +32,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.IProjectId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.fetchoptions.PropertyAssignmentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.Role;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.RoleAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
@@ -315,7 +316,9 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentTypeSearchCriteria criteria = new ExperimentTypeSearchCriteria();
     criteria.withCode().thatEquals(type.getCode());
     ExperimentTypeFetchOptions options = new ExperimentTypeFetchOptions();
-    options.withPropertyAssignments();
+    PropertyAssignmentFetchOptions paFetchOptions = new PropertyAssignmentFetchOptions();
+    paFetchOptions.withPropertyType();
+    options.withPropertyAssignmentsUsing(paFetchOptions);
 
     List<IEntityType> res = new ArrayList<>();
     res.addAll(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
@@ -338,7 +341,9 @@ public class OpenBisClient implements IOpenBisClient {
     SampleTypeSearchCriteria criteria = new SampleTypeSearchCriteria();
     criteria.withCode().thatEquals(type.getCode());
     SampleTypeFetchOptions options = new SampleTypeFetchOptions();
-    options.withPropertyAssignments();
+    PropertyAssignmentFetchOptions paFetchOptions = new PropertyAssignmentFetchOptions();
+    paFetchOptions.withPropertyType();
+    options.withPropertyAssignmentsUsing(paFetchOptions);
 
     List<IEntityType> res = new ArrayList<>();
     res.addAll(v3.searchSampleTypes(sessionToken, criteria, options).getObjects());
@@ -361,7 +366,9 @@ public class OpenBisClient implements IOpenBisClient {
     DataSetTypeSearchCriteria criteria = new DataSetTypeSearchCriteria();
     criteria.withCode().thatEquals(type.getCode());
     DataSetTypeFetchOptions options = new DataSetTypeFetchOptions();
-    options.withPropertyAssignments();
+    PropertyAssignmentFetchOptions paFetchOptions = new PropertyAssignmentFetchOptions();
+    paFetchOptions.withPropertyType();
+    options.withPropertyAssignmentsUsing(paFetchOptions);
 
     List<IEntityType> res = new ArrayList<>();
     res.addAll(v3.searchDataSetTypes(sessionToken, criteria, options).getObjects());
