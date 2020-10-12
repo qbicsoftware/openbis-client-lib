@@ -100,7 +100,7 @@ public class TestOpenBisClient {
     fo.withPropertyAssignments();
     eType.setFetchOptions(fo);
 
-    List<PropertyType> propTypes = openbis.getPropertiesOfEntityType(eType);
+    List<PropertyType> propTypes = openbis.getPropertiesOfExperimentType(eType);
     assertEquals(2, propTypes.size());
     for (PropertyType p : propTypes) {
       switch (p.getDataType()) {

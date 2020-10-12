@@ -11,22 +11,34 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetTypeSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.IExperimentId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentTypeSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.person.Person;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.person.fetchoptions.PersonFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.person.search.PersonSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.IProjectId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.fetchoptions.PropertyAssignmentFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.Role;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.RoleAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleTypeSearchCriteria;
@@ -34,6 +46,10 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.VocabularyTerm;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.fetchoptions.VocabularyTermFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
 import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
@@ -45,11 +61,14 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -292,8 +311,78 @@ public class OpenBisClient implements IOpenBisClient {
   }
 
   @Override
-  public List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
-    return OpenBisClientHelper.getPropertiesOfEntityType(type);
+  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type) {
+    ensureLoggedIn();
+    ExperimentTypeSearchCriteria criteria = new ExperimentTypeSearchCriteria();
+    criteria.withCode().thatEquals(type.getCode());
+    ExperimentTypeFetchOptions options = new ExperimentTypeFetchOptions();
+    PropertyAssignmentFetchOptions paFetchOptions = new PropertyAssignmentFetchOptions();
+    paFetchOptions.withPropertyType();
+    options.withPropertyAssignmentsUsing(paFetchOptions);
+
+    List<IEntityType> res = new ArrayList<>();
+    res.addAll(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
+
+    if (res.isEmpty()) {
+      throw new NotFetchedException("Experiment type could not be found: " + type.getCode());
+    }
+    if (res.size() > 1) {
+      throw new NotFetchedException("More than one entity type found for: " + type.getCode());
+    }
+
+    IEntityType typeWithProperties = res.get(0);
+
+    return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
+  }
+
+  @Override
+  public List<PropertyType> getPropertiesOfSampleType(SampleType type) {
+    ensureLoggedIn();
+    SampleTypeSearchCriteria criteria = new SampleTypeSearchCriteria();
+    criteria.withCode().thatEquals(type.getCode());
+    SampleTypeFetchOptions options = new SampleTypeFetchOptions();
+    PropertyAssignmentFetchOptions paFetchOptions = new PropertyAssignmentFetchOptions();
+    paFetchOptions.withPropertyType();
+    options.withPropertyAssignmentsUsing(paFetchOptions);
+
+    List<IEntityType> res = new ArrayList<>();
+    res.addAll(v3.searchSampleTypes(sessionToken, criteria, options).getObjects());
+
+    if (res.isEmpty()) {
+      throw new NotFetchedException("Sample type could not be found: " + type.getCode());
+    }
+    if (res.size() > 1) {
+      throw new NotFetchedException("More than one entity type found for: " + type.getCode());
+    }
+
+    IEntityType typeWithProperties = res.get(0);
+
+    return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
+  }
+
+  @Override
+  public List<PropertyType> getPropertiesOfDataSetType(DataSetType type) {
+    ensureLoggedIn();
+    DataSetTypeSearchCriteria criteria = new DataSetTypeSearchCriteria();
+    criteria.withCode().thatEquals(type.getCode());
+    DataSetTypeFetchOptions options = new DataSetTypeFetchOptions();
+    PropertyAssignmentFetchOptions paFetchOptions = new PropertyAssignmentFetchOptions();
+    paFetchOptions.withPropertyType();
+    options.withPropertyAssignmentsUsing(paFetchOptions);
+
+    List<IEntityType> res = new ArrayList<>();
+    res.addAll(v3.searchDataSetTypes(sessionToken, criteria, options).getObjects());
+
+    if (res.isEmpty()) {
+      throw new NotFetchedException("DataSet type could not be found: " + type.getCode());
+    }
+    if (res.size() > 1) {
+      throw new NotFetchedException("More than one entity type found for: " + type.getCode());
+    }
+
+    IEntityType typeWithProperties = res.get(0);
+
+    return OpenBisClientHelper.getPropertiesOfEntityType(typeWithProperties);
   }
 
   @Override
@@ -487,7 +576,20 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public boolean isUserAdmin(String userID) {
-    throw new NotImplementedException();// TODO
+    ensureLoggedIn();
+    PersonSearchCriteria criteria = new PersonSearchCriteria();
+    criteria.withUserId().thatEquals(userID);
+    PersonFetchOptions options = new PersonFetchOptions();
+    options.withRoleAssignments();
+    SearchResult<Person> res = v3.searchPersons(sessionToken, criteria, options);
+    for (Person p : res.getObjects()) {
+      for (RoleAssignment r : p.getRoleAssignments()) {
+        if (r.getRole().equals(Role.ADMIN)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override
@@ -657,7 +759,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public List<DataSet> getDataSetsOfProjectByIdentifier(String projectIdentifier) {
     // TODO does not work yet
-    return null;
+    throw new NotImplementedException();
   }
 
   /**
@@ -669,7 +771,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public List<DataSet> getDataSetsOfProjects(List<Project> projectIdentifier) {
     // TODO does not work yet
-    return null;
+    throw new NotImplementedException();
   }
 
   @Override
@@ -711,15 +813,15 @@ public class OpenBisClient implements IOpenBisClient {
 
 
   /**
-   * Function to list the vocabulary terms for a given property which has been added to openBIS. The
-   * property has to be a Controlled Vocabulary Property.
+   * Function to list the vocabulary codes for a given property which has been added to openBIS. The
+   * property has to be a Controlled Vocabulary Property. Use
    *
    * @param property the property type
    * @return list of the vocabulary terms of the given property
    */
   @Override
   public List<String> listVocabularyTermsForProperty(PropertyType property) {
-    return null;
+    throw new NotImplementedException();
 
   }
 
@@ -732,7 +834,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public String getCVLabelForProperty(PropertyType propertyType, String propertyValue) {
-    return null;
+    throw new NotImplementedException();
   }
 
   @Override
@@ -897,6 +999,12 @@ public class OpenBisClient implements IOpenBisClient {
     return parentMap;
   }
 
+  private String getSamplePropertyOrEmptyString(Sample sample, String propertyType) {
+    String property = sample.getProperties().get(propertyType);
+    String result = (property == null) ? "" : property;
+    return result;
+  }
+
   /**
    * Returns lines of a spreadsheet of humanly readable information of the samples in a project.
    * Only one requested layer of the data model is returned. Experimental factors are returned in
@@ -904,10 +1012,157 @@ public class OpenBisClient implements IOpenBisClient {
    *
    * @param projectCode The 5 letter QBiC code of the project
    * @param sampleType The openBIS sampleType that should be included in the result
+   * @return List containing each line of the resulting TSV fil
    */
-  @Override
   public List<String> getProjectTSV(String projectCode, String sampleType) {
-    return null;
+    List<String> res = new ArrayList<String>();
+    // search all samples of project
+    List<Sample> allSamples = getSamplesOfProject(projectCode);
+    // filter all samples by types
+    List<Sample> samples = new ArrayList<Sample>();
+    for (Sample s : allSamples) {
+      if (sampleType.equals(s.getType().getCode()))
+        samples.add(s);
+    }
+    Map<String, String> ncbi = new HashMap<>();
+    Map<String, String> taxonomyMap = getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
+    for (String key : taxonomyMap.keySet()) {
+      ncbi.put(taxonomyMap.get(key), key);
+    }
+    String header = "QBiC Code\tSecondary Name\tLab ID\tSample Type\tAttributes\tSource";
+    if (!sampleType.equals("Q_BIOLOGICAL_ENTITY"))
+      header += "\tSource Name(s)\tSource Lab ID(s)";
+    if (sampleType.equals("Q_TEST_SAMPLE"))
+      header += "\tExtract Code(s)\tExtract Name(s)\tExtract Lab ID(s)";
+    res.add(header);
+    for (Sample sample : samples) {
+      String code = sample.getCode();
+      List<String> row = new ArrayList<String>();
+      row.add(code);
+      String secName = getSamplePropertyOrEmptyString(sample, "Q_SECONDARY_NAME");
+      row.add(secName);
+      String extID = getSamplePropertyOrEmptyString(sample, "Q_EXTERNALDB_ID");
+      row.add(extID);
+      String extrType = getSamplePropertyOrEmptyString(sample, "Q_PRIMARY_TISSUE");
+      if (extrType.isEmpty()) {
+        extrType = getSamplePropertyOrEmptyString(sample, "Q_SAMPLE_TYPE");
+      }
+      if (extrType.equals("CELL_LINE")) {
+        extrType = sample.getProperties().get("Q_TISSUE_DETAILED");
+      }
+      row.add(extrType);
+      String props = sample.getProperties().get("Q_PROPERTIES");
+      if (props == null)
+        props = "<?xml";
+      row.add(props);
+      row.add(fetchSource(new ArrayList<Sample>(Arrays.asList(sample)), ncbi));
+      if (!sampleType.equals("Q_BIOLOGICAL_ENTITY")) {
+        Set<Sample> sources = fetchAncestorsOfType(new ArrayList<Sample>(Arrays.asList(sample)),
+            "Q_BIOLOGICAL_ENTITY");
+        row.add(getPropertyOfSamples(sources, "Q_SECONDARY_NAME"));
+        row.add(getPropertyOfSamples(sources, "Q_EXTERNALDB_ID"));
+      }
+      if (sampleType.equals("Q_TEST_SAMPLE")) {
+        Set<Sample> extracts = fetchAncestorsOfType(new ArrayList<Sample>(Arrays.asList(sample)),
+            "Q_BIOLOGICAL_SAMPLE");
+        List<String> codeL = new ArrayList<String>();
+        for (Sample s : extracts) {
+          codeL.add(s.getCode());
+        }
+        row.add(org.apache.commons.lang3.StringUtils.join(codeL, ", "));
+        row.add(getPropertyOfSamples(extracts, "Q_SECONDARY_NAME"));
+        row.add(getPropertyOfSamples(extracts, "Q_EXTERNALDB_ID"));
+      }
+      res.add(org.apache.commons.lang3.StringUtils.join(row, "\t"));
+    }
+    return res;
+  }
+
+  /**
+   * Returns a string containing a specific property of multiple samples, separated by commas
+   * 
+   * @param samples Set of openbis samples
+   * @param property Name of the openbis property
+   * @return String of comma-separated property for all input samples
+   */
+  protected static String getPropertyOfSamples(Set<Sample> samples, String property) {
+    List<String> resL = new ArrayList<String>();
+    for (Sample s : samples) {
+      resL.add(s.getProperties().get(property));
+    }
+    return org.apache.commons.lang3.StringUtils.join(resL, ", ");
+  }
+
+  /**
+   * For a list of openbis Samples returns all ancestor samples of a specific sample type
+   * 
+   * @param samples Set of openbis Samples
+   * @param sampleTypeCode Code of the sample type by which the ancestors should be filtered
+   * @return Filtered set of all ancestor samples of a specific type
+   */
+  protected static Set<Sample> fetchAncestorsOfType(ArrayList<Sample> samples,
+      String sampleTypeCode) {
+    Set<Sample> targets = new HashSet<Sample>();
+    while (!samples.isEmpty()) {
+      Set<Sample> store = new HashSet<Sample>();
+      for (Sample sample : samples) {
+        if (!sample.getType().getCode().equals(sampleTypeCode)) {
+          store.addAll(sample.getParents());
+        } else
+          targets.add(sample);
+      }
+      samples = new ArrayList<Sample>(store);
+    }
+    return targets;
+  }
+
+  /**
+   * used by getProjectTSV to get the Patient(s)/Source(s) of a list of samples
+   * 
+   * @param samples List of openbis samples
+   * @param ncbi List of openbis vocabulary terms of the NCBI taxonomy vocabulary
+   * @return String representation of the root source(s) of thse samples
+   */
+  protected static String fetchSource(List<Sample> samples, Map<String, String> ncbi) {
+    List<String> res = new ArrayList<String>();
+    boolean isCellLine = false;
+    Set<Sample> roots = new HashSet<Sample>();
+    while (!samples.isEmpty()) {
+      Set<Sample> store = new HashSet<Sample>();
+      for (Sample sample : samples) {
+        if (!sample.getType().getCode().equals("Q_BIOLOGICAL_ENTITY")) {
+          store.addAll(sample.getParents());
+          if (sample.getType().getCode().equals("Q_BIOLOGICAL_SAMPLE"))
+            isCellLine = sample.getProperties().get("Q_PRIMARY_TISSUE").equals("CELL_LINE");
+        } else
+          roots.add(sample);
+      }
+      samples = new ArrayList<Sample>(store);
+    }
+    for (Sample sample : roots) {
+      String id = sample.getCode();
+      try {
+        id = id.split("-")[1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+      }
+      String organism = sample.getProperties().get("Q_NCBI_ORGANISM");
+      if (organism != null) {
+        String desc = "";
+        for (String code : ncbi.keySet()) {
+          if (organism.equals(code))
+            desc = ncbi.get(code);
+        }
+        if (isCellLine)
+          desc += " Cell Line";
+        else if (desc.toLowerCase().equals("homo sapiens"))
+          desc = "Patient";
+        res.add(desc + ' ' + id);
+      } else
+        res.add("unknown source");
+    }
+    String[] resArr = new String[res.size()];
+    resArr = res.toArray(resArr);
+    return StringUtils.join(resArr, "+");
   }
 
 
@@ -924,25 +1179,20 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public boolean projectExists(String spaceCode, String projectCode) {
-    // TODO why do we need the space code here? Then the method should be named differently
-    ProjectSearchCriteria sc = new ProjectSearchCriteria();
-    sc.withSpace().withCode().thatEquals(spaceCode);
-    sc.withCode().thatEquals(projectCode);
-    SearchResult<Project> projects = v3.searchProjects(sessionToken, sc, new ProjectFetchOptions());
 
-    return projectCode != null && projects.getTotalCount() != 0;
+    Map<IProjectId, Project> foundProjects = v3.getProjects(sessionToken,
+        Arrays.asList(new ProjectIdentifier(spaceCode, projectCode)), new ProjectFetchOptions());
+    boolean projectExists = foundProjects.isEmpty() ? false : true;
+    return projectExists;
   }
 
   @Override
   public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
-    // TODO why do we need the space code here? Then the method should be named differently
-    ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
-    sc.withProject().withSpace().withCode().thatEquals(spaceCode);
-    sc.withCode().thatEquals(experimentCode);
-    sc.withProject().withCode().thatEquals(projectCode);
-    SearchResult<Experiment> experiments =
-        v3.searchExperiments(sessionToken, sc, new ExperimentFetchOptions());
-    return experiments.getTotalCount() != 0;
+    Map<IExperimentId, Experiment> foundExperiments = v3.getExperiments(sessionToken,
+        Arrays.asList(new ExperimentIdentifier(spaceCode, projectCode, experimentCode)),
+        new ExperimentFetchOptions());
+    boolean experimentExists = foundExperiments.isEmpty() ? false : true;
+    return experimentExists;
   }
 
   @Override
@@ -1023,12 +1273,44 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public Map<String, String> getVocabCodesAndLabelsForVocab(String vocabularyCode) {
-    return null;
+    VocabularyTermSearchCriteria criteria = new VocabularyTermSearchCriteria();
+    criteria.withVocabulary().withCode().thatEquals(vocabularyCode);
+
+    VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
+    SearchResult<VocabularyTerm> searchResult =
+        v3.searchVocabularyTerms(sessionToken, criteria, options);
+
+    Map<String, String> res = new HashMap<String, String>();
+    for (VocabularyTerm term : searchResult.getObjects()) {
+      if (term.getLabel() != null && !term.getLabel().isEmpty()) {
+        res.put(term.getLabel(), term.getCode());
+      } else {
+        res.put(term.getCode(), term.getCode());
+      }
+    }
+    return res;
   }
+
+  // public String translateVocabCode(String code, String vocabulary) {
+  // checklogin();
+  // IVocabularyTermId x = new VocabularyTermPermId(code, vocabulary);
+  // VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
+  //
+  // Map<IVocabularyTermId, VocabularyTerm> res =
+  // API.getVocabularyTerms(getActiveToken(), Arrays.asList(x), options);
+  // return res.get(x).getLabel();
+  // }
+  //
+  // public Map<String, String> getVocabLabelToCode(String vocabulary) {
+  // checklogin();
+  //
+
+  // }
+
 
   @Override
   public Vocabulary getVocabulary(String vocabularyCode) {
-    return null;
+    throw new NotImplementedException();
   }
 
   /**
@@ -1040,7 +1322,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<String> getVocabCodesForVocab(String vocabularyCode) {
-    return null;
+    return new ArrayList<>(getVocabCodesAndLabelsForVocab(vocabularyCode).values());
   }
 
   /**
@@ -1105,12 +1387,12 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> listDataSetsForExperiments(List<String> experimentIdentifiers) {
-    return null;
+    throw new NotImplementedException();
   }
 
   @Override
   public List<Sample> listSamplesForProjects(List<String> projectIdentifiers) {
-    return null;
+    throw new NotImplementedException();
   }
 
   /**
@@ -1121,7 +1403,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifier) {
-    return null;
+    throw new NotImplementedException();
   }
 
   /**
@@ -1144,7 +1426,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public InputStream getDatasetStream(String datasetCode) {
-    return null;
+    throw new NotImplementedException();
   }
 
   /**
@@ -1156,7 +1438,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public InputStream getDatasetStream(String datasetCode, String folder) {
-    return null;
+    throw new NotImplementedException();
   }
 
 }

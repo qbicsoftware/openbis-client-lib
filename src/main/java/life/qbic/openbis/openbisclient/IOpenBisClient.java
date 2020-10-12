@@ -3,6 +3,7 @@ package life.qbic.openbis.openbisclient;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
@@ -833,11 +834,25 @@ public interface IOpenBisClient {
   public List<Sample> searchSampleByCode(String sampleCode);
 
   /**
-   * Retrieve a list of property types associated with a given entity type, e.g. a sample or experiment type
-   * @param type entity type of sample, experiment or other openBIS entity
+   * Retrieve a list of property types associated with a given experiment type
+   * @param type entity type of experiment
    * @return List of PropertyTypes
    */
-  public List<PropertyType> getPropertiesOfEntityType(IEntityType type);
+  public List<PropertyType> getPropertiesOfExperimentType(ExperimentType type);
+
+  /**
+   * Retrieve a list of property types associated with a given sample type
+   * @param type entity type of sample
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfSampleType(SampleType type);
+  
+  /**
+   * Retrieve a list of property types associated with a given dataset type
+   * @param type entity type of dataset
+   * @return List of PropertyTypes
+   */
+  public List<PropertyType> getPropertiesOfDataSetType(DataSetType type);
 
 //  /**
 //   * returns file information for a given number of datasets. params should look something like

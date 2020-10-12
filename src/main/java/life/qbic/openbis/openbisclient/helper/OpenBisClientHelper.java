@@ -11,6 +11,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 
 public class OpenBisClientHelper {
 
@@ -104,12 +105,17 @@ public class OpenBisClientHelper {
     return experimentTypeFetchOptions;
   }
 
-  public static List<PropertyType> getPropertiesOfEntityType(IEntityType type) {
-  List<PropertyType> res = new ArrayList<>();
-  List<PropertyAssignment> assignments = type.getPropertyAssignments();
-  for (PropertyAssignment propertyAssignment : assignments) {
-    res.add(propertyAssignment.getPropertyType());
+  /**
+   * Returns a list of property types given an entity type. The entity type needs to contain property assignments (enables via fetch options)
+   * @param type the entity type object
+   * @return
+   */
+  public static List<PropertyType> getPropertiesOfEntityType(IEntityType typeWithAssignments) {
+    List<PropertyType> res = new ArrayList<>();
+    List<PropertyAssignment> assignments = typeWithAssignments.getPropertyAssignments();
+    for (PropertyAssignment propertyAssignment : assignments) {
+      res.add(propertyAssignment.getPropertyType());
+    }
+    return res;
   }
-  return res;
-}
 }
