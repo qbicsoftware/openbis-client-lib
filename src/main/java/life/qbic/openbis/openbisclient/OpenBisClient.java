@@ -8,6 +8,9 @@ import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSa
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.authorizationgroup.AuthorizationGroup;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.authorizationgroup.fetchoptions.AuthorizationGroupFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.authorizationgroup.search.AuthorizationGroupSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
@@ -35,6 +38,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.fetchoptions.PropertyAssignmentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.Role;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.RoleAssignment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.RoleLevel;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
@@ -570,12 +574,31 @@ public class OpenBisClient implements IOpenBisClient {
   }
 
   /**
-   * Returns wether a user is instance admin in openBIS
+   * Returns whether a user is instance admin in openBIS. Checks both a user's direct role
+   * assignments as well as their groups' assignments
    *
+   * @param userID the user's id
    * @return true, if user is instance admin, false otherwise
    */
   @Override
   public boolean isUserAdmin(String userID) {
+    Role role = Role.ADMIN;
+    RoleLevel level = RoleLevel.INSTANCE;
+    return userHasRole(userID, role, level) || usersGroupHasRole(userID, role, level);
+  }
+
+  /**
+   * Returns whether a user with a given user Id is assigned a given role at a given role level.
+   * Does not check user groups of that user!
+   * 
+   * @param userID the user's id
+   * @param role the openBIS role
+   * @param level the openBIS role level, denoting if the user has that role for the instance or
+   *        just one or more spaces or projects
+   * @return true, if user has that role, false otherwise
+   */
+  @Override
+  public boolean userHasRole(String userID, Role role, RoleLevel level) {
     ensureLoggedIn();
     PersonSearchCriteria criteria = new PersonSearchCriteria();
     criteria.withUserId().thatEquals(userID);
@@ -584,8 +607,41 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Person> res = v3.searchPersons(sessionToken, criteria, options);
     for (Person p : res.getObjects()) {
       for (RoleAssignment r : p.getRoleAssignments()) {
-        if (r.getRole().equals(Role.ADMIN)) {
+        if (r.getRole().equals(role) && r.getRoleLevel().equals(level)) {
           return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns whether a user's user group is assigned a given role at a given role level
+   * 
+   * @param userID the user's id
+   * @param role the openBIS role
+   * @param level the openBIS role level, denoting if the user and their group has that role for the
+   *        instance or just one or more spaces or projects
+   * @return true, if user has that role through their user group, false otherwise
+   */
+  @Override
+  public boolean usersGroupHasRole(String userID, Role role, RoleLevel level) {
+    ensureLoggedIn();
+    AuthorizationGroupSearchCriteria criteria = new AuthorizationGroupSearchCriteria();
+    AuthorizationGroupFetchOptions options = new AuthorizationGroupFetchOptions();
+    options.withRoleAssignments().withAuthorizationGroup().withRoleAssignments();
+    options.withUsers();
+    SearchResult<AuthorizationGroup> searchResult =
+        v3.searchAuthorizationGroups(sessionToken, criteria, options);
+
+    for (AuthorizationGroup group : searchResult.getObjects()) {
+      for (Person person : group.getUsers()) {
+        if (person.getUserId().equals(userID)) {
+          for (RoleAssignment r : group.getRoleAssignments()) {
+            if (r.getRole().equals(role) && r.getRoleLevel().equals(level)) {
+              return true;
+            }
+          }
         }
       }
     }
