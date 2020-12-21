@@ -8,6 +8,8 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.Role;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.RoleLevel;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
@@ -295,11 +297,35 @@ public interface IOpenBisClient {
   public List<String> getUserSpaces(String userID);
 
   /**
-   * Returns wether a user is instance admin in openBIS
+   * Returns whether a user is instance admin in openBIS. Checks both a user's direct role assignments as well as their groups' assignments
    *
+   * @param userID the user's id
    * @return true, if user is instance admin, false otherwise
    */
   public boolean isUserAdmin(String userID);
+
+  /**
+   * Returns whether a user with a given user Id is assigned a given role at a given role level.
+   * Does not check user groups of that user!
+   * 
+   * @param userID the user's id
+   * @param role the openBIS role
+   * @param level the openBIS role level, denoting if the user has that role for the instance or
+   *        just one or more spaces or projects
+   * @return true, if user has that role, false otherwise
+   */
+  public boolean userHasRole(String userID, Role role, RoleLevel level);
+
+  /**
+   * Returns whether a user's user group is assigned a given role at a given role level
+   * 
+   * @param userID the user's id
+   * @param role the openBIS role
+   * @param level the openBIS role level, denoting if the user and their group has that role for the
+   *        instance or just one or more spaces or projects
+   * @return true, if user has that role through their user group, false otherwise
+   */
+  public boolean usersGroupHasRole(String userID, Role role, RoleLevel level);
 
   /**
    * Function to retrieve a project from openBIS by the identifier of the project.
