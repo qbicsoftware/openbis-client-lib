@@ -16,6 +16,8 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.ExperimentType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.Role;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.roleassignment.RoleLevel;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
@@ -470,6 +472,18 @@ public class OpenBisClientMock implements IOpenBisClient {
   @Override
   public List<PropertyType> getPropertiesOfDataSetType(DataSetType type) {
     return OpenBisClientHelper.getPropertiesOfEntityType(type);
+  }
+
+  @Override
+  public boolean userHasRole(String userID, Role role, RoleLevel level) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean usersGroupHasRole(String userID, Role role, RoleLevel level) {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }
