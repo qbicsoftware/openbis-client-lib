@@ -51,6 +51,9 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.fetchoptions.Vocabula
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.DataSetFile;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.fetchoptions.DataSetFileFetchOptions;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.search.DataSetFileSearchCriteria;
 import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
@@ -525,6 +528,17 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Sample> samples =
         v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samples.getObjects();
+  }
+
+  @Override
+  public List<DataSetFile> getFilesOfDataSetWithID(String permID) {
+
+    DataSetFileSearchCriteria fileSearchCriteria = new DataSetFileSearchCriteria();
+    fileSearchCriteria.withDataSet().withCode().thatEquals(permID);
+
+    SearchResult<DataSetFile> result =
+        dss3.searchFiles(sessionToken, fileSearchCriteria, new DataSetFileFetchOptions());
+    return result.getObjects();
   }
 
   @Override
