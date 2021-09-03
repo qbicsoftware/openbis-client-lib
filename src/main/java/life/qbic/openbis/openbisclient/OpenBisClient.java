@@ -1426,6 +1426,7 @@ public class OpenBisClient implements IOpenBisClient {
       criteria.withSample().withId().thatEquals(new SampleIdentifier(sampleId));
     }
     DataSetFetchOptions fetchOptions = new DataSetFetchOptions();
+    fetchOptions.withSample();
     fetchOptions.withProperties();
     fetchOptions.withPhysicalData();
     fetchOptions.withLinkedData();
