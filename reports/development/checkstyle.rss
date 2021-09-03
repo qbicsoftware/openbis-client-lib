@@ -23,11 +23,11 @@ under the License.
     <link>${project.url}</link>
     <description>openBIS client library - Checkstyle report</description>
     <language>en-us</language>
-    <copyright>&#169;2020</copyright>
+    <copyright>&#169;2021</copyright>
     <item>
       <title>File: 3,
              Errors: 0,
-             Warnings: 195,
+             Warnings: 199,
              Infos: 0
       </title>
             <link>${project.url}/checkstyle.html</link>
@@ -66,7 +66,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  80
+                  81
                 </td>
                 <td>
                   0
@@ -80,7 +80,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  96
+                  99
                 </td>
                 <td>
                   0
