@@ -1,5 +1,9 @@
 # Release Version Changelog
 
+## 1.6.0-SNAPSHOT
+
+* Introduce method to fetch list of file objects inside a stored dataset
+
 ## 1.4.0
 * Introduce `ingest` method again, since it was removed and broke
   applications when using the openbis client > 1.1.4
