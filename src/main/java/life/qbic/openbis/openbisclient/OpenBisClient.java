@@ -12,6 +12,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetTypeSearchCriteria;
@@ -1412,12 +1413,30 @@ public class OpenBisClient implements IOpenBisClient {
   /**
    * List all datasets for given sample identifiers
    *
-   * @param sampleIdentifier list of sample identifiers
+   * @param sampleIdentifiers list of sample identifiers
    * @return List of datasets
    */
   @Override
-  public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifier) {
-    throw new NotImplementedException();
+  public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifiers) {
+
+    List<DataSet> res = new ArrayList<>();
+    DataSetSearchCriteria criteria = new DataSetSearchCriteria();
+    criteria.withOrOperator();
+    for (String sampleId : sampleIdentifiers) {
+      criteria.withSample().withId().thatEquals(new SampleIdentifier(sampleId));
+    }
+    DataSetFetchOptions fetchOptions = new DataSetFetchOptions();
+    fetchOptions.withProperties();
+    fetchOptions.withPhysicalData();
+    fetchOptions.withLinkedData();
+    fetchOptions.withComponents();
+
+    SearchResult<DataSet> result = v3.searchDataSets(this.sessionToken, criteria, fetchOptions);
+
+    for (DataSet d : result.getObjects()) {
+      res.add(d);
+    }
+    return res;
   }
 
   /**
