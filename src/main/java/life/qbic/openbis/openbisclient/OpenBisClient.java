@@ -98,10 +98,12 @@ public class OpenBisClient implements IOpenBisClient {
     this.userId = userId;
     this.password = password;
     this.serviceURL = apiURL + IApplicationServerApi.SERVICE_URL;
+    // quick fix
+    String dssURL = serviceURL.replace("openbis/openbis", "datastore_server");
     this.url = apiURL;
     // get a reference to AS API
     v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
-    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serviceURL, TIMEOUT);
+    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, dssURL, TIMEOUT);
     sessionToken = null;
   }
 
@@ -539,9 +541,10 @@ public class OpenBisClient implements IOpenBisClient {
 
     SearchResult<DataSetFile> result =
         dss3.searchFiles(sessionToken, fileSearchCriteria, new DataSetFileFetchOptions());
+    
     return result.getObjects();
   }
-
+  
   @Override
   public List<Project> getProjectsOfSpace(String space) {
     ensureLoggedIn();
