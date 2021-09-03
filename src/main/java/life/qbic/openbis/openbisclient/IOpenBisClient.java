@@ -11,6 +11,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.DataSetFile;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -853,6 +854,13 @@ public interface IOpenBisClient {
    * @return List of PropertyTypes
    */
   public List<PropertyType> getPropertiesOfDataSetType(DataSetType type);
+
+  /**
+   * Returns information about files in a dataset like the path given a dataset code
+   * @param permID the perm id (dataset code) for which information should be requested
+   * @return List of datasetfile objects
+   */
+  public List<DataSetFile> getFilesOfDataSetWithID(String permID);
 
 //  /**
 //   * returns file information for a given number of datasets. params should look something like
