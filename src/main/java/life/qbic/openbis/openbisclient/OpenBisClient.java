@@ -104,6 +104,7 @@ public class OpenBisClient implements IOpenBisClient {
     this.url = apiURL;
     // get a reference to AS API
     v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
+    // DataStore API
     dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, dssURL, TIMEOUT);
     sessionToken = null;
   }
@@ -1424,6 +1425,10 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifiers) {
 
     List<DataSet> res = new ArrayList<>();
+    // needed, as empty criteria return all datasets!
+    if(sampleIdentifiers.isEmpty()) {
+      return res;
+    }
     DataSetSearchCriteria criteria = new DataSetSearchCriteria();
     criteria.withOrOperator();
     for (String sampleId : sampleIdentifiers) {
