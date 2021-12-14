@@ -1,5 +1,10 @@
 # Release Version Changelog
 
+## 1.5.1
+* Bump `org.apache.logging:log4j:log4j-api` `2.13.2` -> `2.15.0`
+* Bump `org.apache.logging:log4j:log4j-core` `2.13.2` -> `2.15.0`
+* Fixes CVE-2021-4422
+
 ## 1.4.0
 * Introduce `ingest` method again, since it was removed and broke
   applications when using the openbis client > 1.1.4
