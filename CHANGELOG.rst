@@ -17,6 +17,40 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Deprecated**
 
+1.5.2
+------------------
+
+**Added**
+
+**Fixed**
+
+* Fixes CVE-2021-45105
+
+**Dependencies**
+
+* Bump `org.apache.logging:log4j:log4j-api` `2.15.0` -> `2.17.0`
+
+* Bump `org.apache.logging:log4j:log4j-core` `2.15.0` -> `2.17.0`
+
+**Deprecated**
+
+1.5.1
+------------------
+
+**Added**
+
+**Fixed**
+
+* Fixes CVE-2021-4422
+
+**Dependencies**
+
+* Bump `org.apache.logging:log4j:log4j-api` `2.13.2` -> `2.15.0`
+
+* Bump `org.apache.logging:log4j:log4j-core` `2.13.2` -> `2.15.0`
+
+**Deprecated**
+
 
 1.5.0 (2020-10-12)
 ------------------
