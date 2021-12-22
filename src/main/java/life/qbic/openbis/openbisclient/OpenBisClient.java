@@ -12,6 +12,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetTypeSearchCriteria;
@@ -51,6 +52,9 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.fetchoptions.Vocabula
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.DataSetFile;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.fetchoptions.DataSetFileFetchOptions;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.search.DataSetFileSearchCriteria;
 import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
@@ -94,10 +98,13 @@ public class OpenBisClient implements IOpenBisClient {
     this.userId = userId;
     this.password = password;
     this.serviceURL = apiURL + IApplicationServerApi.SERVICE_URL;
+    // quick fix
+    String dssURL =
+        apiURL.replace("openbis/openbis", "datastore_server") + IDataStoreServerApi.SERVICE_URL;
     this.url = apiURL;
     // get a reference to AS API
     v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
-    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serviceURL, TIMEOUT);
+    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, dssURL, TIMEOUT);
     sessionToken = null;
   }
 
@@ -525,6 +532,18 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Sample> samples =
         v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samples.getObjects();
+  }
+
+  @Override
+  public List<DataSetFile> getFilesOfDataSetWithID(String permID) {
+
+    DataSetFileSearchCriteria fileSearchCriteria = new DataSetFileSearchCriteria();
+    fileSearchCriteria.withDataSet().withCode().thatEquals(permID);
+
+    SearchResult<DataSetFile> result =
+        dss3.searchFiles(sessionToken, fileSearchCriteria, new DataSetFileFetchOptions());
+
+    return result.getObjects();
   }
 
   @Override
@@ -1398,12 +1417,31 @@ public class OpenBisClient implements IOpenBisClient {
   /**
    * List all datasets for given sample identifiers
    *
-   * @param sampleIdentifier list of sample identifiers
+   * @param sampleIdentifiers list of sample identifiers
    * @return List of datasets
    */
   @Override
-  public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifier) {
-    throw new NotImplementedException();
+  public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifiers) {
+
+    List<DataSet> res = new ArrayList<>();
+    DataSetSearchCriteria criteria = new DataSetSearchCriteria();
+    criteria.withOrOperator();
+    for (String sampleId : sampleIdentifiers) {
+      criteria.withSample().withId().thatEquals(new SampleIdentifier(sampleId));
+    }
+    DataSetFetchOptions fetchOptions = new DataSetFetchOptions();
+    fetchOptions.withSample();
+    fetchOptions.withProperties();
+    fetchOptions.withPhysicalData();
+    fetchOptions.withLinkedData();
+    fetchOptions.withComponents();
+
+    SearchResult<DataSet> result = v3.searchDataSets(this.sessionToken, criteria, fetchOptions);
+
+    for (DataSet d : result.getObjects()) {
+      res.add(d);
+    }
+    return res;
   }
 
   /**

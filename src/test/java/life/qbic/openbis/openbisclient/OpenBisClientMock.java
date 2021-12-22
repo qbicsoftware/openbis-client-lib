@@ -19,6 +19,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.Vocabulary;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.DataSetFile;
 import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
 
 public class OpenBisClientMock implements IOpenBisClient {
@@ -470,6 +471,12 @@ public class OpenBisClientMock implements IOpenBisClient {
   @Override
   public List<PropertyType> getPropertiesOfDataSetType(DataSetType type) {
     return OpenBisClientHelper.getPropertiesOfEntityType(type);
+  }
+
+  @Override
+  public List<DataSetFile> getFilesOfDataSetWithID(String permID) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }
