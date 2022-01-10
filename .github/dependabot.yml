@@ -5,6 +5,7 @@ updates:
       schedule:
         interval: "daily"
       target-branch: development
-      default_labels: "dependabot"
+      labels:
+        - "dependabot"
       commit-message:
           prefix: "[DEPENDABOT]"
