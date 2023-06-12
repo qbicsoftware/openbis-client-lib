@@ -1,11 +1,5 @@
 package life.qbic.openbis.openbisclient;
 
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchDataSetsCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentTypesCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentsCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchProjectsCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSampleTypesCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
@@ -61,20 +55,17 @@ import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.*;
 
 /**
  * The type Open bis client.
@@ -204,6 +195,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public String getSessionToken() {
+    ensureLoggedIn();
     return sessionToken;
   }
 
@@ -704,6 +696,7 @@ public class OpenBisClient implements IOpenBisClient {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withOrOperator();
     sc.withSample().withId().thatEquals(new SampleIdentifier(sampleIdentifier));
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
     return dataSets.getObjects();
@@ -720,6 +713,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfSample(String sampleCode) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withSample().withCode().thatEquals(sampleCode);
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
     return dataSets.getObjects();
@@ -736,6 +730,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfExperiment(String experimentPermID) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withExperiment().withPermId().thatEquals(experimentPermID);
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
     return dataSets.getObjects();
@@ -751,6 +746,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfExperimentByIdentifier(String experimentIdentifier) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withExperiment().withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
     return dataSets.getObjects();
   }
@@ -765,6 +761,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfSpaceByIdentifier(String spaceIdentifier) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withSample().withSpace().withCode().thatEquals(spaceIdentifier);
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
     return dataSets.getObjects();
   }
@@ -861,6 +858,7 @@ public class OpenBisClient implements IOpenBisClient {
     SampleTypeSearchCriteria sc = new SampleTypeSearchCriteria();
     sc.withCode().thatEquals(sampleType);
 
+    ensureLoggedIn();
     SearchResult<SampleType> sampleTypes =
         v3.searchSampleTypes(sessionToken, sc, fetchSampleTypesCompletely());
 
@@ -879,6 +877,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public Map<String, SampleType> getSampleTypes() {
+    ensureLoggedIn();
     SearchResult<SampleType> sampleTypes = v3.searchSampleTypes(sessionToken,
         new SampleTypeSearchCriteria(), fetchSampleTypesCompletely());
 
@@ -904,6 +903,7 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentTypeSearchCriteria sc = new ExperimentTypeSearchCriteria();
     sc.withCode().thatContains(experimentType);
 
+    ensureLoggedIn();
     SearchResult<ExperimentType> experimentTypes =
         v3.searchExperimentTypes(sessionToken, sc, fetchExperimentTypesCompletely());
 
@@ -1199,6 +1199,7 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public boolean projectExists(String spaceCode, String projectCode) {
 
+    ensureLoggedIn();
     Map<IProjectId, Project> foundProjects = v3.getProjects(sessionToken,
         Arrays.asList(new ProjectIdentifier(spaceCode, projectCode)), new ProjectFetchOptions());
     boolean projectExists = foundProjects.isEmpty() ? false : true;
@@ -1207,6 +1208,7 @@ public class OpenBisClient implements IOpenBisClient {
 
   @Override
   public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
+    ensureLoggedIn();
     Map<IExperimentId, Experiment> foundExperiments = v3.getExperiments(sessionToken,
         Arrays.asList(new ExperimentIdentifier(spaceCode, projectCode, experimentCode)),
         new ExperimentFetchOptions());
@@ -1225,6 +1227,8 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withCode().thatEquals(sampleCode);
     SampleFetchOptions fetchOptions = new SampleFetchOptions();
     fetchOptions.withSpace();
+
+    ensureLoggedIn();
     SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, fetchOptions);
     return samples.getObjects();
   }
@@ -1296,6 +1300,8 @@ public class OpenBisClient implements IOpenBisClient {
     criteria.withVocabulary().withCode().thatEquals(vocabularyCode);
 
     VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
+
+    ensureLoggedIn();
     SearchResult<VocabularyTerm> searchResult =
         v3.searchVocabularyTerms(sessionToken, criteria, options);
 
@@ -1388,6 +1394,7 @@ public class OpenBisClient implements IOpenBisClient {
     for (Project project : projectList) {
       sc.withProject().withCode().thatEquals(project.getCode());
     }
+    ensureLoggedIn();
     SearchResult<Experiment> experiments =
         v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
@@ -1436,6 +1443,7 @@ public class OpenBisClient implements IOpenBisClient {
     fetchOptions.withLinkedData();
     fetchOptions.withComponents();
 
+    ensureLoggedIn();
     SearchResult<DataSet> result = v3.searchDataSets(this.sessionToken, criteria, fetchOptions);
 
     for (DataSet d : result.getObjects()) {
