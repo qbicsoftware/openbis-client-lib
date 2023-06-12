@@ -1,7 +1,5 @@
 package life.qbic.openbis.openbisclient.helper;
 
-import java.util.ArrayList;
-import java.util.List;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
@@ -11,7 +9,9 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleTypeFetchOptions;
-import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class OpenBisClientHelper {
 
@@ -107,8 +107,8 @@ public class OpenBisClientHelper {
 
   /**
    * Returns a list of property types given an entity type. The entity type needs to contain property assignments (enables via fetch options)
-   * @param type the entity type object
-   * @return
+   * @param typeWithAssignments the entity type object
+   * @return a list of property types
    */
   public static List<PropertyType> getPropertiesOfEntityType(IEntityType typeWithAssignments) {
     List<PropertyType> res = new ArrayList<>();
