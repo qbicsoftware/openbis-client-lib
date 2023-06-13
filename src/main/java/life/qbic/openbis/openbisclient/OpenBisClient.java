@@ -1,17 +1,12 @@
 package life.qbic.openbis.openbisclient;
 
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchDataSetsCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentTypesCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchExperimentsCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchProjectsCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSampleTypesCompletely;
-import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.fetchSamplesCompletely;
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.attachment.Attachment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.interfaces.IEntityType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSetType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetTypeFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetTypeSearchCriteria;
@@ -51,36 +46,41 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.fetchoptions.Vocabula
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.exceptions.NotFetchedException;
 import ch.ethz.sis.openbis.generic.dssapi.v3.IDataStoreServerApi;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.DataSetFile;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.fetchoptions.DataSetFileFetchOptions;
+import ch.ethz.sis.openbis.generic.dssapi.v3.dto.datasetfile.search.DataSetFileSearchCriteria;
 import ch.systemsx.cisd.common.exceptions.NotImplementedException;
 import ch.systemsx.cisd.common.exceptions.UserFailureException;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 import ch.systemsx.cisd.openbis.common.api.client.ServiceFinder;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.IQueryApiServer;
 import life.qbic.openbis.openbisclient.helper.OpenBisClientHelper;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+
+import static java.util.Objects.requireNonNull;
+import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.*;
 
 /**
  * The type Open bis client.
  */
 public class OpenBisClient implements IOpenBisClient {
 
-  private final int TIMEOUT = 100000;
-  private String userId, password, sessionToken, serviceURL, url;
-  private IApplicationServerApi v3;
-  private IDataStoreServerApi dss3;
+  private static final int TIMEOUT = 100000;
+  private final String userId;
+    private final String password;
+    private String sessionToken;
+    private final String serviceURL;
+    private final String url;
+  private final IApplicationServerApi v3;
+  private final IDataStoreServerApi dss3;
   private static final Logger logger = LogManager.getLogger(OpenBisClient.class);
 
   /**
@@ -94,10 +94,13 @@ public class OpenBisClient implements IOpenBisClient {
     this.userId = userId;
     this.password = password;
     this.serviceURL = apiURL + IApplicationServerApi.SERVICE_URL;
+    // quick fix
+    String dssURL =
+        apiURL.replace("openbis/openbis", "datastore_server") + IDataStoreServerApi.SERVICE_URL;
     this.url = apiURL;
     // get a reference to AS API
     v3 = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, serviceURL, TIMEOUT);
-    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, serviceURL, TIMEOUT);
+    dss3 = HttpInvokerUtils.createServiceStub(IDataStoreServerApi.class, dssURL, TIMEOUT);
     sessionToken = null;
   }
 
@@ -160,9 +163,7 @@ public class OpenBisClient implements IOpenBisClient {
   public void logout() {
     if (loggedin()) {
       v3.logout(sessionToken);
-      // TODO Set sessionToken to null
       sessionToken = null;
-    } else {
     }
 
   }
@@ -197,6 +198,7 @@ public class OpenBisClient implements IOpenBisClient {
    */
   @Override
   public String getSessionToken() {
+    ensureLoggedIn();
     return sessionToken;
   }
 
@@ -320,8 +322,7 @@ public class OpenBisClient implements IOpenBisClient {
     paFetchOptions.withPropertyType();
     options.withPropertyAssignmentsUsing(paFetchOptions);
 
-    List<IEntityType> res = new ArrayList<>();
-    res.addAll(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
+    List<IEntityType> res = new ArrayList<>(v3.searchExperimentTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
       throw new NotFetchedException("Experiment type could not be found: " + type.getCode());
@@ -345,8 +346,7 @@ public class OpenBisClient implements IOpenBisClient {
     paFetchOptions.withPropertyType();
     options.withPropertyAssignmentsUsing(paFetchOptions);
 
-    List<IEntityType> res = new ArrayList<>();
-    res.addAll(v3.searchSampleTypes(sessionToken, criteria, options).getObjects());
+    List<IEntityType> res = new ArrayList<>(v3.searchSampleTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
       throw new NotFetchedException("Sample type could not be found: " + type.getCode());
@@ -370,8 +370,7 @@ public class OpenBisClient implements IOpenBisClient {
     paFetchOptions.withPropertyType();
     options.withPropertyAssignmentsUsing(paFetchOptions);
 
-    List<IEntityType> res = new ArrayList<>();
-    res.addAll(v3.searchDataSetTypes(sessionToken, criteria, options).getObjects());
+    List<IEntityType> res = new ArrayList<>(v3.searchDataSetTypes(sessionToken, criteria, options).getObjects());
 
     if (res.isEmpty()) {
       throw new NotFetchedException("DataSet type could not be found: " + type.getCode());
@@ -525,6 +524,18 @@ public class OpenBisClient implements IOpenBisClient {
     SearchResult<Sample> samples =
         v3.searchSamples(sessionToken, sampleSearchCriteria, fetchSamplesCompletely());
     return samples.getObjects();
+  }
+
+  @Override
+  public List<DataSetFile> getFilesOfDataSetWithID(String permID) {
+
+    DataSetFileSearchCriteria fileSearchCriteria = new DataSetFileSearchCriteria();
+    fileSearchCriteria.withDataSet().withCode().thatEquals(permID);
+
+    SearchResult<DataSetFile> result =
+        dss3.searchFiles(sessionToken, fileSearchCriteria, new DataSetFileFetchOptions());
+
+    return result.getObjects();
   }
 
   @Override
@@ -685,6 +696,7 @@ public class OpenBisClient implements IOpenBisClient {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withOrOperator();
     sc.withSample().withId().thatEquals(new SampleIdentifier(sampleIdentifier));
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
     return dataSets.getObjects();
@@ -701,6 +713,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfSample(String sampleCode) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withSample().withCode().thatEquals(sampleCode);
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
     return dataSets.getObjects();
@@ -717,6 +730,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfExperiment(String experimentPermID) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withExperiment().withPermId().thatEquals(experimentPermID);
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
 
     return dataSets.getObjects();
@@ -732,6 +746,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfExperimentByIdentifier(String experimentIdentifier) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withExperiment().withId().thatEquals(new ExperimentIdentifier(experimentIdentifier));
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
     return dataSets.getObjects();
   }
@@ -746,6 +761,7 @@ public class OpenBisClient implements IOpenBisClient {
   public List<DataSet> getDataSetsOfSpaceByIdentifier(String spaceIdentifier) {
     DataSetSearchCriteria sc = new DataSetSearchCriteria();
     sc.withSample().withSpace().withCode().thatEquals(spaceIdentifier);
+    ensureLoggedIn();
     SearchResult<DataSet> dataSets = v3.searchDataSets(sessionToken, sc, fetchDataSetsCompletely());
     return dataSets.getObjects();
   }
@@ -799,18 +815,6 @@ public class OpenBisClient implements IOpenBisClient {
     return getProjectByIdentifier(projectIdentifier).getAttachments();
   }
 
-  /**
-   * Returns all users of a Space.
-   *
-   * @param spaceCode code of the openBIS space
-   * @return set of user names as string
-   */
-  @Override
-  public Set<String> getSpaceMembers(String spaceCode) {
-    // TODO cannot find an opportunity to do that
-    return null;
-  }
-
 
   /**
    * Function to list the vocabulary codes for a given property which has been added to openBIS. The
@@ -842,6 +846,7 @@ public class OpenBisClient implements IOpenBisClient {
     SampleTypeSearchCriteria sc = new SampleTypeSearchCriteria();
     sc.withCode().thatEquals(sampleType);
 
+    ensureLoggedIn();
     SearchResult<SampleType> sampleTypes =
         v3.searchSampleTypes(sessionToken, sc, fetchSampleTypesCompletely());
 
@@ -853,13 +858,9 @@ public class OpenBisClient implements IOpenBisClient {
 
   }
 
-  /**
-   * Function to retrieve a map with sample type code as key and the sample type object as value
-   *
-   * @return map with sample types
-   */
   @Override
   public Map<String, SampleType> getSampleTypes() {
+    ensureLoggedIn();
     SearchResult<SampleType> sampleTypes = v3.searchSampleTypes(sessionToken,
         new SampleTypeSearchCriteria(), fetchSampleTypesCompletely());
 
@@ -885,6 +886,7 @@ public class OpenBisClient implements IOpenBisClient {
     ExperimentTypeSearchCriteria sc = new ExperimentTypeSearchCriteria();
     sc.withCode().thatContains(experimentType);
 
+    ensureLoggedIn();
     SearchResult<ExperimentType> experimentTypes =
         v3.searchExperimentTypes(sessionToken, sc, fetchExperimentTypesCompletely());
 
@@ -895,21 +897,10 @@ public class OpenBisClient implements IOpenBisClient {
     }
   }
 
-  /**
-   * Function to trigger ingestion services registered in openBIS
-   *
-   * @param serviceName name of the ingestion service which should be triggered
-   * @param parameters map with needed information for registration process
-   * @return object name of the QueryTableModel which is returned by the aggregation service
-   */
   @Override
-  public String triggerIngestionService(String serviceName, Map<String, Object> parameters) {
-    return null;
-  }
-
-  @Override
-  public String generateBarcode(String proj, int number_of_samples_offset) {
-    Project project = getProjectByIdentifier(proj);
+  public String generateBarcode(String projectId, int number_of_samples_offset) {
+    requireNonNull(projectId, "projectId must not be null");
+    Project project = getProjectByIdentifier(projectId);
     int numberOfSamples = getSamplesOfProject(project.getCode()).size();
     String barcode = project.getCode() + String.format("%03d", (numberOfSamples + 1)) + "S";
     barcode += checksum(barcode);
@@ -1001,8 +992,7 @@ public class OpenBisClient implements IOpenBisClient {
 
   private String getSamplePropertyOrEmptyString(Sample sample, String propertyType) {
     String property = sample.getProperties().get(propertyType);
-    String result = (property == null) ? "" : property;
-    return result;
+    return (property == null) ? "" : property;
   }
 
   /**
@@ -1015,11 +1005,11 @@ public class OpenBisClient implements IOpenBisClient {
    * @return List containing each line of the resulting TSV fil
    */
   public List<String> getProjectTSV(String projectCode, String sampleType) {
-    List<String> res = new ArrayList<String>();
+    List<String> res = new ArrayList<>();
     // search all samples of project
     List<Sample> allSamples = getSamplesOfProject(projectCode);
     // filter all samples by types
-    List<Sample> samples = new ArrayList<Sample>();
+    List<Sample> samples = new ArrayList<>();
     for (Sample s : allSamples) {
       if (sampleType.equals(s.getType().getCode()))
         samples.add(s);
@@ -1037,7 +1027,7 @@ public class OpenBisClient implements IOpenBisClient {
     res.add(header);
     for (Sample sample : samples) {
       String code = sample.getCode();
-      List<String> row = new ArrayList<String>();
+      List<String> row = new ArrayList<>();
       row.add(code);
       String secName = getSamplePropertyOrEmptyString(sample, "Q_SECONDARY_NAME");
       row.add(secName);
@@ -1055,17 +1045,17 @@ public class OpenBisClient implements IOpenBisClient {
       if (props == null)
         props = "<?xml";
       row.add(props);
-      row.add(fetchSource(new ArrayList<Sample>(Arrays.asList(sample)), ncbi));
+      row.add(fetchSource(new ArrayList<>(Collections.singletonList(sample)), ncbi));
       if (!sampleType.equals("Q_BIOLOGICAL_ENTITY")) {
-        Set<Sample> sources = fetchAncestorsOfType(new ArrayList<Sample>(Arrays.asList(sample)),
+        Set<Sample> sources = fetchAncestorsOfType(new ArrayList<>(Collections.singletonList(sample)),
             "Q_BIOLOGICAL_ENTITY");
         row.add(getPropertyOfSamples(sources, "Q_SECONDARY_NAME"));
         row.add(getPropertyOfSamples(sources, "Q_EXTERNALDB_ID"));
       }
       if (sampleType.equals("Q_TEST_SAMPLE")) {
-        Set<Sample> extracts = fetchAncestorsOfType(new ArrayList<Sample>(Arrays.asList(sample)),
+        Set<Sample> extracts = fetchAncestorsOfType(new ArrayList<>(Collections.singletonList(sample)),
             "Q_BIOLOGICAL_SAMPLE");
-        List<String> codeL = new ArrayList<String>();
+        List<String> codeL = new ArrayList<>();
         for (Sample s : extracts) {
           codeL.add(s.getCode());
         }
@@ -1086,7 +1076,7 @@ public class OpenBisClient implements IOpenBisClient {
    * @return String of comma-separated property for all input samples
    */
   protected static String getPropertyOfSamples(Set<Sample> samples, String property) {
-    List<String> resL = new ArrayList<String>();
+    List<String> resL = new ArrayList<>();
     for (Sample s : samples) {
       resL.add(s.getProperties().get(property));
     }
@@ -1102,16 +1092,16 @@ public class OpenBisClient implements IOpenBisClient {
    */
   protected static Set<Sample> fetchAncestorsOfType(ArrayList<Sample> samples,
       String sampleTypeCode) {
-    Set<Sample> targets = new HashSet<Sample>();
+    Set<Sample> targets = new HashSet<>();
     while (!samples.isEmpty()) {
-      Set<Sample> store = new HashSet<Sample>();
+      Set<Sample> store = new HashSet<>();
       for (Sample sample : samples) {
         if (!sample.getType().getCode().equals(sampleTypeCode)) {
           store.addAll(sample.getParents());
         } else
           targets.add(sample);
       }
-      samples = new ArrayList<Sample>(store);
+      samples = new ArrayList<>(store);
     }
     return targets;
   }
@@ -1124,11 +1114,11 @@ public class OpenBisClient implements IOpenBisClient {
    * @return String representation of the root source(s) of thse samples
    */
   protected static String fetchSource(List<Sample> samples, Map<String, String> ncbi) {
-    List<String> res = new ArrayList<String>();
+    List<String> res = new ArrayList<>();
     boolean isCellLine = false;
-    Set<Sample> roots = new HashSet<Sample>();
+    Set<Sample> roots = new HashSet<>();
     while (!samples.isEmpty()) {
-      Set<Sample> store = new HashSet<Sample>();
+      Set<Sample> store = new HashSet<>();
       for (Sample sample : samples) {
         if (!sample.getType().getCode().equals("Q_BIOLOGICAL_ENTITY")) {
           store.addAll(sample.getParents());
@@ -1137,14 +1127,9 @@ public class OpenBisClient implements IOpenBisClient {
         } else
           roots.add(sample);
       }
-      samples = new ArrayList<Sample>(store);
+      samples = new ArrayList<>(store);
     }
     for (Sample sample : roots) {
-      String id = sample.getCode();
-      try {
-        id = id.split("-")[1];
-      } catch (ArrayIndexOutOfBoundsException e) {
-      }
       String organism = sample.getProperties().get("Q_NCBI_ORGANISM");
       if (organism != null) {
         String desc = "";
@@ -1154,8 +1139,14 @@ public class OpenBisClient implements IOpenBisClient {
         }
         if (isCellLine)
           desc += " Cell Line";
-        else if (desc.toLowerCase().equals("homo sapiens"))
+        else if (desc.equalsIgnoreCase("homo sapiens"))
           desc = "Patient";
+        String id = sample.getCode();
+        try {
+          id = id.split("-")[1];
+        } catch (ArrayIndexOutOfBoundsException e) {
+          logger.error(e.getMessage(), e);
+        }
         res.add(desc + ' ' + id);
       } else
         res.add("unknown source");
@@ -1180,24 +1171,24 @@ public class OpenBisClient implements IOpenBisClient {
   @Override
   public boolean projectExists(String spaceCode, String projectCode) {
 
+    ensureLoggedIn();
     Map<IProjectId, Project> foundProjects = v3.getProjects(sessionToken,
-        Arrays.asList(new ProjectIdentifier(spaceCode, projectCode)), new ProjectFetchOptions());
-    boolean projectExists = foundProjects.isEmpty() ? false : true;
-    return projectExists;
+            Collections.singletonList(new ProjectIdentifier(spaceCode, projectCode)), new ProjectFetchOptions());
+    return !foundProjects.isEmpty();
   }
 
   @Override
   public boolean expExists(String spaceCode, String projectCode, String experimentCode) {
+    ensureLoggedIn();
     Map<IExperimentId, Experiment> foundExperiments = v3.getExperiments(sessionToken,
-        Arrays.asList(new ExperimentIdentifier(spaceCode, projectCode, experimentCode)),
+            Collections.singletonList(new ExperimentIdentifier(spaceCode, projectCode, experimentCode)),
         new ExperimentFetchOptions());
-    boolean experimentExists = foundExperiments.isEmpty() ? false : true;
-    return experimentExists;
+    return !foundExperiments.isEmpty();
   }
 
   @Override
   public boolean sampleExists(String sampleCode) {
-    return searchSampleByCode(sampleCode).size() > 0;
+    return !searchSampleByCode(sampleCode).isEmpty();
   }
 
   @Override
@@ -1206,63 +1197,43 @@ public class OpenBisClient implements IOpenBisClient {
     sc.withCode().thatEquals(sampleCode);
     SampleFetchOptions fetchOptions = new SampleFetchOptions();
     fetchOptions.withSpace();
+
+    ensureLoggedIn();
     SearchResult<Sample> samples = v3.searchSamples(sessionToken, sc, fetchOptions);
     return samples.getObjects();
   }
 
   /**
-   * Compute status of project by checking status of the contained experiments
+   * Compute the status of a project by checking the status of the contained experiments.
    *
    * @param project the Project object
    * @return ratio of finished experiments in this project
    */
   @Override
   public float computeProjectStatus(Project project) {
-    float finishedExperiments = 0f;
-
     List<Experiment> experiments = this.getExperimentsOfProjectByCode(project.getCode());
-    float numberExperiments = experiments.size();
-
-    for (Experiment e : experiments) {
-      if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
-        if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
-          finishedExperiments += 1.0;
-        } ;
-      }
-    }
-    if (numberExperiments > 0) {
-      return finishedExperiments / experiments.size();
-    } else {
-      return 0f;
-    }
+    return computeProjectStatus(experiments);
   }
 
   /**
-   * Compute status of project by checking status of the contained experiments Note: There is no
-   * check whether the given experiments really belong to one project. You have to enusre that
-   * yourself
+   * Compute status of project by checking status of the contained experiments.
+   * <p>
+   * Note: There is no check whether the given experiments belong to one project.
    *
    * @param experiments list of experiments of a project.
    * @return ratio of finished experiments in this project
    */
   @Override
   public float computeProjectStatus(List<Experiment> experiments) {
-    float finishedExperiments = 0f;
-
-    float numberExperiments = experiments.size();
-
-    for (Experiment e : experiments) {
-      if (e.getProperties().keySet().contains("Q_CURRENT_STATUS")) {
-        if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
-          finishedExperiments += 1.0;
-        } ;
-      }
+    if (experiments.isEmpty()) {
+      return 0;
     }
-    if (numberExperiments > 0) {
-      return finishedExperiments / experiments.size();
-    } else {
-      return 0f;
-    }
+    int finishedExperiments = (int) experiments.stream()
+            .filter(e -> e.getProperties().containsKey("Q_CURRENT_STATUS"))
+            .filter(e -> e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED"))
+            .count();
+    return (float) finishedExperiments / experiments.size();
+
   }
 
   /**
@@ -1277,10 +1248,12 @@ public class OpenBisClient implements IOpenBisClient {
     criteria.withVocabulary().withCode().thatEquals(vocabularyCode);
 
     VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
+
+    ensureLoggedIn();
     SearchResult<VocabularyTerm> searchResult =
         v3.searchVocabularyTerms(sessionToken, criteria, options);
 
-    Map<String, String> res = new HashMap<String, String>();
+    Map<String, String> res = new HashMap<>();
     for (VocabularyTerm term : searchResult.getObjects()) {
       if (term.getLabel() != null && !term.getLabel().isEmpty()) {
         res.put(term.getLabel(), term.getCode());
@@ -1291,24 +1264,8 @@ public class OpenBisClient implements IOpenBisClient {
     return res;
   }
 
-  // public String translateVocabCode(String code, String vocabulary) {
-  // checklogin();
-  // IVocabularyTermId x = new VocabularyTermPermId(code, vocabulary);
-  // VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
-  //
-  // Map<IVocabularyTermId, VocabularyTerm> res =
-  // API.getVocabularyTerms(getActiveToken(), Arrays.asList(x), options);
-  // return res.get(x).getLabel();
-  // }
-  //
-  // public Map<String, String> getVocabLabelToCode(String vocabulary) {
-  // checklogin();
-  //
 
-  // }
-
-
-  @Override
+    @Override
   public Vocabulary getVocabulary(String vocabularyCode) {
     throw new NotImplementedException();
   }
@@ -1369,6 +1326,7 @@ public class OpenBisClient implements IOpenBisClient {
     for (Project project : projectList) {
       sc.withProject().withCode().thatEquals(project.getCode());
     }
+    ensureLoggedIn();
     SearchResult<Experiment> experiments =
         v3.searchExperiments(sessionToken, sc, fetchExperimentsCompletely());
 
@@ -1398,12 +1356,28 @@ public class OpenBisClient implements IOpenBisClient {
   /**
    * List all datasets for given sample identifiers
    *
-   * @param sampleIdentifier list of sample identifiers
+   * @param sampleIdentifiers list of sample identifiers
    * @return List of datasets
    */
   @Override
-  public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifier) {
-    throw new NotImplementedException();
+  public List<DataSet> listDataSetsForSamples(List<String> sampleIdentifiers) {
+
+    DataSetSearchCriteria criteria = new DataSetSearchCriteria();
+    criteria.withOrOperator();
+    for (String sampleId : sampleIdentifiers) {
+      criteria.withSample().withId().thatEquals(new SampleIdentifier(sampleId));
+    }
+    DataSetFetchOptions fetchOptions = new DataSetFetchOptions();
+    fetchOptions.withSample();
+    fetchOptions.withProperties();
+    fetchOptions.withPhysicalData();
+    fetchOptions.withLinkedData();
+    fetchOptions.withComponents();
+
+    ensureLoggedIn();
+    SearchResult<DataSet> result = v3.searchDataSets(this.sessionToken, criteria, fetchOptions);
+
+    return new ArrayList<>(result.getObjects());
   }
 
   /**
