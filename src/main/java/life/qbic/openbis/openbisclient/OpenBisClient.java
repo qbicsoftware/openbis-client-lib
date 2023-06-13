@@ -65,7 +65,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-
 import static java.util.Objects.requireNonNull;
 import static life.qbic.openbis.openbisclient.helper.OpenBisClientHelper.*;
 
@@ -1205,45 +1204,36 @@ public class OpenBisClient implements IOpenBisClient {
   }
 
   /**
-   * Compute status of project by checking status of the contained experiments
+   * Compute the status of a project by checking the status of the contained experiments.
    *
    * @param project the Project object
    * @return ratio of finished experiments in this project
    */
   @Override
   public float computeProjectStatus(Project project) {
-    float finishedExperiments = 0f;
-
     List<Experiment> experiments = this.getExperimentsOfProjectByCode(project.getCode());
     return computeProjectStatus(experiments);
   }
 
   /**
-   * Compute status of project by checking status of the contained experiments Note: There is no
-   * check whether the given experiments really belong to one project. You have to enusre that
-   * yourself
+   * Compute status of project by checking status of the contained experiments.
+   * <p>
+   * Note: There is no check whether the given experiments belong to one project.
    *
    * @param experiments list of experiments of a project.
    * @return ratio of finished experiments in this project
    */
   @Override
   public float computeProjectStatus(List<Experiment> experiments) {
-    float finishedExperiments = 0f;
-
-    float numberExperiments = experiments.size();
-
-    for (Experiment e : experiments) {
-      if (e.getProperties().containsKey("Q_CURRENT_STATUS")) {
-        if (e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED")) {
-          finishedExperiments += 1.0;
-        }
-      }
+    if (experiments.isEmpty()) {
+      return 0;
     }
-    if (numberExperiments > 0) {
-      return finishedExperiments / experiments.size();
-    } else {
-      return 0f;
-    }
+    int finishedExperiments = (int) experiments.stream()
+            .filter(e -> e.getProperties().containsKey("Q_CURRENT_STATUS"))
+            .filter(e -> e.getProperties().get("Q_CURRENT_STATUS").equals("FINISHED"))
+            .count();
+    return (float) finishedExperiments / experiments.size();
+
   }
 
   /**
