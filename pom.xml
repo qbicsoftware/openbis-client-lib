@@ -6,7 +6,7 @@
     <groupId>life.qbic</groupId>
     <artifactId>openbis-client-lib</artifactId>
     <packaging>jar</packaging>
-    <version>1.6.0-SNAPSHOT</version>
+    <version>1.6.0</version>
     <name>openBIS client library</name>
     <properties>
         <log4j.version>2.20.0</log4j.version>
